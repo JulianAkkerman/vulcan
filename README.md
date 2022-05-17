@@ -1,2 +1,2 @@
 # vulcan
- Visualizations for Understanding Language Corpora and (N)Models
+ Visualizations for Understanding Language Corpora and model predictioNs
