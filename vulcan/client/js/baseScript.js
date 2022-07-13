@@ -31,7 +31,12 @@ function create_canvas(width_percent, height_percent) {
     .attr("width", "98%")
     .attr("height", "100%")
                    .classed("svg-content-responsive", true)
-                    .style("background-color", '#eeeeee');
+                    .style("background-color", '#eeeeee')
+        .call(d3.zoom().on("zoom", function () {
+    d3.select(this).select("g").attr("transform", d3.event.transform).style('background-color', "000000")
+ }))
+        // .call(zoom)
+        .append("g");
 }
 
 
