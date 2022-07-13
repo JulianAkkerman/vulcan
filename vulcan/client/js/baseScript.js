@@ -33,6 +33,7 @@ function create_canvas(width_percent, height_percent) {
                    .classed("svg-content-responsive", true)
                     .style("background-color", '#eeeeee')
         .call(d3.zoom().on("zoom", function () {
+            // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
     d3.select(this).select("g").attr("transform", d3.event.transform).style('background-color', "000000")
  }))
         // .call(zoom)
