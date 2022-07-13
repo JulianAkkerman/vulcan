@@ -31,12 +31,12 @@ class Node {
 }
 
 
-function createNode(x, y, text, canvas) {
+function createNode(x, y, text, canvas, classname=NODE_CLASSNAME) {
     var node_position = [{ x: x, y: y }];
 
     var node_group = canvas.data(node_position).append("g")
         .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .attr("class", NODE_CLASSNAME)
+        .attr("class", classname)
 
     var rect_width = Node.get_hypothetical_node_width(text);
     var rect_height = 30;
@@ -51,7 +51,7 @@ function createNode(x, y, text, canvas) {
         .attr("fill", "white")
         .attr("stroke", "black")
         .attr("stroke-width", "2")
-        .attr("class", NODE_CLASSNAME)
+        .attr("class", classname)
 
 
     var text_object = node_group.append("text")
@@ -60,7 +60,7 @@ function createNode(x, y, text, canvas) {
         .attr("y", rect_height/2)
         .attr("dy", ".3em")
         .style("pointer-events", "none")
-        .attr("class", NODE_CLASSNAME)
+        .attr("class", classname)
         .text(text)
 
     // var nodeDragHandler = d3.drag()

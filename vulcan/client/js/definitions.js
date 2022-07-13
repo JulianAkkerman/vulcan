@@ -4,6 +4,8 @@ arrowWidth = 7
 refX = -1
 refY = 0
 
+visualization_types = ["STRING", "TREE", "GRAPH"]
+
 centerThickness = 5
 arrowPoints = [[0, 0],  //tip
             [-arrowLength, -arrowWidth/2],
