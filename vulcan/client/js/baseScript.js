@@ -70,9 +70,10 @@ sio.on('disconnect', () => {
 });
 
 
-sio.on("make_graph", (data) => {
-    remove_all_graphs()
-    createGraph(100, 100, data, canvas)
+sio.on("set_graph", (data) => {
+    let canvas = canvas_dict[data["canvas_name"]]
+    remove_graphs_from_canvas(canvas)
+    createGraph(20, 20, data["graph"], canvas)
 })
 
 sio.on("set_string", (data) => {
@@ -119,8 +120,8 @@ sio.on("set_corpus_length", (data) => {
     set_corpus_position()
 })
 
-function remove_all_graphs() {
-    d3.selectAll("."+NODE_CLASSNAME+", ."+BACKGROUND_CLASSNAME+", ."+EDGE_CLASSNAME).remove()
+function remove_graphs_from_canvas(canvas) {
+    canvas.selectAll("."+NODE_CLASSNAME+", ."+BACKGROUND_CLASSNAME+", ."+EDGE_CLASSNAME).remove()
 }
 
 function remove_strings_from_canvas(canvas) {

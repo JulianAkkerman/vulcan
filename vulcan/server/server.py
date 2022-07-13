@@ -45,6 +45,9 @@ class Server:
                 for corpus_slice in row:
                     if corpus_slice.visualization_type == VisualizationType.STRING:
                         self.send_string(corpus_slice.name, corpus_slice.instances[instance_id])
+                    elif corpus_slice.visualization_type == VisualizationType.TREE:
+                        # trees are just graphs without reentrancies
+                        self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id])
                     elif corpus_slice.visualization_type == VisualizationType.GRAPH:
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id])
 

@@ -1,5 +1,8 @@
 from typing import List, Dict
 
+from data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
+    AMRGraphInstanceReader
+from data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
 from data_handling.instance_readers.string_instance_reader import StringInstanceReader
 from data_handling.visualization_type import VisualizationType
 from collections import OrderedDict
@@ -65,6 +68,14 @@ def get_instance_reader_by_name(reader_name):
     """
     if reader_name == 'string':
         return StringInstanceReader()
+    elif reader_name == 'amtree':
+        return AMTreeInstanceReader()
+    elif reader_name == 'amtree_string':
+        return AMTreeStringInstanceReader()
+    elif reader_name == 'graph':
+        return AMRGraphInstanceReader()
+    elif reader_name == 'graph_string':
+        return AMRGraphStringInstanceReader()
 
 
 def read_data_alternatives(entry):

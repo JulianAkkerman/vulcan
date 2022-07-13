@@ -217,7 +217,7 @@ class Graph {
             .style("stroke", color)
             .style("stroke-width", 1.5)
             .style("fill", "none")
-            .attr("marker-end", marker(color))
+            .attr("marker-end", marker(color, canvas))
             .attr("d", d => this.getEdgePathFromData(d))
             .attr("class", EDGE_CLASSNAME)
     }

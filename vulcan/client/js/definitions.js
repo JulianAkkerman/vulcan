@@ -30,7 +30,7 @@ arrowPoints = [[0, 0],  //tip
 //     [-arrowLength*(frontSideLiftFactor+frontStrokeWidthFactor), arrowWidth/2],
 //     [-arrowLength*frontSideLiftFactor, arrowWidth/2]]
 
-function marker(color) {
+function marker(color, canvas) {
         let id = "arrowhead"+color.replace("#", "")
         canvas
             .append('marker')

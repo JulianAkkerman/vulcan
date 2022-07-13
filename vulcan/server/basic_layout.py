@@ -18,11 +18,12 @@ class BasicLayout:
                 self.layout.append(last_active_row)
             else:
                 last_active_row.append(slice)
-        self.layout.remove([])  # if last_active_row is still empty, we remove it
+        if [] in self.layout:
+            self.layout.remove([])  # if last_active_row is still empty, we remove it
 
 
-def get_slice_screen_width(slice: CorpusSlice) -> float:
-    if slice.visualization_type == VisualizationType.STRING:
+def get_slice_screen_width(corpus_slice: CorpusSlice) -> float:
+    if corpus_slice.visualization_type == VisualizationType.STRING:
         return 1.0
-    elif slice.visualization_type in [VisualizationType.TREE, VisualizationType.GRAPH] :
+    elif corpus_slice.visualization_type in [VisualizationType.TREE, VisualizationType.GRAPH]:
         return 0.3
