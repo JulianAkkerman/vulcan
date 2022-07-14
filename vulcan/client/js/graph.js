@@ -103,6 +103,18 @@ class Graph {
         return this.total_widths_dict[this.graph_as_dict.node_name]
     }
 
+    getHeight() {
+        return this.getBottomY() - this.box_position_dict[this.graph_as_dict.node_name].y
+    }
+
+    getBottomY() {
+        let allBottomYs = []
+        this.node_dict.keys.forEach(node_name => {
+            allBottomYs.push(this.box_position_dict[node_name].y + this.node_dict[node_name].getHeight())
+        })
+        return Math.max(...allBottomYs)
+    }
+
     draw_boundary_box(canvas, top_left_x, top_left_y) {
         const arr = Object.keys( this.box_position_dict )
             .map(key => this.box_position_dict[key].y + NODE_LEVEL_HEIGHT);

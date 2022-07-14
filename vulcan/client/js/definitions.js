@@ -1,13 +1,13 @@
 // define arrow shape
-arrowLength = 7
-arrowWidth = 7
-refX = -1
-refY = 0
+const arrowLength = 7
+const arrowWidth = 7
+const refX = -1
+const refY = 0
 
-visualization_types = ["STRING", "TREE", "GRAPH"]
+const visualization_types = ["STRING", "TREE", "GRAPH"]
 
-centerThickness = 5
-arrowPoints = [[0, 0],  //tip
+const centerThickness = 5
+const arrowPoints = [[0, 0],  //tip
             [-arrowLength, -arrowWidth/2],
             [-centerThickness, 0],
             [-arrowLength, arrowWidth/2],
