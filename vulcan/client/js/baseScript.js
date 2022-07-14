@@ -77,7 +77,6 @@ sio.on("set_graph", (data) => {
 })
 
 sio.on("set_string", (data) => {
-    console.log("set_string: " + data["canvas_name"] + ", " + data["tokens"].join(" "))
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
     new Strings(20, 20, data["tokens"], canvas)
@@ -107,12 +106,9 @@ sio.on("set_layout", (layout) => {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            console.log("registering canvas with name " + slice["name"])
             canvas_dict[slice["name"]] = create_canvas(99/row.length, height)
         })
     }
-    console.log("canvas dict")
-    console.log(canvas_dict)
 })
 
 sio.on("set_corpus_length", (data) => {

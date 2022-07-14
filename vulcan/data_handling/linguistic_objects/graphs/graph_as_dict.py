@@ -12,14 +12,16 @@ be sent as-is to javascript on the client side via socket-IO.
 ROOT_EDGE_LABEL = "ROOT"
 
 
-def create_root(node_name, node_label):
-    return create_node(node_name, node_label, ROOT_EDGE_LABEL)
+def create_root(node_name, node_label, label_type="STRING"):
+    return create_node(node_name, node_label, ROOT_EDGE_LABEL, label_type=label_type)
 
 
-def create_node(node_name, node_label, incoming_edge_label, is_reentrancy=False):
+def create_node(node_name, node_label, incoming_edge_label, is_reentrancy=False, label_type="STRING"):
     ret = dict()
     ret["node_name"] = node_name
     ret["node_label"] = node_label
+    if not is_reentrancy:
+        ret["label_type"] = label_type
     ret["incoming_edge"] = incoming_edge_label
     ret["is_reentrancy"] = is_reentrancy
     ret["child_nodes"] = []
@@ -30,8 +32,8 @@ def create_reentrancy(node_name, incoming_edge_label):
     return create_node(node_name, None, incoming_edge_label, is_reentrancy=True)
 
 
-def add_child(parent_node_as_dict, child_node_name, child_node_label, edge_label):
-    child = create_node(child_node_name, child_node_label, edge_label)
+def add_child(parent_node_as_dict, child_node_name, child_node_label, edge_label, child_label_type="STRING"):
+    child = create_node(child_node_name, child_node_label, edge_label, label_type=child_label_type)
     parent_node_as_dict["child_nodes"].append(child)
     return child
 

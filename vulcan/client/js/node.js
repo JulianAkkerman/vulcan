@@ -1,4 +1,5 @@
-NODE_CLASSNAME = "node"
+const NODE_CLASSNAME = "node"
+const GRAPH_LABEL_MARGIN = 20
 
 class Node {
     constructor(node_position, group, rectangle, content) {
@@ -6,6 +7,13 @@ class Node {
         this.group = group
         this.rectangle = rectangle
         this.content = content
+    }
+
+    translate(x, y) {
+        // this.group.attr("transform", "translate(" + x + "," + y + ")")
+        this.position.x = x
+        this.position.y = y
+        this.group.attr("transform", "translate(" + this.position.x + "," + this.position.y + ")")
     }
 
     getWidth() {
@@ -17,11 +25,7 @@ class Node {
     }
 
     getHeight() {
-        try {
-            return content.getHeight()
-        } catch (e) {
-            return 30
-        }
+        return this.content.getHeight()
     }
 
     getX() {
@@ -35,7 +39,7 @@ class Node {
 }
 
 
-function createNode(x, y, content_data, content_type, canvas, classname=NODE_CLASSNAME) {
+function createNode(x, y, content_data, content_type, canvas, is_bold, classname=NODE_CLASSNAME) {
     var node_position = [{ x: x, y: y }];
 
     let node_group = canvas.data(node_position).append("g")
@@ -44,17 +48,20 @@ function createNode(x, y, content_data, content_type, canvas, classname=NODE_CLA
 
     let content_object = create_node_content(content_data, content_type, node_group, classname)
 
+    let stroke_width = is_bold ? "4" : "2"
+
     let rect = node_group.append("rect")
         .attr("rx", 10)
         .attr("ry", 10)
         .attr("x", 0)
         .attr("y", 0)
-        .attr("width", rect_width)
-        .attr("height", rect_height)
+        .attr("width", content_object.getWidth())
+        .attr("height", content_object.getHeight())
         .attr("fill", "white")
         .attr("stroke", "black")
-        .attr("stroke-width", "2")
+        .attr("stroke-width", stroke_width)  // TODO mouseover unboldens this
         .attr("class", classname)
+        .lower()
 
     // var nodeDragHandler = d3.drag()
     //     .on('drag', nodeDragged);
@@ -79,8 +86,8 @@ function create_node_content(content_data, content_type, append_to_this_object, 
 
 
     if (content_type == "STRING") {
-        var rect_width = Node.get_hypothetical_node_width(text);
-        var rect_height = 30;
+        let rect_width = Node.get_hypothetical_node_width(content_data);
+        let rect_height = 30;
         let text_object = append_to_this_object.append("text")
             .attr("text-anchor", "middle")
             .attr("x", rect_width/2)
@@ -91,7 +98,8 @@ function create_node_content(content_data, content_type, append_to_this_object, 
             .text(content_data)
         return new NodeStringContent(text_object, rect_width, rect_height)
     } else if (content_type == "GRAPH" || content_type == "TREE") {
-        return createGraph(0, 0, content_data, append_to_this_object)
+        return createGraph(0, 0, content_data, append_to_this_object, false,
+            GRAPH_LABEL_MARGIN)
     }
 
 }

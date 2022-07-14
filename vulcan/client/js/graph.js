@@ -7,12 +7,17 @@ REENTRANT_EDGE_COLOR = "#7777FF"
 
 
 class Graph {
-    constructor(top_left_x, top_left_y, graph_as_dict, canvas) {
+    constructor(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0) {
+        this.margin = margin
         this.node_dict = {};
         this.box_position_dict = {};
         this.graph_as_dict = graph_as_dict
+        this.create_all_nodes(canvas)
         this.compute_node_positions(top_left_x, top_left_y)
-        this.draw_graph(canvas, top_left_x, top_left_y)
+        if (draw_boundary_box) {
+            this.draw_boundary_box(canvas, top_left_x, top_left_y)
+        }
+        this.draw_graph(canvas)
     }
 
     compute_node_positions(top_left_x, top_left_y) {
@@ -20,10 +25,8 @@ class Graph {
         this.set_positions_top_down(top_left_x, top_left_y)
     }
 
-    draw_graph(canvas, top_left_x, top_left_y) {
-        this.draw_boundary_box(canvas, top_left_x, top_left_y)
-        // canvas.append("circle").attr("cx", top_left_x).attr("cy", top_left_y).attr("r", 10) // circle at top left corner
-        this.create_and_draw_nodes(canvas)
+    draw_graph(canvas) {
+        this.shift_nodes_to_their_positions()
         this.drawEdges(canvas)
     }
 
@@ -49,7 +52,7 @@ class Graph {
                     return -NODE_BUFFER_WIDTH; // to compensate for the NODE_BUFFER_WIDTH we add for each child, could be cleaner
                 } else {
                     let width_here = child_widths.reduce((a, b) => a + b, 0) + NODE_BUFFER_WIDTH * (child_widths.length - 1);
-                    width_here = Math.max(width_here, Node.get_hypothetical_node_width(current_node.node_label))
+                    width_here = Math.max(width_here, this.node_dict[current_node.node_name].getWidth())
                     this.total_widths_dict[current_node.node_name] = width_here
                     return width_here
                 }
@@ -58,7 +61,7 @@ class Graph {
 
     set_positions_top_down(top_left_x, top_left_y) {
         let root_node_name = this.graph_as_dict.node_name
-        this.box_position_dict[root_node_name] = {x: top_left_x, y: top_left_y}
+        this.box_position_dict[root_node_name] = {x: top_left_x + this.margin, y: top_left_y + this.margin}
         // set values for all children
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
             if (!current_node.is_reentrancy) {
@@ -70,7 +73,7 @@ class Graph {
                         let child_width = this.total_widths_dict[child.node_name]
                         this.box_position_dict[child.node_name] = {
                             x: current_node_x + running_child_width_total, // left border position
-                            y: current_node_y + NODE_LEVEL_HEIGHT
+                            y: current_node_y + this.node_dict[current_node.node_name].getHeight() + NODE_BUFFER_WIDTH
                         }
                         running_child_width_total += child_width + NODE_BUFFER_WIDTH
                     }
@@ -79,15 +82,24 @@ class Graph {
         })
     }
 
-    create_and_draw_nodes(canvas) {
+    create_all_nodes(canvas) {
+        Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
+            if (!current_node.is_reentrancy) {
+                let label = current_node.node_label
+                let is_bold = current_node.node_name == this.graph_as_dict.node_name
+                let node_object = createNode(50, 50, label, current_node.label_type, canvas, is_bold)
+                this.node_dict[current_node.node_name] = node_object
+                this.registerNodeMouseoverNodeHighlighting(node_object)
+            }
+        })
+    }
+
+    shift_nodes_to_their_positions() {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
             if (!current_node.is_reentrancy) {
                 let y = this.box_position_dict[current_node.node_name].y
                 let x = this.get_centered_left_border_for_node(current_node)
-                let label = current_node.node_label
-                let node_object = createNode(x, y, label, canvas)
-                this.node_dict[current_node.node_name] = node_object
-                this.registerNodeMouseoverNodeHighlighting(node_object)
+                this.node_dict[current_node.node_name].translate(x,y)
             }
         })
     }
@@ -95,21 +107,21 @@ class Graph {
     get_centered_left_border_for_node(node_as_dict) {
         let left_box_border = this.box_position_dict[node_as_dict.node_name].x
         let box_width= this.total_widths_dict[node_as_dict.node_name]
-        let node_width = Node.get_hypothetical_node_width(node_as_dict.node_label)
+        let node_width = this.node_dict[node_as_dict.node_name].getWidth()
         return left_box_border + (box_width / 2) - (node_width / 2)
     }
 
     getWidth() {
-        return this.total_widths_dict[this.graph_as_dict.node_name]
+        return this.total_widths_dict[this.graph_as_dict.node_name] + 2 * this.margin
     }
 
     getHeight() {
-        return this.getBottomY() - this.box_position_dict[this.graph_as_dict.node_name].y
+        return this.getBottomY() - this.box_position_dict[this.graph_as_dict.node_name].y + 2 * this.margin
     }
 
     getBottomY() {
         let allBottomYs = []
-        this.node_dict.keys.forEach(node_name => {
+        Object.keys(this.node_dict).forEach(node_name => {
             allBottomYs.push(this.box_position_dict[node_name].y + this.node_dict[node_name].getHeight())
         })
         return Math.max(...allBottomYs)
@@ -117,7 +129,7 @@ class Graph {
 
     draw_boundary_box(canvas, top_left_x, top_left_y) {
         const arr = Object.keys( this.box_position_dict )
-            .map(key => this.box_position_dict[key].y + NODE_LEVEL_HEIGHT);
+            .map(key => this.box_position_dict[key].y + this.node_dict[key].getHeight());
         const height = Math.max.apply( null, arr ) - top_left_y;
         // draw white box around graph with NODE_BUFFER_WIDTH as margin
         canvas.append("rect")
@@ -127,6 +139,7 @@ class Graph {
             .attr("height",  height + 2 * NODE_BUFFER_WIDTH)
             .attr("fill", "white")
             .attr("class", BACKGROUND_CLASSNAME)
+            .lower()
         // inner box showing actual boundaries (no margin)
         // canvas.append("rect")
         //     .attr("x", top_left_x)
@@ -362,9 +375,9 @@ function create_alias() {
 }
 
 
-function createGraph(top_left_x, top_left_y, graph_as_dict, canvas) {
+function createGraph(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0) {
 
-    new Graph(top_left_x, top_left_y, graph_as_dict, canvas)
+    return new Graph(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box, margin)
 
 
 }

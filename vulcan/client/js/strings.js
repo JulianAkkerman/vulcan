@@ -5,8 +5,6 @@ TOKEN_DISTANCE = 10
 
 class Strings {
     constructor(top_left_x, top_left_y, tokens, canvas) {
-        console.log("creating string at " + top_left_x + " " + top_left_y)
-        console.log("canvas: " + canvas)
         this.top_left_x = top_left_x
         this.top_left_y = top_left_y
         this.tokens = []
@@ -23,7 +21,6 @@ class Strings {
     }
 
     create_token_node(token, x, canvas) {
-        console.log("creating token node at " + x + " " + this.top_left_y)
-        return createNode(x, this.top_left_y, token, canvas, TOKEN_CLASSNAME)
+        return createNode(x, this.top_left_y, token, "STRING", canvas, false, TOKEN_CLASSNAME)
     }
 }

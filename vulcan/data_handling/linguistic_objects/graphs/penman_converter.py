@@ -22,7 +22,6 @@ def from_penman_graph(penman_graph):
         explore_incoming_edges(node, penman_graph, agenda)
         process_attribute_edges(node, penman_graph, agenda)
 
-    print(agenda.get_result())
     return agenda.get_result()
 
 
