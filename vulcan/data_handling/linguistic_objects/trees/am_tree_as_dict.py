@@ -72,7 +72,7 @@ def alignments_from_amtree(amtree: AMSentence):
 
 
 def _set_alignments_recursively(amtree_as_dict, alignment_dict):
-    alignment_dict[amtree_as_dict["node_name"]] = {amtree_as_dict["aligned_index"]: 1}
+    alignment_dict[amtree_as_dict["node_name"]] = {amtree_as_dict["aligned_index"]: 1}  # random.uniform(0.0, 1.0)}
     for child in amtree_as_dict["child_nodes"]:
         _set_alignments_recursively(child, alignment_dict)
 

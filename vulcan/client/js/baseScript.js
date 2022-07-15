@@ -96,6 +96,8 @@ sio.on("set_string", (data) => {
     strings.registerNodesGlobally(data["canvas_name"])
 })
 
+var alignment_color_scale = d3.scaleLinear().range(['white','#0742ac']);  // just kinda experimenting
+
 sio.on("set_linker", (data) => {
     let canvas_name1 = data["name1"]
     let canvas_name2 = data["name2"]
@@ -113,7 +115,8 @@ sio.on("set_linker", (data) => {
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
-                aligned_node.rectangle.style("fill", "green")
+                console.log(score)
+                aligned_node.rectangle.style("fill", alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
             })
             .on("mouseout.align_"+linker_id, function() {
                 aligned_node.rectangle.style("fill", "white")
