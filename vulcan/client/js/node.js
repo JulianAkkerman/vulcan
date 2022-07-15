@@ -17,7 +17,7 @@ class Node {
     }
 
     getWidth() {
-        return this.rectangle.attr("width")
+        return this.content.getWidth()
     }
 
     static get_hypothetical_node_width(node_label) {

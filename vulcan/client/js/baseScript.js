@@ -99,7 +99,7 @@ sio.on("set_layout", (layout) => {
     layout.forEach(row => {
         let height_here = 0
         row.forEach(slice => {
-            let vis_type = visualization_types[slice["visualization_type"]]
+            let vis_type = slice["visualization_type"]
             if (vis_type == "STRING") {
                 height_here = Math.max(height_here, 10)
             } else {

@@ -102,6 +102,7 @@ def read_label_alternatives(corpus_entry):
                     ret_alt = copy.deepcopy(node_label_alternative)
                     instance_reader = get_instance_reader_by_name(ret_alt['format'])
                     ret_alt['label'] = instance_reader.convert_single_instance(ret_alt['label'])
+                    ret_alt['format'] = instance_reader.get_visualization_type()
                     ret_node.append(ret_alt)
                 ret_instance[node_name] = ret_node
             ret.append(ret_instance)

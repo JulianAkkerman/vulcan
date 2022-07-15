@@ -4,8 +4,6 @@ const arrowWidth = 7
 const refX = -1
 const refY = 0
 
-const visualization_types = ["STRING", "TREE", "GRAPH"]
-
 const centerThickness = 5
 const arrowPoints = [[0, 0],  //tip
             [-arrowLength, -arrowWidth/2],

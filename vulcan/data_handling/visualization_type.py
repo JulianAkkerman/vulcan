@@ -1,2 +1,4 @@
 class VisualizationType:
-    STRING, TREE, GRAPH = range(3)
+    STRING = "STRING"
+    TREE = "TREE"
+    GRAPH = "GRAPH"
