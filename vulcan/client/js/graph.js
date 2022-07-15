@@ -406,6 +406,13 @@ class Graph {
     }
 
 
+    registerNodesGlobally(canvas_name) {
+        let dict_here = {}
+        for (let node_name in this.node_dict) {
+            dict_here[node_name] = this.node_dict[node_name]
+        }
+        canvas_name_to_node_name_to_node_dict[canvas_name] = dict_here
+    }
 
 
 }

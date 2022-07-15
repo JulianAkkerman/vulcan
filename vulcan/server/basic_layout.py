@@ -4,7 +4,7 @@ from data_handling.visualization_type import VisualizationType
 
 class BasicLayout:
 
-    def __init__(self, slices):
+    def __init__(self, slices, linkers):
         self.layout = []
         last_active_row = []
         self.layout.append(last_active_row)
@@ -20,6 +20,7 @@ class BasicLayout:
                 last_active_row.append(slice)
         if [] in self.layout:
             self.layout.remove([])  # if last_active_row is still empty, we remove it
+        self.linkers = linkers
 
 
 def get_slice_screen_width(corpus_slice: CorpusSlice) -> float:

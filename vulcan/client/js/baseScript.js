@@ -8,6 +8,7 @@ console.log(d3)
 // let canvas3 = create_canvas(30, 10)
 
 const canvas_dict = {}
+const canvas_name_to_node_name_to_node_dict = {}
 
 let current_corpus_position = 0
 let corpus_length = 0
@@ -84,14 +85,40 @@ sio.on("set_graph", (data) => {
     if ("label_alternatives_by_node_name" in data) {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
-    new Graph(20, 20, data["graph"], canvas, true, 0, label_alternatives)
+    let graph = new Graph(20, 20, data["graph"], canvas, true, 0, label_alternatives)
+    graph.registerNodesGlobally(data["canvas_name"])
 })
 
 sio.on("set_string", (data) => {
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
-    new Strings(20, 20, data["tokens"], canvas)
+    let strings = new Strings(20, 20, data["tokens"], canvas)
+    strings.registerNodesGlobally(data["canvas_name"])
 })
+
+sio.on("set_linker", (data) => {
+    let canvas_name1 = data["name1"]
+    let canvas_name2 = data["name2"]
+    for (let node_name1 in data["scores"]) {
+        for (let node_name2 in data["scores"][node_name1]) {
+            let score = data["scores"][node_name1][node_name2]
+            let node1 = canvas_name_to_node_name_to_node_dict[canvas_name1][node_name1]
+            let node2 = canvas_name_to_node_name_to_node_dict[canvas_name2][node_name2]
+            console.log(node_name2)
+            register_mousover_alignment(node1, node2, score, canvas_name1+"_"+canvas_name2)
+            register_mousover_alignment(node2, node1, score, canvas_name1+"_"+canvas_name2)
+        }
+    }
+})
+
+function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
+    mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
+                aligned_node.rectangle.style("fill", "green")
+            })
+            .on("mouseout.align_"+linker_id, function() {
+                aligned_node.rectangle.style("fill", "white")
+            })
+}
 
 sio.on("set_layout", (layout) => {
     corpus_length = layout[0][0].length

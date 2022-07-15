@@ -53,6 +53,8 @@ class Server:
                     elif corpus_slice.visualization_type == VisualizationType.GRAPH:
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
                                         label_alternatives_by_node_name)
+            for linker in layout.linkers:
+                self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
 
     def start(self):
         wsgi.server(eventlet.listen(('localhost', 5050)), self.app)
@@ -71,6 +73,9 @@ class Server:
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         self.sio.emit('set_graph', dict_to_sent)
+
+    def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):
+        self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores})
 
 
 def make_layout_sendable(layout: BasicLayout):

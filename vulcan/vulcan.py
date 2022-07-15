@@ -1,6 +1,7 @@
 import penman
 
-from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_random_label_alternatives
+from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_random_label_alternatives, \
+    alignments_from_amtree
 from server.basic_layout import BasicLayout
 from server.server import Server
 from data_handling.data_corpus import from_dict_list
@@ -19,7 +20,7 @@ if __name__ == "__main__":
             graph_string = am_sentence.attributes["original_graph_string"]
             graphs.append(graph_string)
             amtrees.append(am_sentence)
-            sentences.append(" ".join([entry.token for entry in am_sentence.words]))
+            sentences.append([entry.token for entry in am_sentence.words])
 
 
     input_dicts = [
@@ -40,15 +41,23 @@ if __name__ == "__main__":
             "type": "data",
             "name": "sentences",
             "instances": sentences,
-            "format": "string"
+            "format": "tokenized_string"
         },
+        {
+            "type": "linker",
+            "name1": "amtrees",
+            "name2": "sentences",
+            "scores": [alignments_from_amtree(amtree) for amtree in amtrees]
+        }
     ]
+
+    print(input_dicts[3]["scores"])
 
     data_corpus = from_dict_list(input_dicts)
 
     print(data_corpus.slices["amtrees"].instances[0])
 
-    layout = BasicLayout(data_corpus.slices.values())
+    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers)
 
     print(layout.layout)
 

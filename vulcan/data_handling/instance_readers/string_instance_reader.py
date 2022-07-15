@@ -15,6 +15,18 @@ class StringInstanceReader(InstanceReader):
         return VisualizationType.STRING
 
 
+class TokenizedStringInstanceReader(InstanceReader):
+    """
+    Expects as input a list of strings, i.e. an already tokenized sentence
+    """
+
+    def convert_single_instance(self, instance):
+        return instance
+
+    def get_visualization_type(self):
+        return VisualizationType.STRING
+
+
 class TokenInstanceReader(InstanceReader):
     """
     InstanceReader that treats its input as a single token (as opposed to a sequence of tokens, as in the

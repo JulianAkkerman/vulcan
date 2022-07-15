@@ -37,6 +37,7 @@ def _from_amtree_entry(entry, entry_id, amtree, address, parent_in_result, all_a
         result = create_root(address, node_label, label_type="GRAPH")
     else:
         result = add_child(parent_in_result, address, node_label, entry.label, child_label_type="GRAPH")
+    result["aligned_index"] = entry_id - 1  # IDs in AMSentence are 1-based
     children_in_amtree = []
     for i, potential_child in enumerate(amtree):
         if potential_child.head == entry_id:
@@ -55,6 +56,25 @@ def get_graph_string_from_node_label(fragment, lexlabel):
     node_label = fragment.replace("--LEX--", lexlabel)
     node_label = node_label.replace("<root>", "")
     return SOURCE_PATTERN.sub(r" / \g<source>", node_label)
+
+
+def alignments_from_amtree(amtree: AMSentence):
+    """
+    dict maps address in am tree to index in sentence to score. Score is 1 for aligned node/token pairs, and not
+    given (therefore assumed 0) for all others.
+    :param amtree:
+    :return:
+    """
+    amtree_as_dict, _ = from_amtree(amtree)
+    ret = {}
+    _set_alignments_recursively(amtree_as_dict, ret)
+    return ret
+
+
+def _set_alignments_recursively(amtree_as_dict, alignment_dict):
+    alignment_dict[amtree_as_dict["node_name"]] = {amtree_as_dict["aligned_index"]: 1}
+    for child in amtree_as_dict["child_nodes"]:
+        _set_alignments_recursively(child, alignment_dict)
 
 
 def generate_random_label_alternatives(amtree: AMSentence):

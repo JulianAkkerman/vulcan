@@ -4,7 +4,8 @@ import copy
 from data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
 from data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
-from data_handling.instance_readers.string_instance_reader import StringInstanceReader
+from data_handling.instance_readers.string_instance_reader import StringInstanceReader, TokenInstanceReader, \
+    TokenizedStringInstanceReader
 from data_handling.visualization_type import VisualizationType
 from collections import OrderedDict
 
@@ -14,12 +15,16 @@ class DataCorpus:
     def __init__(self):
         self.size = None
         self.slices = OrderedDict()
+        self.linkers = []
 
     def add_slice(self, name, instances, visualization_type, label_alternatives=None):
         """
         Add a slice of data to the corpus.
         """
         self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives)
+
+    def add_linker(self, linker):
+        self.linkers.append(linker)
 
 
 def from_dict_list(data: List[Dict]) -> DataCorpus:
@@ -55,7 +60,8 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
             label_alternatives = read_label_alternatives(entry)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives)
         elif entry_type == 'linker':
-            pass
+            # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
+            data_corpus.add_linker(entry)
         else:
             raise ValueError(f"Error when creating DataCorpus from dict list: unknown entry type '{entry_type}'")
     return data_corpus
@@ -69,6 +75,10 @@ def get_instance_reader_by_name(reader_name):
     """
     if reader_name == 'string':
         return StringInstanceReader()
+    elif reader_name == 'token':
+        return TokenInstanceReader()
+    elif reader_name == 'tokenized_string':
+        return TokenizedStringInstanceReader()
     elif reader_name == 'amtree':
         return AMTreeInstanceReader()
     elif reader_name == 'amtree_string':
