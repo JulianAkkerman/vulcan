@@ -9,8 +9,8 @@ class AMTreeInstanceReader(InstanceReader):
     list internally.
     """
 
-    def convert_instances(self, instances):
-        return [from_amtree(instance) for instance in instances]
+    def convert_single_instance(self, instance):
+        return from_amtree(instance)[0]
 
     def get_visualization_type(self):
         return VisualizationType.TREE
@@ -22,8 +22,8 @@ class AMTreeStringInstanceReader(InstanceReader):
     list internally.
     """
 
-    def convert_instances(self, instances):
-        return [from_string(instance) for instance in instances]
+    def convert_single_instance(self, instance):
+        return from_string(instance)[0]
 
     def get_visualization_type(self):
         return VisualizationType.TREE

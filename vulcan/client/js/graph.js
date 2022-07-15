@@ -7,17 +7,21 @@ REENTRANT_EDGE_COLOR = "#7777FF"
 
 
 class Graph {
-    constructor(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0) {
+
+    constructor(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0,
+                node_label_alternatives_by_node_name=null) {
         this.margin = margin
         this.node_dict = {};
         this.box_position_dict = {};
         this.graph_as_dict = graph_as_dict
-        this.create_all_nodes(canvas)
+        this.canvas = canvas
+        this.node_label_alternatives_by_node_name = node_label_alternatives_by_node_name
+        this.create_all_nodes()
         this.compute_node_positions(top_left_x, top_left_y)
         if (draw_boundary_box) {
-            this.draw_boundary_box(canvas, top_left_x, top_left_y)
+            this.draw_boundary_box(top_left_x, top_left_y)
         }
-        this.draw_graph(canvas)
+        this.draw_graph()
     }
 
     compute_node_positions(top_left_x, top_left_y) {
@@ -25,9 +29,9 @@ class Graph {
         this.set_positions_top_down(top_left_x, top_left_y)
     }
 
-    draw_graph(canvas) {
+    draw_graph() {
         this.shift_nodes_to_their_positions()
-        this.drawEdges(canvas)
+        this.drawEdges()
     }
 
     static visit_graph_as_dict_bottom_up(subgraph_as_dict, visitor) {
@@ -82,14 +86,18 @@ class Graph {
         })
     }
 
-    create_all_nodes(canvas) {
+    create_all_nodes() {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
             if (!current_node.is_reentrancy) {
                 let label = current_node.node_label
                 let is_bold = current_node.node_name == this.graph_as_dict.node_name
-                let node_object = createNode(50, 50, label, current_node.label_type, canvas, is_bold)
+                let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold)
                 this.node_dict[current_node.node_name] = node_object
                 this.registerNodeMouseoverNodeHighlighting(node_object)
+                if (this.node_label_alternatives_by_node_name != null) {
+                    this.registerNodeAlternativeMouseover(node_object,
+                        this.node_label_alternatives_by_node_name[current_node.node_name])
+                }
             }
         })
     }
@@ -127,12 +135,12 @@ class Graph {
         return Math.max(...allBottomYs)
     }
 
-    draw_boundary_box(canvas, top_left_x, top_left_y) {
+    draw_boundary_box(top_left_x, top_left_y) {
         const arr = Object.keys( this.box_position_dict )
             .map(key => this.box_position_dict[key].y + this.node_dict[key].getHeight());
         const height = Math.max.apply( null, arr ) - top_left_y;
         // draw white box around graph with NODE_BUFFER_WIDTH as margin
-        canvas.append("rect")
+        this.canvas.append("rect")
             .attr("x", top_left_x - NODE_BUFFER_WIDTH)
             .attr("y", top_left_y - NODE_BUFFER_WIDTH)
             .attr("width", this.total_widths_dict[this.graph_as_dict.node_name] + 2 * NODE_BUFFER_WIDTH)
@@ -141,7 +149,7 @@ class Graph {
             .attr("class", BACKGROUND_CLASSNAME)
             .lower()
         // inner box showing actual boundaries (no margin)
-        // canvas.append("rect")
+        // this.canvas.append("rect")
         //     .attr("x", top_left_x)
         //     .attr("y", top_left_y)
         //     .attr("width", this.total_widths_dict[this.graph_as_dict.node_name])
@@ -149,7 +157,7 @@ class Graph {
         //     .attr("fill", '#eeeeee')
     }
 
-    drawEdges(canvas) {
+    drawEdges() {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, currentNode => {
             currentNode.child_nodes.forEach(child => {
                 let edge_position_data = {
@@ -160,8 +168,8 @@ class Graph {
                     parentBoxWidth: this.total_widths_dict[currentNode.node_name],
                     childBoxWidth: this.total_widths_dict[child.node_name]
                 }
-                let edge_object = this.draw_edge_from_data(canvas, edge_position_data);
-                let edge_label_object = this.draw_edge_label_from_data(canvas, edge_position_data);
+                let edge_object = this.draw_edge_from_data(edge_position_data);
+                let edge_label_object = this.draw_edge_label_from_data(edge_position_data);
                 this.registerEdgeMouseover(edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[currentNode.node_name], edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[child.node_name], edge_object, edge_label_object)
@@ -169,9 +177,9 @@ class Graph {
         })
     }
 
-    draw_edge_label_from_data(canvas, edge_position_data) {
+    draw_edge_label_from_data(edge_position_data) {
         let color = edge_position_data.is_reentrancy ? REENTRANT_EDGE_COLOR : EDGE_COLOR
-        return canvas.append("text").data([edge_position_data])
+        return this.canvas.append("text").data([edge_position_data])
             .text(d => d.edge_label)
             .attr("x", d => this.getEdgeLabelXFromData(d))
             .attr("y", d => this.getEdgeLabelYFromData(d))
@@ -235,14 +243,14 @@ class Graph {
         return baseY + yShift
     }
 
-    draw_edge_from_data(canvas, edge_position_data, ) {
+    draw_edge_from_data(edge_position_data) {
         let color = edge_position_data.is_reentrancy ? REENTRANT_EDGE_COLOR : EDGE_COLOR
-        return canvas.append("path").data([edge_position_data])
+        return this.canvas.append("path").data([edge_position_data])
             .attr("shape-rendering", "geometricPrecision")
             .style("stroke", color)
             .style("stroke-width", 1.5)
             .style("fill", "none")
-            .attr("marker-end", marker(color, canvas))
+            .attr("marker-end", marker(color, this.canvas))
             .attr("d", d => this.getEdgePathFromData(d))
             .attr("class", EDGE_CLASSNAME)
     }
@@ -266,12 +274,46 @@ class Graph {
     }
 
     registerNodeHighlightingOnObjectMouseover(object, node_object) {
+        let current_stroke_width = parseInt(node_object.rectangle.style("stroke-width"))
+        let bold_stroke_width = current_stroke_width + 2
         object.on("mouseover", function() {
-                node_object.rectangle.style("stroke-width", 4)
+                node_object.rectangle.style("stroke-width", bold_stroke_width)
             })
             .on("mouseout", function() {
-                node_object.rectangle.style("stroke-width", 2)
+                node_object.rectangle.style("stroke-width", current_stroke_width)
             })
+    }
+
+    registerNodeAlternativeMouseover(node_object, node_label_alternatives) {
+        let graph_object = this
+        node_object.rectangle.on("mouseover.node_alternative", function() {
+                current_mouseover_node = node_object
+                current_mouseover_canvas = graph_object.canvas
+                current_mouseover_label_alternatives = node_label_alternatives
+            // check if alt key is currently pressed
+                if (d3.event.ctrlKey) {
+                    show_label_alternatives(node_object, node_label_alternatives, graph_object.canvas)
+                }
+            })
+            .on("mouseout.node_alternative", function() {
+                current_mouseover_node = null
+                current_mouseover_canvas = null
+                current_mouseover_label_alternatives = null
+                if (d3.event.ctrlKey) {
+                    hide_label_alternatives(graph_object.canvas)
+                }
+            })
+        // this below does not seem to be working
+            // .on("keydown.node_alternative", function() {
+            //     if (d3.event.keyCode == 18) {
+            //         show_label_alternatives(node_object, null, graph_object.canvas)
+            //     }
+            // })
+            // .on("keyup.node_alternative", function() {
+            //     if (d3.event.keyCode == 18) {
+            //         hide_label_alternatives(graph_object.canvas)
+            //     }
+            // })
     }
 
 
@@ -372,12 +414,4 @@ let alias = 0
 function create_alias() {
     alias += 1
     return alias
-}
-
-
-function createGraph(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0) {
-
-    return new Graph(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box, margin)
-
-
 }

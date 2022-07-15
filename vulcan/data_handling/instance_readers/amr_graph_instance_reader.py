@@ -9,8 +9,8 @@ class AMRGraphInstanceReader(InstanceReader):
     InstanceReader for AMR graphs. Specifically, expects the instances to be in the graph format of the penman library.
     """
 
-    def convert_instances(self, instances):
-        return [from_penman_graph(instance) for instance in instances]
+    def convert_single_instance(self, instance):
+        return from_penman_graph(instance)
 
     def get_visualization_type(self):
         return VisualizationType.GRAPH
@@ -22,8 +22,8 @@ class AMRGraphStringInstanceReader(InstanceReader):
     would occur in the AMR corpus.
     """
 
-    def convert_instances(self, instances):
-        return [from_penman_graph(decode(instance)) for instance in instances]
+    def convert_single_instance(self, instance):
+        return from_penman_graph(decode(instance))
 
     def get_visualization_type(self):
         return VisualizationType.TREE

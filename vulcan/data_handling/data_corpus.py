@@ -1,4 +1,5 @@
 from typing import List, Dict
+import copy
 
 from data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
@@ -51,7 +52,7 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
             instance_reader = get_instance_reader_by_name(input_format)
             instances = instance_reader.convert_instances(instances)
 
-            label_alternatives = read_data_alternatives(entry)
+            label_alternatives = read_label_alternatives(entry)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives)
         elif entry_type == 'linker':
             pass
@@ -78,8 +79,47 @@ def get_instance_reader_by_name(reader_name):
         return AMRGraphStringInstanceReader()
 
 
-def read_data_alternatives(entry):
-    return None
+def read_label_alternatives(corpus_entry):
+    """
+    Creates a copy of the 'label_alternatives' entry in corpus_entry, where each label alternative has been
+    processed by the appropriate InstanceReader.
+    :param corpus_entry: An input corpus entry of type 'data'.
+    :return: That created copy
+    """
+    if 'label_alternatives' in corpus_entry:
+        label_alternatives = corpus_entry['label_alternatives']
+        check_is_list(label_alternatives)
+        ret = []
+        for label_alternative_instance in label_alternatives:
+            check_is_dict(label_alternative_instance)
+            ret_instance = {}
+            for node_name, node_label_alternatives in label_alternative_instance.items():
+                ret_node = []
+                check_is_list(node_label_alternatives)
+                for node_label_alternative in node_label_alternatives:
+                    check_is_dict(node_label_alternative)
+
+                    ret_alt = copy.deepcopy(node_label_alternative)
+                    instance_reader = get_instance_reader_by_name(ret_alt['format'])
+                    ret_alt['label'] = instance_reader.convert_single_instance(ret_alt['label'])
+                    ret_node.append(ret_alt)
+                ret_instance[node_name] = ret_node
+            ret.append(ret_instance)
+        return ret
+    else:
+        return None
+
+
+def check_is_dict(object):
+    if not isinstance(object, dict):
+        raise ValueError(f"Error: object must be a dict, "
+                         f"but was {type(object)}")
+
+
+def check_is_list(object):
+    if not isinstance(object, list):
+        raise ValueError(f"Error: object must be a list, "
+                         f"but was {type(object)}")
 
 
 class CorpusSlice:

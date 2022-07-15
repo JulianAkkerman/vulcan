@@ -59,7 +59,7 @@ function createNode(x, y, content_data, content_type, canvas, is_bold, classname
         .attr("height", content_object.getHeight())
         .attr("fill", "white")
         .attr("stroke", "black")
-        .attr("stroke-width", stroke_width)  // TODO mouseover unboldens this
+        .attr("stroke-width", stroke_width)
         .attr("class", classname)
         .lower()
 
@@ -98,7 +98,7 @@ function create_node_content(content_data, content_type, append_to_this_object, 
             .text(content_data)
         return new NodeStringContent(text_object, rect_width, rect_height)
     } else if (content_type == "GRAPH" || content_type == "TREE") {
-        return createGraph(0, 0, content_data, append_to_this_object, false,
+        return new Graph(0, 0, content_data, append_to_this_object, false,
             GRAPH_LABEL_MARGIN)
     }
 

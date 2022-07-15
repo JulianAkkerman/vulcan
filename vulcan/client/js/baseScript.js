@@ -17,6 +17,10 @@ document.body.clientWidth;
 const window_height = window.innerHeight|| document.documentElement.clientHeight||
 document.body.clientHeight;
 
+var current_mouseover_node = null
+var current_mouseover_canvas = null
+var current_mouseover_label_alternatives = null
+
 function create_canvas(width_percent, height_percent) {
     let canvas_width = width_percent*window_width/100
     let canvas_height = canvas_width * height_percent/100
@@ -71,9 +75,16 @@ sio.on('disconnect', () => {
 
 
 sio.on("set_graph", (data) => {
+    console.log("set_graph")
+    console.log(data)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_graphs_from_canvas(canvas)
-    createGraph(20, 20, data["graph"], canvas)
+    let label_alternatives = null
+    // check if "label_alternatives_by_nodename" is a key in the dictionary
+    if ("label_alternatives_by_node_name" in data) {
+        label_alternatives = data["label_alternatives_by_node_name"]
+    }
+    new Graph(20, 20, data["graph"], canvas, true, 0, label_alternatives)
 })
 
 sio.on("set_string", (data) => {
@@ -127,3 +138,23 @@ function remove_strings_from_canvas(canvas) {
 function set_corpus_position() {
     d3.select("#corpusPositionText").text((current_corpus_position+1)+"/"+corpus_length)
 }
+
+d3.select("body").on("keydown", function () {
+    // keyCode of alt key is 18
+    if (d3.event.keyCode == 17) {
+        if (current_mouseover_node != null) {
+            show_label_alternatives(current_mouseover_node,
+                current_mouseover_label_alternatives,
+                current_mouseover_canvas)
+        }
+    }
+});
+
+d3.select("body").on("keyup", function () {
+    // keyCode of alt key is 18
+    if (d3.event.keyCode == 17) {
+        if (current_mouseover_node != null) {
+            hide_label_alternatives(current_mouseover_canvas)
+        }
+    }
+});
