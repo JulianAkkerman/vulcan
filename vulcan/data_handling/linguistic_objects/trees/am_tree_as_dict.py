@@ -72,7 +72,8 @@ def get_graph_string_from_node_label(fragment, lexlabel):
 def alignments_from_amtree(amtree: AMSentence):
     """
     dict maps address in am tree to index in sentence to score. Score is 1 for aligned node/token pairs, and not
-    given (therefore assumed 0) for all others.
+    given (therefore assumed 0) for all others. This can be simplified now that am trees use
+      indices from sentence as node names. But the current implementation is simple enough to keep it like this.
     :param amtree:
     :return:
     """

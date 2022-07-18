@@ -58,10 +58,24 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
             instances = instance_reader.convert_instances(instances)
 
             label_alternatives = read_label_alternatives(entry)
+            # data_corpus.size is now always defined here
+            if label_alternatives is not None and data_corpus.size != len(label_alternatives):
+                raise ValueError(f"Error when creating DataCorpus from dict list: number of label alternative entries "
+                                 f"for {name} ({len(label_alternatives)}) does not match previously seen data.")
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives)
         elif entry_type == 'linker':
             # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
             data_corpus.add_linker(entry)
+            if data_corpus.size:
+                if data_corpus.size != len(entry['scores']):
+                    raise ValueError(f"Error when creating DataCorpus from dict list: number of instances for"
+                                     f" linker \"{entry['name1']}\"--\"{entry['name2']}\" ({len(entry['scores'])})"
+                                     f"does not match previously seen data.")
+            else:
+                data_corpus.size = len(entry['scores'])
+                print(f"Retreived DataCorpus size from 'data' entry \"{entry['name1']}\"--\"{entry['name2']}\":"
+                      f" {data_corpus.size} instances")
+
         else:
             raise ValueError(f"Error when creating DataCorpus from dict list: unknown entry type '{entry_type}'")
     return data_corpus

@@ -16,7 +16,7 @@ function show_label_alternatives(node_object, label_alternatives, canvas) {
         let label_alternative = label_alternatives[i]
         let new_node = createNode(current_x, y, label_alternative['label'], label_alternative['format'], canvas, false, NODE_ALTERNATIVE_CLASSNAME)
         all_new_nodes.push(new_node)
-        current_x += new_node.getWidth() + 10
+        current_x += Math.max(60, new_node.getWidth()) + 10
         max_height = Math.max(max_height, new_node.getHeight())
     }
 

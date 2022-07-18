@@ -76,12 +76,9 @@ sio.on('disconnect', () => {
 
 
 sio.on("set_graph", (data) => {
-    console.log("set_graph")
-    console.log(data)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_graphs_from_canvas(canvas)
     let label_alternatives = null
-    // check if "label_alternatives_by_nodename" is a key in the dictionary
     if ("label_alternatives_by_node_name" in data) {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
@@ -92,7 +89,11 @@ sio.on("set_graph", (data) => {
 sio.on("set_string", (data) => {
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
-    let strings = new Strings(20, 20, data["tokens"], canvas)
+    let label_alternatives = null
+    if ("label_alternatives_by_node_name" in data) {
+        label_alternatives = data["label_alternatives_by_node_name"]
+    }
+    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives)
     strings.registerNodesGlobally(data["canvas_name"])
 })
 
@@ -106,7 +107,6 @@ sio.on("set_linker", (data) => {
             let score = data["scores"][node_name1][node_name2]
             let node1 = canvas_name_to_node_name_to_node_dict[canvas_name1][node_name1]
             let node2 = canvas_name_to_node_name_to_node_dict[canvas_name2][node_name2]
-            console.log(node_name2)
             register_mousover_alignment(node1, node2, score, canvas_name1+"_"+canvas_name2)
             register_mousover_alignment(node2, node1, score, canvas_name1+"_"+canvas_name2)
         }
@@ -115,7 +115,6 @@ sio.on("set_linker", (data) => {
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
-                console.log(score)
                 aligned_node.rectangle.style("fill", alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
             })
             .on("mouseout.align_"+linker_id, function() {

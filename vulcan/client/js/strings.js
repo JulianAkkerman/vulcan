@@ -4,25 +4,30 @@ TOKEN_DISTANCE = 10
 
 
 class Strings {
-    constructor(top_left_x, top_left_y, tokens, canvas) {
+    constructor(top_left_x, top_left_y, tokens, canvas, label_alternatives) {
         this.top_left_x = top_left_x
         this.top_left_y = top_left_y
         this.tokens = []
-        this.create_tokens(tokens, canvas)
+        this.canvas = canvas
+        this.label_alternatives = label_alternatives
+        this.create_tokens(tokens)
     }
 
-    create_tokens(tokens, canvas) {
+    create_tokens(tokens) {
         let current_x = this.top_left_x
         for (let i = 0; i < tokens.length; i++) {
-            let token_here = this.create_token_node(tokens[i], current_x, canvas)
+            let token_here = this.create_token_node(tokens[i], current_x, i)
             current_x = current_x + parseFloat(token_here.getWidth()) + TOKEN_DISTANCE
             this.tokens.push(token_here)
         }
     }
 
-    create_token_node(token, x, canvas) {
-        let node = createNode(x, this.top_left_y, token, "STRING", canvas, false, TOKEN_CLASSNAME)
+    create_token_node(token, pos_x, i) {
+        let node = createNode(pos_x, this.top_left_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
         this.register_mouseover_highlighting(node)
+        if (this.label_alternatives != null) {
+            this.registerNodeAlternativeMouseover(node, this.label_alternatives[i])
+        }
         return node
     }
 
@@ -43,5 +48,38 @@ class Strings {
             dict_here[i] = this.tokens[i]
         }
         canvas_name_to_node_name_to_node_dict[canvas_name] = dict_here
+    }
+
+    registerNodeAlternativeMouseover(node_object, node_label_alternatives) {
+        let strings_object = this
+
+        node_object.rectangle.on("mouseover.node_alternative", function() {
+                current_mouseover_node = node_object
+                current_mouseover_canvas = strings_object.canvas
+                current_mouseover_label_alternatives = node_label_alternatives
+            // check if alt key is currently pressed
+                if (d3.event.ctrlKey) {
+                    show_label_alternatives(node_object, node_label_alternatives, strings_object.canvas)
+                }
+            })
+            .on("mouseout.node_alternative", function() {
+                current_mouseover_node = null
+                current_mouseover_canvas = null
+                current_mouseover_label_alternatives = null
+                if (d3.event.ctrlKey) {
+                    hide_label_alternatives(strings_object.canvas)
+                }
+            })
+        // this below does not seem to be working
+            // .on("keydown.node_alternative", function() {
+            //     if (d3.event.keyCode == 18) {
+            //         show_label_alternatives(node_object, null, graph_object.canvas)
+            //     }
+            // })
+            // .on("keyup.node_alternative", function() {
+            //     if (d3.event.keyCode == 18) {
+            //         hide_label_alternatives(graph_object.canvas)
+            //     }
+            // })
     }
 }
