@@ -1,3 +1,5 @@
+import pickle
+
 import penman
 
 from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_random_label_alternatives, \
@@ -7,12 +9,25 @@ from server.server import Server
 from data_handling.data_corpus import from_dict_list
 from am_parser.graph_dependency_parser.components.dataset_readers.amconll_tools import parse_amconll
 
-if __name__ == "__main__":
 
+def main():
+    with open("../../am-text-generation/models/analysis/base/vulcan_0.pickle", "rb") as f:
+        input_dicts = pickle.load(f)
+
+    data_corpus = from_dict_list(input_dicts)
+
+    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers)
+
+    print(layout.layout)
+
+    server = Server(layout)
+    server.start()  # at this point, the server is running on this thread, and nothing below will be executed
+
+
+def make_graph_amtree_example():
     graphs = []
     amtrees = []
     sentences = []
-
     with open("../../../data/Edinburgh/amr3.0leamr_and_seq2seq/unanonymized/subset/full.amconll") as f:
         am_sentences = parse_amconll(f)
 
@@ -21,8 +36,6 @@ if __name__ == "__main__":
             graphs.append(graph_string)
             amtrees.append(am_sentence)
             sentences.append([entry.token for entry in am_sentence.words])
-
-
     input_dicts = [
         {
             "type": "data",
@@ -51,19 +64,8 @@ if __name__ == "__main__":
         }
     ]
 
-    print(input_dicts[3]["scores"])
-
-    data_corpus = from_dict_list(input_dicts)
-
-    print(data_corpus.slices["amtrees"].instances[0])
-
-    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers)
-
-    print(layout.layout)
-
-    server = Server(layout)
-    server.start()  # at this point, the server is running on this thread, and nothing below will be executed
+    return input_dicts
 
 
-
-
+if __name__ == '__main__':
+    main()
