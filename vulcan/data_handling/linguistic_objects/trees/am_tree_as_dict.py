@@ -26,17 +26,28 @@ def from_amtree(amtree: AMSentence):
         raise Exception("No root entry found in AMSentence")
     address = ""
     all_addresses = []
-    return _from_amtree_entry(root_entry, root_id, amtree, address, None, all_addresses), all_addresses
+    return _from_amtree_entry(root_entry, root_id, amtree, address, None, all_addresses)
 
 
 def _from_amtree_entry(entry, entry_id, amtree, address, parent_in_result, all_addresses):
+    """
+    recursively builds the amtree below the given entry bottom up.
+    Building the addresses is no longer necessary, but keeping it for now in case it becomes useful later.
+    :param entry:
+    :param entry_id:
+    :param amtree:
+    :param address:
+    :param parent_in_result:
+    :param all_addresses:
+    :return:
+    """
     all_addresses.append(address)
     node_label = get_graph_string_from_node_label(entry.fragment, entry.lexlabel)
     node_label = from_penman_graph(decode(node_label))
     if parent_in_result is None:
-        result = create_root(address, node_label, label_type="GRAPH")
+        result = create_root(str(entry_id), node_label, label_type="GRAPH")
     else:
-        result = add_child(parent_in_result, address, node_label, entry.label, child_label_type="GRAPH")
+        result = add_child(parent_in_result, str(entry_id), node_label, entry.label, child_label_type="GRAPH")
     result["aligned_index"] = entry_id - 1  # IDs in AMSentence are 1-based
     children_in_amtree = []
     for i, potential_child in enumerate(amtree):
@@ -65,7 +76,7 @@ def alignments_from_amtree(amtree: AMSentence):
     :param amtree:
     :return:
     """
-    amtree_as_dict, _ = from_amtree(amtree)
+    amtree_as_dict = from_amtree(amtree)
     ret = {}
     _set_alignments_recursively(amtree_as_dict, ret)
     return ret
@@ -78,13 +89,12 @@ def _set_alignments_recursively(amtree_as_dict, alignment_dict):
 
 
 def generate_random_label_alternatives(amtree: AMSentence):
-    _, all_addresses = from_amtree(amtree)
     all_node_labels = []
     for entry in amtree.words:
         if entry.fragment != "_":
             all_node_labels.append(get_graph_string_from_node_label(entry.fragment, entry.lexlabel))
     label_alternatives = {}
-    for address in all_addresses:
+    for zero_based_id, entry in enumerate(amtree):
         number_alternatives = min(len(all_node_labels), 3)
         last_score = random.uniform(0.0, 1.0)
         all_alternatives_here = []
@@ -95,6 +105,6 @@ def generate_random_label_alternatives(amtree: AMSentence):
             label_alternative_here["score"] = last_score
             last_score = random.uniform(0.0, last_score)
             label_alternative_here["format"] = "graph_string"
-        label_alternatives[address] = all_alternatives_here
+        label_alternatives[str(zero_based_id+1)] = all_alternatives_here
     return label_alternatives
 

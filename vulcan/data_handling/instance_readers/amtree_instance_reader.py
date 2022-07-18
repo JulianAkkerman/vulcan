@@ -10,7 +10,7 @@ class AMTreeInstanceReader(InstanceReader):
     """
 
     def convert_single_instance(self, instance):
-        return from_amtree(instance)[0]
+        return from_amtree(instance)
 
     def get_visualization_type(self):
         return VisualizationType.TREE
@@ -23,7 +23,7 @@ class AMTreeStringInstanceReader(InstanceReader):
     """
 
     def convert_single_instance(self, instance):
-        return from_string(instance)[0]
+        return from_string(instance)
 
     def get_visualization_type(self):
         return VisualizationType.TREE
