@@ -27,6 +27,7 @@ class DataCorpus:
         self.linkers.append(linker)
 
 
+
 def from_dict_list(data: List[Dict]) -> DataCorpus:
     """
     Create a DataCorpus object from a dictionary.
@@ -46,9 +47,11 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
                                  '"data" type dictionaries')
 
             if data_corpus.size:
-                if data_corpus.size != len(entry['instances']):
-                    raise ValueError(f"Error when creating DataCorpus from dict list: number of instances for"
-                                     f"{name} ({len(instances)}) does not match previously seen data.")
+                if len(entry['instances']) != data_corpus.size:
+                    print(f"WARNING: number of instances for {name} ({len(instances)})"
+                          f" does not match previously seen data ({data_corpus.size} instances).")
+                    if len(entry['instances']) < data_corpus.size:
+                        data_corpus.size = len(entry['instances'])
             else:
                 data_corpus.size = len(entry['instances'])
                 print(f"Retreived DataCorpus size from 'data' entry {name}: {data_corpus.size} instances")
@@ -60,17 +63,21 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
             label_alternatives = read_label_alternatives(entry)
             # data_corpus.size is now always defined here
             if label_alternatives is not None and data_corpus.size != len(label_alternatives):
-                raise ValueError(f"Error when creating DataCorpus from dict list: number of label alternative entries "
-                                 f"for {name} ({len(label_alternatives)}) does not match previously seen data.")
+                print(f"WARNING: number of label alternative entries for {name} ({len(label_alternatives)})"
+                      f" does not match previously seen data ({data_corpus.size} instances).")
+                if len(label_alternatives) < data_corpus.size:
+                    data_corpus.size = len(label_alternatives)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives)
         elif entry_type == 'linker':
             # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
             data_corpus.add_linker(entry)
             if data_corpus.size:
                 if data_corpus.size != len(entry['scores']):
-                    raise ValueError(f"Error when creating DataCorpus from dict list: number of instances for"
-                                     f" linker \"{entry['name1']}\"--\"{entry['name2']}\" ({len(entry['scores'])})"
-                                     f"does not match previously seen data.")
+                    print(f"WARNING: when creating DataCorpus from dict list: number of instances for"
+                          f" linker \"{entry['name1']}\"--\"{entry['name2']}\" ({len(entry['scores'])})"
+                          f" does not match previously seen data ({data_corpus.size} instances).")
+                    if len(entry['scores']) < data_corpus.size:
+                        data_corpus.size = len(entry['scores'])
             else:
                 data_corpus.size = len(entry['scores'])
                 print(f"Retreived DataCorpus size from 'data' entry \"{entry['name1']}\"--\"{entry['name2']}\":"

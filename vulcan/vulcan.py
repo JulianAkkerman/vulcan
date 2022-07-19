@@ -11,12 +11,12 @@ from am_parser.graph_dependency_parser.components.dataset_readers.amconll_tools 
 
 
 def main():
-    with open("../../am-text-generation/models/analysis/base/vulcan_490.pickle", "rb") as f:
+    with open("../../../data/vulcan_25.pickle", "rb") as f:
         input_dicts = pickle.load(f)
 
     data_corpus = from_dict_list(input_dicts)
 
-    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers)
+    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
 
     print(layout.layout)
 

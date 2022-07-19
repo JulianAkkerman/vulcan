@@ -20,7 +20,7 @@ class Server:
         def on_connect(sid, environ):
             print(sid, 'connected')
             self.sio.emit('set_layout', make_layout_sendable(layout))
-            self.sio.emit('set_corpus_length', len(layout.layout[0][0].instances))
+            self.sio.emit('set_corpus_length', layout.corpus_size)
             instance_requested(sid, 0)
 
         def on_disconnect(sid):
