@@ -67,24 +67,24 @@ class Server:
         wsgi.server(eventlet.listen(('localhost', 5050)), self.app)
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
-                    highlighted_words: Set[int] = None):
+                    highlights: Set[int] = None):
         dict_to_sent = {"canvas_name": slice_name, "tokens": tokens}
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
-        if highlighted_words is not None:
-            dict_to_sent["highlighted_words"] = highlighted_words
+        if highlights is not None:
+            dict_to_sent["highlights"] = highlights
         self.sio.emit('set_string', dict_to_sent)
 
     def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
-                   highlighted_nodes: Set[str] = None):
+                   highlights: Set[str] = None):
         """
         graph must be of the graph_as_dict type.
         """
         dict_to_sent = {"canvas_name": slice_name, "graph": graph}
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
-        if highlighted_nodes is not None:
-            dict_to_sent["highlighted_nodes"] = highlighted_nodes
+        if highlights is not None:
+            dict_to_sent["highlights"] = highlights
         self.sio.emit('set_graph', dict_to_sent)
 
     def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):

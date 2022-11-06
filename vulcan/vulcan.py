@@ -11,10 +11,10 @@ from am_parser.graph_dependency_parser.components.dataset_readers.amconll_tools 
 
 
 def main():
-    with open("../../../data/vulcan_25.pickle", "rb") as f:
-        input_dicts = pickle.load(f)
+    # with open("../../../data/vulcan_25.pickle", "rb") as f:
+    #     input_dicts = pickle.load(f)
 
-    # input_dicts = make_highlights_example()
+    input_dicts = make_highlights_example()
 
     data_corpus = from_dict_list(input_dicts)
 
@@ -85,7 +85,8 @@ def make_highlights_example():
             "type": "data",
             "name": "strings",
             "instances": strings,
-            "format": "tokenized_string"
+            "format": "tokenized_string",
+            "highlights": [[1]]
         },
     ]
 

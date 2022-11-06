@@ -4,12 +4,14 @@ TOKEN_DISTANCE = 10
 
 
 class Strings {
-    constructor(top_left_x, top_left_y, tokens, canvas, label_alternatives) {
+    constructor(top_left_x, top_left_y, tokens, canvas, label_alternatives, highlights) {
         this.top_left_x = top_left_x
         this.top_left_y = top_left_y
         this.tokens = []
         this.canvas = canvas
         this.label_alternatives = label_alternatives
+        console.log(highlights)
+        this.highlights = highlights
         this.create_tokens(tokens)
     }
 
@@ -23,7 +25,8 @@ class Strings {
     }
 
     create_token_node(token, pos_x, i) {
-        let node = createNode(pos_x, this.top_left_y, token, "STRING", this.canvas, false, false,
+        let do_highlight = this.highlights != null && this.highlights.includes(i)
+        let node = createNode(pos_x, this.top_left_y, token, "STRING", this.canvas, false, do_highlight,
             TOKEN_CLASSNAME)
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {

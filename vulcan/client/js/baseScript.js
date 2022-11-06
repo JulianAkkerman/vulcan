@@ -83,8 +83,8 @@ sio.on("set_graph", (data) => {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
     let highlights = null
-    if ("highlighted_nodes" in data) {
-        highlights = data["highlighted_nodes"]
+    if ("highlights" in data) {
+        highlights = data["highlights"]
     }
     let graph = new Graph(20, 20, data["graph"], canvas, true, 0,
         label_alternatives, highlights)
@@ -98,7 +98,11 @@ sio.on("set_string", (data) => {
     if ("label_alternatives_by_node_name" in data) {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
-    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives)
+    let highlights = null
+    if ("highlights" in data) {
+        highlights = data["highlights"]
+    }
+    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives, highlights)
     strings.registerNodesGlobally(data["canvas_name"])
 })
 
