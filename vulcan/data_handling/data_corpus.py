@@ -17,15 +17,14 @@ class DataCorpus:
         self.slices = OrderedDict()
         self.linkers = []
 
-    def add_slice(self, name, instances, visualization_type, label_alternatives=None):
+    def add_slice(self, name, instances, visualization_type, label_alternatives=None, highlights=None):
         """
         Add a slice of data to the corpus.
         """
-        self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives)
+        self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives, highlights)
 
     def add_linker(self, linker):
         self.linkers.append(linker)
-
 
 
 def from_dict_list(data: List[Dict]) -> DataCorpus:
@@ -67,7 +66,16 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
                       f" does not match previously seen data ({data_corpus.size} instances).")
                 if len(label_alternatives) < data_corpus.size:
                     data_corpus.size = len(label_alternatives)
-            data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives)
+            highlights = entry.get('highlights', None)
+            if highlights is not None:
+                check_is_list(highlights)
+                if len(highlights) != data_corpus.size:
+                    print(f"WARNING: number of highlight entries for {name} ({len(highlights)})"
+                          f" does not match previously seen data ({data_corpus.size} instances).")
+                    if len(highlights) < data_corpus.size:
+                        data_corpus.size = len(highlights)
+            data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
+                                  highlights)
         elif entry_type == 'linker':
             # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
             data_corpus.add_linker(entry)
@@ -160,8 +168,10 @@ class CorpusSlice:
                  name: str,
                  instances: List,
                  visualization_type: VisualizationType,
-                 label_alternatives=None):
+                 label_alternatives=None,
+                 highlights=None):
         self.name = name
         self.instances = instances
         self.visualization_type = visualization_type
         self.label_alternatives = label_alternatives
+        self.highlights = highlights

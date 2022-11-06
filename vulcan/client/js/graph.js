@@ -9,13 +9,14 @@ REENTRANT_EDGE_COLOR = "#7777FF"
 class Graph {
 
     constructor(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0,
-                node_label_alternatives_by_node_name=null) {
+                node_label_alternatives_by_node_name=null, highlights=null) {
         this.margin = margin
         this.node_dict = {};
         this.box_position_dict = {};
         this.graph_as_dict = graph_as_dict
         this.canvas = canvas
         this.node_label_alternatives_by_node_name = node_label_alternatives_by_node_name
+        this.highlights = highlights
         this.create_all_nodes()
         this.compute_node_positions(top_left_x, top_left_y)
         if (draw_boundary_box) {
@@ -91,7 +92,9 @@ class Graph {
             if (!current_node.is_reentrancy) {
                 let label = current_node.node_label
                 let is_bold = current_node.node_name == this.graph_as_dict.node_name
-                let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold)
+                let do_highlight = this.highlights != null && this.highlights.includes(current_node.node_name)
+                let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold,
+                    do_highlight)
                 this.node_dict[current_node.node_name] = node_object
                 this.registerNodeMouseoverNodeHighlighting(node_object)
                 if (this.node_label_alternatives_by_node_name != null) {

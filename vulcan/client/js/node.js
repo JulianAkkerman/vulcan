@@ -39,7 +39,7 @@ class Node {
 }
 
 
-function createNode(x, y, content_data, content_type, canvas, is_bold, classname=NODE_CLASSNAME) {
+function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight, classname=NODE_CLASSNAME) {
     var node_position = [{ x: x, y: y }];
 
     let node_group = canvas.data(node_position).append("g")
@@ -50,6 +50,11 @@ function createNode(x, y, content_data, content_type, canvas, is_bold, classname
 
     let stroke_width = is_bold ? "4" : "2"
 
+    let fill = "white"
+    if (do_highlight) {
+        fill = "#56e37c"
+    }
+
     let rect = node_group.append("rect")
         .attr("rx", 10)
         .attr("ry", 10)
@@ -57,7 +62,7 @@ function createNode(x, y, content_data, content_type, canvas, is_bold, classname
         .attr("y", 0)
         .attr("width", content_object.getWidth())
         .attr("height", content_object.getHeight())
-        .attr("fill", "white")
+        .attr("fill", fill)
         .attr("stroke", "black")
         .attr("stroke-width", stroke_width)
         .attr("class", classname)

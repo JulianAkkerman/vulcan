@@ -14,6 +14,8 @@ def main():
     with open("../../../data/vulcan_25.pickle", "rb") as f:
         input_dicts = pickle.load(f)
 
+    # input_dicts = make_highlights_example()
+
     data_corpus = from_dict_list(input_dicts)
 
     layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
@@ -62,6 +64,29 @@ def make_graph_amtree_example():
             "name2": "sentences",
             "scores": [alignments_from_amtree(amtree) for amtree in amtrees]
         }
+    ]
+
+    return input_dicts
+
+
+def make_highlights_example():
+    graphs = ["(a / a :ARG0 (b / b))"]
+    strings = [["a", "b"]]
+
+    input_dicts = [
+        {
+            "type": "data",
+            "name": "graphs",
+            "instances": graphs,
+            "format": "graph_string",
+            "highlights": [["a"]]
+        },
+        {
+            "type": "data",
+            "name": "strings",
+            "instances": strings,
+            "format": "tokenized_string"
+        },
     ]
 
     return input_dicts

@@ -82,7 +82,12 @@ sio.on("set_graph", (data) => {
     if ("label_alternatives_by_node_name" in data) {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
-    let graph = new Graph(20, 20, data["graph"], canvas, true, 0, label_alternatives)
+    let highlights = null
+    if ("highlighted_nodes" in data) {
+        highlights = data["highlighted_nodes"]
+    }
+    let graph = new Graph(20, 20, data["graph"], canvas, true, 0,
+        label_alternatives, highlights)
     graph.registerNodesGlobally(data["canvas_name"])
 })
 
