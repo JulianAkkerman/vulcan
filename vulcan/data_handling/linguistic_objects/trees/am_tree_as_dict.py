@@ -2,7 +2,7 @@ import io
 import re
 import random
 
-from amconll_tools import AMSentence, parse_amconll
+from data_handling.linguistic_objects.trees.amconll_tools import AMSentence, parse_amconll
 
 from data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_root, ROOT_EDGE_LABEL
 from data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
