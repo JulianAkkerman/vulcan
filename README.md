@@ -15,7 +15,7 @@ First, `cd` into the `vulcan` subfolder (where the `vulcan.py` file is located).
 python3 vulcan.py path/to/pickle-file
 ```
 
-This will start the server on [127.0.0.1:5050](127.0.0.1:5050). Open that website in a browser and you can look at the examples in the file.
+This will start the server on `127.0.0.1:5050`. Open that website in a browser and you can look at the examples in the file.
 
 ## Use
 
