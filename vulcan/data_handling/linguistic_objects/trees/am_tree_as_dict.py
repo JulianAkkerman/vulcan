@@ -1,11 +1,10 @@
 import io
 import re
-from typing import List
 import random
 
-from am_parser.graph_dependency_parser.components.dataset_readers.amconll_tools import AMSentence, Entry, parse_amconll
+from amconll_tools import AMSentence, parse_amconll
 
-from data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_node, create_root, ROOT_EDGE_LABEL
+from data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_root, ROOT_EDGE_LABEL
 from data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 from penman import decode
 

@@ -1,20 +1,21 @@
 import pickle
-
-import penman
+import sys
 
 from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_random_label_alternatives, \
     alignments_from_amtree
 from server.basic_layout import BasicLayout
 from server.server import Server
 from data_handling.data_corpus import from_dict_list
-from am_parser.graph_dependency_parser.components.dataset_readers.amconll_tools import parse_amconll
+from data_handling.linguistic_objects.trees.amconll_tools import parse_amconll
 
 
-def main():
-    # with open("../../../data/vulcan_25.pickle", "rb") as f:
-    #     input_dicts = pickle.load(f)
+def main(args):
+    # with open("../../amr-challenge/amrbank-analysis/outputs/negations_testset.pkl", "rb") as f:
+    # "../../../data/vulcan_25.pickle"
+    with open(args[1], "rb") as f:
+        input_dicts = pickle.load(f)
 
-    input_dicts = make_highlights_example()
+    # input_dicts = make_highlights_example()
 
     data_corpus = from_dict_list(input_dicts)
 
@@ -94,4 +95,4 @@ def make_highlights_example():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

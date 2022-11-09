@@ -10,7 +10,6 @@ class Strings {
         this.tokens = []
         this.canvas = canvas
         this.label_alternatives = label_alternatives
-        console.log(highlights)
         this.highlights = highlights
         this.create_tokens(tokens)
     }
