@@ -5,7 +5,7 @@ from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_rand
     alignments_from_amtree
 from server.basic_layout import BasicLayout
 from server.server import Server
-from data_handling.data_corpus import from_dict_list
+from data_handling.data_corpus import from_dict
 from data_handling.linguistic_objects.trees.amconll_tools import parse_amconll
 
 
@@ -17,7 +17,7 @@ def main(args):
 
     # input_dicts = make_highlights_example()
 
-    data_corpus = from_dict_list(input_dicts)
+    data_corpus = from_dict(input_dicts)
 
     layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
 
