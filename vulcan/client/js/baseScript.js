@@ -89,6 +89,7 @@ sio.on("set_graph", (data) => {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
     let highlights = null
+    console.log(data["highlights"])
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
@@ -102,18 +103,7 @@ sio.on("set_graph", (data) => {
 })
 
 sio.on("set_string", (data) => {
-    let canvas = canvas_dict[data["canvas_name"]]
-    remove_strings_from_canvas(canvas)
-    let label_alternatives = null
-    if ("label_alternatives_by_node_name" in data) {
-        label_alternatives = data["label_alternatives_by_node_name"]
-    }
-    let highlights = null
-    if ("highlights" in data) {
-        highlights = data["highlights"]
-    }
-    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives, highlights)
-    strings.registerNodesGlobally(data["canvas_name"])
+    d3.select("#sentenceParagraph").text(data["tokens"].join(" "))
 })
 
 var alignment_color_scale = d3.scaleLinear().range(['white','#0742ac']);  // just kinda experimenting
@@ -158,13 +148,15 @@ function set_layout(layout) {
     // normalize the heights
     let total_height = canvas_heights.reduce((a, b) => a + b, 0)
     for (let i = 0; i < canvas_heights.length; i++) {
-        canvas_heights[i] = 40 * canvas_heights[i] / total_height
+        canvas_heights[i] = 42 * canvas_heights[i] / total_height
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            canvas_dict[slice["name"]] = create_canvas(99 / row.length, height)
+            if (slice["visualization_type"] != "STRING") {
+                canvas_dict[slice["name"]] = create_canvas(99 / row.length, height)
+            }
         })
     }
 }
