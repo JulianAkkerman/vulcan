@@ -8,6 +8,7 @@ console.log(d3)
 // let canvas3 = create_canvas(30, 10)
 
 const canvas_dict = {}
+let saved_layout = null
 const canvas_name_to_node_name_to_node_dict = {}
 
 let current_corpus_position = 0
@@ -27,6 +28,7 @@ function create_canvas(width_percent, height_percent) {
     let canvas_height = canvas_width * height_percent/100
     return d3.select("div#chartId")
                    .append("div")
+        .attr("class","layoutDiv")
         .style("width", width_percent + "%")
         .style("padding-bottom", height_percent + "%")
                    .classed("svg-container", true)
@@ -50,21 +52,25 @@ d3.select("#previousButton")
     .on("click", function() {
         if (current_corpus_position > 0) {
             current_corpus_position -= 1
+            reset()
+            set_layout(saved_layout)
+            console.log("previous_button_clicked");
+            sio.emit("instance_requested", current_corpus_position);
+            set_corpus_position()
         }
-      console.log("previous_button_clicked");
-      sio.emit("instance_requested", current_corpus_position);
-      set_corpus_position()
-        });
+    });
 
 d3.select("#nextButton")
     .on("click", function() {
         if (current_corpus_position < corpus_length-1) {
             current_corpus_position += 1
+            reset()
+            set_layout(saved_layout)
+            console.log("next_button_clicked");
+            sio.emit("instance_requested", current_corpus_position);
+            set_corpus_position()
         }
-      console.log("next_button_clicked");
-      sio.emit("instance_requested", current_corpus_position);
-      set_corpus_position()
-        });
+    });
 
 sio.on('connect', () => {
     console.log('connected');
@@ -88,6 +94,10 @@ sio.on("set_graph", (data) => {
     }
     let graph = new Graph(20, 20, data["graph"], canvas, true, 0,
         label_alternatives, highlights)
+    // canvas.attr('transform', 'translate(0,0) scale(1.0)');
+    // // canvas.select('g').attr('transform', 'translate(0,0) scale(1.0)');
+    // let zoom = d3.zoom()
+    // canvas.call(zoom.transform, d3.zoomIdentity)
     graph.registerNodesGlobally(data["canvas_name"])
 })
 
@@ -131,8 +141,7 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
             })
 }
 
-sio.on("set_layout", (layout) => {
-    corpus_length = layout[0][0].length
+function set_layout(layout) {
     let canvas_heights = []
     layout.forEach(row => {
         let height_here = 0
@@ -141,7 +150,7 @@ sio.on("set_layout", (layout) => {
             if (vis_type == "STRING") {
                 height_here = Math.max(height_here, 10)
             } else {
-                height_here = Math.max(height_here, 99/row.length)
+                height_here = Math.max(height_here, 99 / row.length)
             }
         })
         canvas_heights.push(height_here)
@@ -155,9 +164,20 @@ sio.on("set_layout", (layout) => {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            canvas_dict[slice["name"]] = create_canvas(99/row.length, height)
+            canvas_dict[slice["name"]] = create_canvas(99 / row.length, height)
         })
     }
+}
+
+function reset() {
+    d3.selectAll(".layoutDiv").remove()
+}
+
+
+sio.on("set_layout", (layout) => {
+    saved_layout = layout
+    corpus_length = layout[0][0].length
+    set_layout(layout);
 })
 
 sio.on("set_corpus_length", (data) => {
