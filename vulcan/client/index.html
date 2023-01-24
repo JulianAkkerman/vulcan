@@ -16,7 +16,9 @@
     <button id="previousButton">&lt;Previous</button>
     <button id="nextButton">Next&gt;</button>
     <div style="display: inline;" id="corpusPositionText"></div>
-    <div style="display: inline;font-size: 24px; font-weight:bold; color:#590019;margin: 0 100px; text-decoration: underline;" id="messageText"></div>
+    <button id="saveButton">Save</button>
+    <div style="display: inline;font-size: 22px; font-weight:bold; margin: 0 100px; text-decoration: underline;" id="messageText"></div>
+        <!--color:#590019;-->
 
     <div style="margin: 25px;">
     <p style="font-size: 18px; margin: 5px; display:inline; float:left;"><b>Sentence:</b></p>
@@ -39,12 +41,12 @@
     <div id="preference" style="width:28%; float:left; text-align:center">
       <div style="width:70%; text-align:left; display: inline-block">
       <p>Which of the graphs (or graph fragments) do you prefer?</p>
-      <input type="radio" id="prefLeft" name="preference" value="left">
-      <label for="prefLeft"><< Left </label><br>
-      <input type="radio" id="prefRight" name="preference" value="right">
-      <label for="prefRight">Right >></label><br>
-      <input type="radio" id="prefIdentical" name="preference" value="identical">
-      <label for="prefIdentical">They are identical</label><br>
+      <input type="radio" id="leftPreference" name="preference" value="left">
+      <label for="leftPreference"><< Left </label><br>
+      <input type="radio" id="rightPreference" name="preference" value="right">
+      <label for="rightPreference">Right >></label><br>
+      <input type="radio" id="identicalPreference" name="preference" value="identical">
+      <label for="identicalPreference">They are identical</label><br>
       </div>
     </div>
     <div id="acceptableRight" style="width:35%; float:left; text-align:center">
@@ -58,6 +60,9 @@
       <label for="noRight">No</label><br>
         </div>
     </div>
+
+    <label for="commentBox"></label>
+    <textarea id="commentBox" rows="4" cols="150" placeholder="Comment" style="margin: 10px"></textarea>
 
     <script src="js/baseScript.js"></script>
     <script src="js/definitions.js"></script>

@@ -24,7 +24,16 @@ class JudgementWriter:
 
     def log_judgement(self, id_in_corpus: int, judgement_left: str = "", judgement_right: str = "",
                       preference: str = "", comment: str = ""):
-        self.rows[id_in_corpus + 1] = [judgement_left, judgement_right, preference, comment]
+        self.rows[id_in_corpus + 1] = [judgement_left, judgement_right, preference, comment.replace("\t", " ")]
         with open(self.tsv_path, "w") as tsv_file:
             writer = csv.writer(tsv_file, delimiter="\t")
             writer.writerows(self.rows)
+
+    def get_judgement(self, id_in_corpus: int):
+        row = self.rows[id_in_corpus + 1]
+        return {
+            "judgement_left": row[0],
+            "judgement_right": row[1],
+            "preference": row[2],
+            "comment": row[3]
+        }

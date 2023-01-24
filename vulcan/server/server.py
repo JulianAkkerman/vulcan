@@ -16,7 +16,7 @@ eventlet.monkey_patch()
 
 class Server:
 
-    def __init__(self, layout: BasicLayout, judgement_writer=JudgementWriter, port=5050):
+    def __init__(self, layout: BasicLayout, judgement_writer: JudgementWriter, port=5050):
 
         self.message = layout.message
         self.judgement_writer = judgement_writer
@@ -67,6 +67,7 @@ class Server:
                                         highlights)
             for linker in layout.linkers:
                 self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
+            self.sio.emit('set_judgement', self.judgement_writer.get_judgement(instance_id))
 
         @self.sio.event
         def log_judgement(sid, data):

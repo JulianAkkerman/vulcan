@@ -74,6 +74,11 @@ d3.select("#nextButton")
         }
     });
 
+d3.select("#saveButton")
+    .on("click", function() {
+        log_judgement()
+    })
+
 sio.on('connect', () => {
     console.log('connected');
 });
@@ -95,7 +100,6 @@ sio.on("set_graph", (data) => {
         label_alternatives = data["label_alternatives_by_node_name"]
     }
     let highlights = null
-    console.log(data["highlights"])
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
@@ -174,16 +178,46 @@ function reset() {
 function log_judgement() {
     let data = {}
     data["instance_id"] = current_corpus_position
-    data["judgement_left"] = d3.select('input[name="acceptableLeft"]:checked').node().value
-    data["judgement_right"] = d3.select('input[name="acceptableRight"]:checked').node().value
-    data["preference"] = d3.select('input[name="preference"]:checked').node().value
-    data["comment"] = ""
+    data["judgement_left"] = get_judgement("acceptableLeft")
+    data["judgement_right"] = get_judgement("acceptableRight")
+    data["preference"] = get_judgement("preference")
+    data["comment"] = d3.select("#commentBox").node().value
     sio.emit("log_judgement", data)
 }
 
-sio.on("set_judgement", (data) => {
-    
+function get_judgement(name) {
+    let selection = d3.select('input[name="' + name + '"]:checked').node()
+    if (selection != null) {
+        return selection.value
+    } else {
+        return ""
+    }
 }
+
+sio.on("set_judgement", (data) => {
+    if (data["judgement_left"] !== "") {
+        d3.select("#" + data["judgement_left"] + "Left").node().checked = true
+    } else {
+        d3.select("#yesLeft").node().checked = false
+        d3.select("#kindOfLeft").node().checked = false
+        d3.select("#noLeft").node().checked = false
+    }
+    if (data["judgement_right"] !== "") {
+        d3.select("#" + data["judgement_right"] + "Right").node().checked = true
+    } else {
+        d3.select("#yesRight").node().checked = false
+        d3.select("#kindOfRight").node().checked = false
+        d3.select("#noRight").node().checked = false
+    }
+    if (data["preference"] !== "") {
+        d3.select("#" + data["preference"] + "Preference").node().checked = true
+    } else {
+        d3.select("#leftPreference").node().checked = false
+        d3.select("#rightPreference").node().checked = false
+        d3.select("#identicalPreference").node().checked = false
+    }
+    d3.select("#commentBox").node().value = data["comment"]
+})
 
 
 sio.on("set_layout", (layout) => {
