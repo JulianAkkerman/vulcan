@@ -12,10 +12,11 @@ from collections import OrderedDict
 
 class DataCorpus:
 
-    def __init__(self):
+    def __init__(self, message: str = ""):
         self.size = None
         self.slices = OrderedDict()
         self.linkers = []
+        self.message = message
 
     def add_slice(self, name, instances, visualization_type, label_alternatives=None, highlights=None):
         """
@@ -31,7 +32,6 @@ def from_dict(data: Dict) -> DataCorpus:
     """
     Create a DataCorpus object from a dictionary.
     """
-    data_corpus = DataCorpus()
     graph_instance_reader = get_instance_reader_by_name('graph')
     gold_instances = graph_instance_reader.convert_instances(data["gold_graphs"])
     gold_highlights = data["highlights"]
@@ -39,12 +39,14 @@ def from_dict(data: Dict) -> DataCorpus:
     sentences = string_instance_reader.convert_instances(data["sentences"])
     predicted_instances = graph_instance_reader.convert_instances(data["predicted_graphs"])
 
+    data_corpus = DataCorpus(data["message"])
     data_corpus.size = len(gold_instances)
     data_corpus.add_slice("sentences", sentences, VisualizationType.STRING)
     data_corpus.add_slice("predicted", predicted_instances, VisualizationType.GRAPH)
     data_corpus.add_slice("gold", gold_instances, VisualizationType.GRAPH, highlights=gold_highlights)
 
     return data_corpus
+
 
 def get_instance_reader_by_name(reader_name):
     """
@@ -77,16 +79,16 @@ def read_label_alternatives(corpus_entry):
     """
     if 'label_alternatives' in corpus_entry:
         label_alternatives = corpus_entry['label_alternatives']
-        check_is_list(label_alternatives)
+        assert_is_list(label_alternatives)
         ret = []
         for label_alternative_instance in label_alternatives:
-            check_is_dict(label_alternative_instance)
+            assert_is_dict(label_alternative_instance)
             ret_instance = {}
             for node_name, node_label_alternatives in label_alternative_instance.items():
                 ret_node = []
-                check_is_list(node_label_alternatives)
+                assert_is_list(node_label_alternatives)
                 for node_label_alternative in node_label_alternatives:
-                    check_is_dict(node_label_alternative)
+                    assert_is_dict(node_label_alternative)
 
                     ret_alt = copy.deepcopy(node_label_alternative)
                     instance_reader = get_instance_reader_by_name(ret_alt['format'])
@@ -100,16 +102,16 @@ def read_label_alternatives(corpus_entry):
         return None
 
 
-def check_is_dict(object):
-    if not isinstance(object, dict):
+def assert_is_dict(possible_dictionary):
+    if not isinstance(possible_dictionary, dict):
         raise ValueError(f"Error: object must be a dict, "
-                         f"but was {type(object)}")
+                         f"but was {type(possible_dictionary)}")
 
 
-def check_is_list(object):
-    if not isinstance(object, list):
+def assert_is_list(possible_list):
+    if not isinstance(possible_list, list):
         raise ValueError(f"Error: object must be a list, "
-                         f"but was {type(object)}")
+                         f"but was {type(possible_list)}")
 
 
 class CorpusSlice:

@@ -51,6 +51,7 @@ function create_canvas(width_percent, height_percent) {
 d3.select("#previousButton")
     .on("click", function() {
         if (current_corpus_position > 0) {
+            log_judgement()
             current_corpus_position -= 1
             reset()
             set_layout(saved_layout)
@@ -63,6 +64,7 @@ d3.select("#previousButton")
 d3.select("#nextButton")
     .on("click", function() {
         if (current_corpus_position < corpus_length-1) {
+            log_judgement()
             current_corpus_position += 1
             reset()
             set_layout(saved_layout)
@@ -78,6 +80,10 @@ sio.on('connect', () => {
 
 sio.on('disconnect', () => {
   console.log('disconnected');
+});
+
+sio.on('set_message', (data) => {
+  d3.select("#messageText").text(data["message"])
 });
 
 
@@ -163,6 +169,20 @@ function set_layout(layout) {
 
 function reset() {
     d3.selectAll(".layoutDiv").remove()
+}
+
+function log_judgement() {
+    let data = {}
+    data["instance_id"] = current_corpus_position
+    data["judgement_left"] = d3.select('input[name="acceptableLeft"]:checked').node().value
+    data["judgement_right"] = d3.select('input[name="acceptableRight"]:checked').node().value
+    data["preference"] = d3.select('input[name="preference"]:checked').node().value
+    data["comment"] = ""
+    sio.emit("log_judgement", data)
+}
+
+sio.on("set_judgement", (data) => {
+    
 }
 
 

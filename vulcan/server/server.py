@@ -4,6 +4,7 @@ import socketio
 from eventlet import wsgi
 
 from data_handling.data_corpus import CorpusSlice
+from data_handling.judgement_writer import JudgementWriter
 from data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 import eventlet
 
@@ -15,12 +16,16 @@ eventlet.monkey_patch()
 
 class Server:
 
-    def __init__(self, layout: BasicLayout, port=5050):
+    def __init__(self, layout: BasicLayout, judgement_writer=JudgementWriter, port=5050):
+
+        self.message = layout.message
+        self.judgement_writer = judgement_writer
 
         def on_connect(sid, environ):
             print(sid, 'connected')
             self.sio.emit('set_layout', make_layout_sendable(layout))
             self.sio.emit('set_corpus_length', layout.corpus_size)
+            self.send_message(self.message)
             instance_requested(sid, 0)
 
         def on_disconnect(sid):
@@ -63,6 +68,11 @@ class Server:
             for linker in layout.linkers:
                 self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
 
+        @self.sio.event
+        def log_judgement(sid, data):
+            self.judgement_writer.log_judgement(data["instance_id"], data["judgement_left"], data["judgement_right"],
+                                                data["preference"], data["comment"])
+
     def start(self):
         wsgi.server(eventlet.listen(('localhost', 5050)), self.app)
 
@@ -89,6 +99,9 @@ class Server:
 
     def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):
         self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores})
+
+    def send_message(self, message: str):
+        self.sio.emit('set_message', {"message": message})
 
 
 def make_layout_sendable(layout: BasicLayout):

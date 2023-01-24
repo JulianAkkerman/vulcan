@@ -1,6 +1,7 @@
 import pickle
 import sys
 
+from data_handling.judgement_writer import JudgementWriter
 from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_random_label_alternatives, \
     alignments_from_amtree
 from server.basic_layout import BasicLayout
@@ -12,18 +13,21 @@ from data_handling.linguistic_objects.trees.amconll_tools import parse_amconll
 def main(args):
     # with open("../../amr-challenge/amrbank-analysis/outputs/negations_testset.pkl", "rb") as f:
     # "../../../data/vulcan_25.pickle"
-    with open(args[1], "rb") as f:
+    pickle_path = args[1]
+    with open(pickle_path, "rb") as f:
         input_dicts = pickle.load(f)
 
     # input_dicts = make_highlights_example()
 
     data_corpus = from_dict(input_dicts)
+    judgement_writer = JudgementWriter(pickle_path)
+    judgement_writer.load_from_file_if_exists_else_init_rows(data_corpus)
 
-    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
+    layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size, data_corpus.message)
 
     print(layout.layout)
 
-    server = Server(layout)
+    server = Server(layout, judgement_writer)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 
