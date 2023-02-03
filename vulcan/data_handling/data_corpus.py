@@ -1,5 +1,6 @@
 from typing import List, Dict
 import copy
+import textwrap
 
 from data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
@@ -11,6 +12,7 @@ from collections import OrderedDict
 from data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
 from data_handling.linguistic_objects.graphs.propbank_frame_reader import create_frame_to_definition_dict
 import re
+import wikipedia
 
 FORMAT_NAME_STRING = "string"
 FORMAT_NAME_TOKEN = "token"
@@ -39,12 +41,13 @@ class DataCorpus:
         self.linkers.append(linker)
 
 
-def from_dict_list(data: List[Dict], propbank_frames_path: str = None) -> DataCorpus:
+def from_dict_list(data: List[Dict], propbank_frames_path: str = None,
+                   show_wikipedia: bool = False) -> DataCorpus:
     """
     Create a DataCorpus object from a dictionary.
     """
-    print(propbank_frames_path)
     if propbank_frames_path:
+        print(f"Loading propbank frames from XML files in {propbank_frames_path}. This may take a minute or two...")
         propbank_frames_dict = create_frame_to_definition_dict(propbank_frames_path)
     else:
         propbank_frames_dict = None
@@ -93,7 +96,7 @@ def from_dict_list(data: List[Dict], propbank_frames_path: str = None) -> DataCo
                         data_corpus.size = len(highlights)
             mouseover_texts = None
             if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING] and propbank_frames_dict is not None:
-                mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict)
+                mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict, show_wikipedia)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
                                   highlights, mouseover_texts)
         elif entry_type == 'linker':
@@ -181,14 +184,23 @@ def check_is_list(object):
         raise ValueError(f"Error: object must be a list, "
                          f"but was {type(object)}")
 
-def get_mouseover_texts(graphs: List[Dict], propbank_frames_dict):
+
+def get_mouseover_texts(graphs: List[Dict], propbank_frames_dict=None, do_wiki_lookup: bool = True):
     ret = []
-    for graph_as_dict in graphs:
+    if do_wiki_lookup:
+        print("Loading wikipedia summaries. This can take a while!")
+    for i, graph_as_dict in enumerate(graphs):
         mouseover_texts_here = dict()
-        for_each_node_top_down(graph_as_dict,
-                               lambda node: add_propbank_frame_to_mouseover_if_applicable(node,
-                                                                                          mouseover_texts_here,
-                                                                                          propbank_frames_dict))
+        if propbank_frames_dict is not None:
+            for_each_node_top_down(graph_as_dict,
+                                   lambda node: add_propbank_frame_to_mouseover_if_applicable(node,
+                                                                                              mouseover_texts_here,
+                                                                                              propbank_frames_dict))
+        if do_wiki_lookup:
+            if i % 30 == 0:
+                print(f"Looking up wikipedia summaries for graph {i} of {len(graphs)} (printing every 50 graphs).")
+            for_each_node_top_down(graph_as_dict,
+                                   lambda node: add_wiki_lookup_to_mouseover_if_applicable(node, mouseover_texts_here))
         ret.append(mouseover_texts_here)
     return ret
 
@@ -199,6 +211,21 @@ def add_propbank_frame_to_mouseover_if_applicable(node: Dict, mouseover_texts_he
     if node_label in propbank_frames_dict:
         mouseover_texts_here[node_name] = propbank_frames_dict[node_label]
 
+
+def add_wiki_lookup_to_mouseover_if_applicable(node: Dict, mouseover_texts_here: Dict):
+    # c.f. https://stackoverflow.com/questions/4460921/extract-the-first-paragraph-from-a-wikipedia-article-python
+    node_label = node["node_label"]
+    node_name = node["node_name"]
+    # actually adding to the child node if this is a wiki edge
+    node_name = node["node_name"]
+    # print(node["incoming_edge"])
+    if node["incoming_edge"] == "wiki":
+        try:
+            wiki_summary = wikipedia.summary(node_label, sentences=2)
+            # print(wiki_summary)
+            mouseover_texts_here[node_name] = textwrap.fill(wiki_summary, 70)
+        except Exception:
+            mouseover_texts_here[node_name] = "No Wikipedia entry found for " + node_label
 
 class CorpusSlice:
 

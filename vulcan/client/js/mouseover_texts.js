@@ -6,7 +6,7 @@ function show_mouseover_text(node_object, mouseover_text, canvas) {
 
     let lines = mouseover_text.split("\n")
 
-    let width = 400
+    let width = 500
     let height = 25 * lines.length + 20
 
 
@@ -31,7 +31,7 @@ function show_mouseover_text(node_object, mouseover_text, canvas) {
             .attr("class", MOUSEOVER_TEXT_CLASSNAME)
     lines.forEach(function(line, index) {
         let bold = false
-        if (index === 0) {
+        if (index === 0 && lines.length > 1) {
             bold = true
         }
         textfield.append("tspan")

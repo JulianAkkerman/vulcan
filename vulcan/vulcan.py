@@ -18,6 +18,9 @@ def main():
                         help="Path to a folder containing XML files with Propbank frames, "
                              "such as data/frames/propbank-amr-frames-xml-2018-01-25 in the AMR3.0 corpus. "
                              "If given, vulcan will show frame definitions on node mouseover ")
+    parser.add_argument("-wiki", "--show-wikipedia-articles", action="store_true", dest="show_wikipedia_articles",
+                        default=False, help="If given, vulcan will show Wikipedia articles on node mouseover."
+                                            "Can take quite a while to load in the beginning!")
     args = parser.parse_args()
 
     with open(args.pickle_filename, "rb") as f:
@@ -25,7 +28,8 @@ def main():
 
     # input_dicts = make_highlights_example()
 
-    data_corpus = from_dict_list(input_dicts, propbank_frames_path=args.propbank_frames)
+    data_corpus = from_dict_list(input_dicts, propbank_frames_path=args.propbank_frames,
+                                 show_wikipedia=args.show_wikipedia_articles)
 
     layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
 
