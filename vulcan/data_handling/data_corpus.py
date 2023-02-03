@@ -95,7 +95,7 @@ def from_dict_list(data: List[Dict], propbank_frames_path: str = None,
                     if len(highlights) < data_corpus.size:
                         data_corpus.size = len(highlights)
             mouseover_texts = None
-            if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING] and propbank_frames_dict is not None:
+            if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING]:
                 mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict, show_wikipedia)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
                                   highlights, mouseover_texts)
@@ -186,6 +186,8 @@ def check_is_list(object):
 
 
 def get_mouseover_texts(graphs: List[Dict], propbank_frames_dict=None, do_wiki_lookup: bool = True):
+    if propbank_frames_dict is None and not do_wiki_lookup:
+        return None
     ret = []
     if do_wiki_lookup:
         print("Loading wikipedia summaries. This can take a while!")
@@ -197,8 +199,8 @@ def get_mouseover_texts(graphs: List[Dict], propbank_frames_dict=None, do_wiki_l
                                                                                               mouseover_texts_here,
                                                                                               propbank_frames_dict))
         if do_wiki_lookup:
-            if i % 30 == 0:
-                print(f"Looking up wikipedia summaries for graph {i} of {len(graphs)} (printing every 50 graphs).")
+            if i % 20 == 0:
+                print(f"Looking up wikipedia summaries for graph {i} of {len(graphs)} (printing every 20 graphs).")
             for_each_node_top_down(graph_as_dict,
                                    lambda node: add_wiki_lookup_to_mouseover_if_applicable(node, mouseover_texts_here))
         ret.append(mouseover_texts_here)
