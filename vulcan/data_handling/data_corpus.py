@@ -8,7 +8,17 @@ from data_handling.instance_readers.string_instance_reader import StringInstance
     TokenizedStringInstanceReader
 from data_handling.visualization_type import VisualizationType
 from collections import OrderedDict
+from data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
+from data_handling.linguistic_objects.graphs.propbank_frame_reader import create_frame_to_definition_dict
+import re
 
+FORMAT_NAME_STRING = "string"
+FORMAT_NAME_TOKEN = "token"
+FORMAT_NAME_TOKENIZED_STRING = "tokenized_string"
+FORMAT_NAME_AMTREE = "amtree"
+FORMAT_NAME_AMTREE_STRING = "amtree_string"
+FORMAT_NAME_GRAPH = "graph"
+FORMAT_NAME_GRAPH_STRING = "graph_string"
 
 class DataCorpus:
 
@@ -17,20 +27,27 @@ class DataCorpus:
         self.slices = OrderedDict()
         self.linkers = []
 
-    def add_slice(self, name, instances, visualization_type, label_alternatives=None, highlights=None):
+    def add_slice(self, name, instances, visualization_type, label_alternatives=None, highlights=None,
+                  mouseover_texts: Dict[str, str] = None):
         """
         Add a slice of data to the corpus.
         """
-        self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives, highlights)
+        self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives, highlights,
+                                        mouseover_texts)
 
     def add_linker(self, linker):
         self.linkers.append(linker)
 
 
-def from_dict_list(data: List[Dict]) -> DataCorpus:
+def from_dict_list(data: List[Dict], propbank_frames_path: str = None) -> DataCorpus:
     """
     Create a DataCorpus object from a dictionary.
     """
+    print(propbank_frames_path)
+    if propbank_frames_path:
+        propbank_frames_dict = create_frame_to_definition_dict(propbank_frames_path)
+    else:
+        propbank_frames_dict = None
     data_corpus = DataCorpus()
     for entry in data:
         entry_type = entry.get('type', 'data')  # default to data
@@ -74,8 +91,11 @@ def from_dict_list(data: List[Dict]) -> DataCorpus:
                           f" does not match previously seen data ({data_corpus.size} instances).")
                     if len(highlights) < data_corpus.size:
                         data_corpus.size = len(highlights)
+            mouseover_texts = None
+            if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING] and propbank_frames_dict is not None:
+                mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict)
             data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
-                                  highlights)
+                                  highlights, mouseover_texts)
         elif entry_type == 'linker':
             # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
             data_corpus.add_linker(entry)
@@ -102,19 +122,19 @@ def get_instance_reader_by_name(reader_name):
     :param reader_name:
     :return:
     """
-    if reader_name == 'string':
+    if reader_name == FORMAT_NAME_STRING:
         return StringInstanceReader()
-    elif reader_name == 'token':
+    elif reader_name == FORMAT_NAME_TOKEN:
         return TokenInstanceReader()
-    elif reader_name == 'tokenized_string':
+    elif reader_name == FORMAT_NAME_TOKENIZED_STRING:
         return TokenizedStringInstanceReader()
-    elif reader_name == 'amtree':
+    elif reader_name == FORMAT_NAME_AMTREE:
         return AMTreeInstanceReader()
-    elif reader_name == 'amtree_string':
+    elif reader_name == FORMAT_NAME_AMTREE_STRING:
         return AMTreeStringInstanceReader()
-    elif reader_name == 'graph':
+    elif reader_name == FORMAT_NAME_GRAPH:
         return AMRGraphInstanceReader()
-    elif reader_name == 'graph_string':
+    elif reader_name == FORMAT_NAME_GRAPH_STRING:
         return AMRGraphStringInstanceReader()
 
 
@@ -161,6 +181,24 @@ def check_is_list(object):
         raise ValueError(f"Error: object must be a list, "
                          f"but was {type(object)}")
 
+def get_mouseover_texts(graphs: List[Dict], propbank_frames_dict):
+    ret = []
+    for graph_as_dict in graphs:
+        mouseover_texts_here = dict()
+        for_each_node_top_down(graph_as_dict,
+                               lambda node: add_propbank_frame_to_mouseover_if_applicable(node,
+                                                                                          mouseover_texts_here,
+                                                                                          propbank_frames_dict))
+        ret.append(mouseover_texts_here)
+    return ret
+
+
+def add_propbank_frame_to_mouseover_if_applicable(node: Dict, mouseover_texts_here: Dict, propbank_frames_dict):
+    node_label = node["node_label"]
+    node_name = node["node_name"]
+    if node_label in propbank_frames_dict:
+        mouseover_texts_here[node_name] = propbank_frames_dict[node_label]
+
 
 class CorpusSlice:
 
@@ -169,9 +207,15 @@ class CorpusSlice:
                  instances: List,
                  visualization_type: VisualizationType,
                  label_alternatives=None,
-                 highlights=None):
+                 highlights=None,
+                 mouseover_texts: List[Dict[str, str]] = None):
         self.name = name
         self.instances = instances
         self.visualization_type = visualization_type
         self.label_alternatives = label_alternatives
         self.highlights = highlights
+        self.mouseover_texts = mouseover_texts
+        if mouseover_texts is not None:
+            print("mouseover texts", len(mouseover_texts), mouseover_texts[0])
+        else:
+            print("no mouseover_texts found in corpus slice ", name)

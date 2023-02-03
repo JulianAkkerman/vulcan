@@ -46,6 +46,10 @@ class Server:
                         highlights = corpus_slice.highlights[instance_id]
                     else:
                         highlights = None
+                    if corpus_slice.mouseover_texts is not None:
+                        mouseover_texts = corpus_slice.mouseover_texts[instance_id]
+                    else:
+                        mouseover_texts = None
                     if corpus_slice.visualization_type == VisualizationType.STRING:
                         self.send_string(corpus_slice.name,
                                          corpus_slice.instances[instance_id],
@@ -59,7 +63,7 @@ class Server:
                     elif corpus_slice.visualization_type == VisualizationType.GRAPH:
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
                                         label_alternatives_by_node_name,
-                                        highlights)
+                                        highlights, mouseover_texts)
             for linker in layout.linkers:
                 self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
 
@@ -76,7 +80,7 @@ class Server:
         self.sio.emit('set_string', dict_to_sent)
 
     def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
-                   highlights: Set[str] = None):
+                   highlights: Set[str] = None, mouseover_texts: Dict[str, str] = None):
         """
         graph must be of the graph_as_dict type.
         """
@@ -85,6 +89,8 @@ class Server:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
             dict_to_sent["highlights"] = highlights
+        if mouseover_texts is not None:
+            dict_to_sent["mouseover_texts"] = mouseover_texts
         self.sio.emit('set_graph', dict_to_sent)
 
     def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):

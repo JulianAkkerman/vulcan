@@ -44,4 +44,10 @@ def add_reentrancy_as_child(parent_node_as_dict, child_node_name, edge_label):
     return child
 
 
+def for_each_node_top_down(graph_as_dict, node_consumer):
+    node_consumer(graph_as_dict)
+    for child in graph_as_dict["child_nodes"]:
+        for_each_node_top_down(child, node_consumer)
+
+
 
