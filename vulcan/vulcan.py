@@ -13,7 +13,7 @@ from amconll import parse_amconll
 def main():
     parser = ArgumentParser()
     parser.add_argument("pickle_filename", help="Path to the pickle file you want to visualize.")
-    parser.add_argument("--propbank-frames", type=str,
+    parser.add_argument("-pf", "--propbank-frames", type=str,
                         action="store", dest="propbank_frames", default=None,
                         help="Path to a folder containing XML files with Propbank frames, "
                              "such as data/frames/propbank-amr-frames-xml-2018-01-25 in the AMR3.0 corpus. "

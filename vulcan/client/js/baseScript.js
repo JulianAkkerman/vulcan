@@ -90,9 +90,8 @@ sio.on("set_graph", (data) => {
     if ("mouseover_texts" in data) {
         mouseover_texts = data["mouseover_texts"]
     }
-    console.log(mouseover_texts)
     let graph = new Graph(20, 20, data["graph"], canvas, true, 0,
-        label_alternatives, highlights)
+        label_alternatives, highlights, mouseover_texts)
     graph.registerNodesGlobally(data["canvas_name"])
 })
 

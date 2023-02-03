@@ -9,7 +9,7 @@ REENTRANT_EDGE_COLOR = "#7777FF"
 class Graph {
 
     constructor(top_left_x, top_left_y, graph_as_dict, canvas, draw_boundary_box=true, margin=0,
-                node_label_alternatives_by_node_name=null, highlights=null) {
+                node_label_alternatives_by_node_name=null, highlights=null, mouseover_texts=null) {
         this.margin = margin
         this.node_dict = {};
         this.box_position_dict = {};
@@ -17,6 +17,7 @@ class Graph {
         this.canvas = canvas
         this.node_label_alternatives_by_node_name = node_label_alternatives_by_node_name
         this.highlights = highlights
+        this.mouseover_texts = mouseover_texts
         this.create_all_nodes()
         this.compute_node_positions(top_left_x, top_left_y)
         if (draw_boundary_box) {
@@ -100,6 +101,10 @@ class Graph {
                 if (this.node_label_alternatives_by_node_name != null) {
                     this.registerNodeAlternativeMouseover(node_object,
                         this.node_label_alternatives_by_node_name[current_node.node_name])
+                }
+                if (this.mouseover_texts != null && this.mouseover_texts[current_node.node_name] != null) {
+                    this.registerMouseoverTextEvent(node_object,
+                        this.mouseover_texts[current_node.node_name])
                 }
             }
         })
@@ -319,6 +324,15 @@ class Graph {
             // })
     }
 
+    registerMouseoverTextEvent(node_object, node_label_alternatives) {
+        let graph_object = this
+        node_object.rectangle.on("mouseover.mouseover_text", function() {
+                show_mouseover_text(node_object, node_label_alternatives, graph_object.canvas)
+            })
+            .on("mouseout.mouseover_text", function() {
+                hide_mouseover_text(graph_object.canvas)
+            })
+    }
 
     registerNodeMouseoverNodeHighlighting(node_object) {
         this.registerNodeHighlightingOnObjectMouseover(node_object.rectangle, node_object)
