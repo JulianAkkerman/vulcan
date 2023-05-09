@@ -22,27 +22,74 @@ var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
 
-function create_canvas(width_percent, height_percent) {
+function create_canvas(width_percent, height_percent, name="") {
     let canvas_width = width_percent*window_width/100
     let canvas_height = canvas_width * height_percent/100
-    return d3.select("div#chartId")
-                   .append("div")
-        .style("width", width_percent + "%")
-        .style("padding-bottom", height_percent + "%")
-                   .classed("svg-container", true)
-                   .append("svg")
-                   .attr("preserveAspectRatio", "xMinYMin meet")
-                   .attr("viewBox", "0 0 "+canvas_width+" "+ canvas_height)
-    .attr("width", "98%")
-    .attr("height", "100%")
-                   .classed("svg-content-responsive", true)
-                    .style("background-color", '#eeeeee')
-        .call(d3.zoom().on("zoom", function () {
-            // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
-    d3.select(this).select("g").attr("transform", d3.event.transform)
- }))
-        // .call(zoom)
-        .append("g");
+
+    let container = d3.select("div#chartId")
+      .append("div")
+      .style("width", width_percent + "%")
+      .style("padding-bottom", height_percent + "%")
+      .classed("svg-container", true)
+      .style("position", "relative") // Add position property to the container div
+      // .style("padding-bottom", "3px") // Add padding to the bottom to make room for the border
+
+    let canvas = container.append("svg")
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      .attr("viewBox", "0 0 " + canvas_width + " " + canvas_height)
+      .attr("width", "calc(100% - 16px)")  // that's 3 + 3 for the borders, I think, but I don't know where the 10 come from
+      .attr("height", "calc(100% - 16px)")
+      .classed("svg-content-responsive", true)
+      .style("background-color", "#eeeeee")
+      .style("border", "3px solid black")
+      //   .style("box-shadow", "0px 0px 0px 10px black inset")
+      .call(d3.zoom().on("zoom", function ()
+      {
+        // Transform the 'g' element when zooming
+        // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
+        d3.select(this).select("g").attr("transform", d3.event.transform);
+      }))
+
+    let g = canvas.append("g")
+
+    if (name !== "") {
+        let text_div = container.append("div")
+            .style("position", "absolute") // Add position property to the text div
+            // .style("top", "10px") // Set position relative to the container div
+            // .style("right", "10px") // Set position relative to the container div
+            .style("color", "black")
+            .style("font-size", "20px")
+            .style("background-color", "#FFFFFF")
+            .style("border", "3px solid black")
+            // add margin
+            .style("padding", "10px")
+        let text = text_div.text(name);
+
+        // Position the text relative to the SVG element
+        let svgRect = canvas.node().getBoundingClientRect(); // Get the bounding box of the SVG element
+        // use the -100 for a placeholder of the name for now.
+        // get width of the text_div
+        let text_div_width = text_div.node().getBoundingClientRect().width
+        let dx = svgRect.width - text_div_width; // Calculate the distance from the right edge of the SVG element
+        let dy = 10; // Calculate the distance from the top edge of the SVG element
+        text.style("top", dy + "px") // Set the position of the text element
+            .style("left", dx + "px") // Set the position of the text element
+
+
+        // // Append a new 'rect' element to the SVG element
+        // let rect = text_div.append("rect")
+        // .attr("rx", 10)
+        // .attr("ry", 10)
+        // .attr("x", 0)
+        // .attr("y", 0)
+        // .attr("width", 100)
+        // .attr("height", 20)
+        // .attr("fill", "white")
+        // .attr("stroke", "black")
+        // .attr("stroke-width", 2)
+    }
+
+    return g
 }
 
 
@@ -159,7 +206,8 @@ sio.on("set_layout", (layout) => {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            canvas_dict[slice["name"]] = create_canvas(99/row.length, height)
+            canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"])
+
         })
     }
 })

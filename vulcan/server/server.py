@@ -17,6 +17,8 @@ class Server:
 
     def __init__(self, layout: BasicLayout, port=5050):
 
+        self.port = port
+
         def on_connect(sid, environ):
             print(sid, 'connected')
             self.sio.emit('set_layout', make_layout_sendable(layout))
@@ -68,7 +70,7 @@ class Server:
                 self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
 
     def start(self):
-        wsgi.server(eventlet.listen(('localhost', 5050)), self.app)
+        wsgi.server(eventlet.listen(('localhost', self.port)), self.app)
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
                     highlights: Set[int] = None):

@@ -21,6 +21,7 @@ def main():
     parser.add_argument("-wiki", "--show-wikipedia-articles", action="store_true", dest="show_wikipedia_articles",
                         default=False, help="If given, vulcan will show Wikipedia articles on node mouseover."
                                             "Can take quite a while to load in the beginning!")
+    parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050)
     args = parser.parse_args()
 
     with open(args.pickle_filename, "rb") as f:
@@ -35,7 +36,7 @@ def main():
 
     print(layout.layout)
 
-    server = Server(layout)
+    server = Server(layout, port=args.port)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 
