@@ -181,6 +181,8 @@ class Graph {
                 this.registerEdgeMouseover(edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[currentNode.node_name], edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[child.node_name], edge_object, edge_label_object)
+                this.node_dict[currentNode.node_name].registerEdge(edge_object, edge_label_object, edge_position_data, this)
+                this.node_dict[child.node_name].registerEdge(edge_object, edge_label_object, edge_position_data, this)
             })
         })
     }
@@ -227,7 +229,7 @@ class Graph {
         let p = edge_position_data.parentNode
         let c = edge_position_data.childNode
         let yShift = 0
-        if (edge_position_data.is_reentrancy && !this.childIsBelowParent(edge_position_data)) {
+        if (edge_position_data.is_reentrancy && !childIsBelowParent(edge_position_data)) {
             yShift = NODE_LEVEL_HEIGHT
         }
         let baseY;
@@ -349,7 +351,7 @@ class Graph {
             let endpoint = this.getReentrancyEndPoint(edge_position_data)
             let edge = d3.path()
             edge.moveTo(startpoint.x, startpoint.y)
-            if (this.childIsBelowParent(edge_position_data)) {
+            if (childIsBelowParent(edge_position_data)) {
                 let verticalCenter = (startpoint.y+endpoint.y) / 2
                 edge.bezierCurveTo(startpoint.x, verticalCenter, endpoint.x, startpoint.y, endpoint.x, endpoint.y)
             } else {
@@ -373,7 +375,7 @@ class Graph {
 
 
     getEdgeStartPoint(edge_position_data) {
-        let xDistRatio = this.getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, edge_position_data.parentBoxWidth)
+        let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, edge_position_data.parentBoxWidth)
         return {
             x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * (0.5 + xDistRatio),
             y: edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
@@ -389,7 +391,7 @@ class Graph {
 
 
     getReentrancyStartPoint(edge_position_data) {
-        let xDistRatio = this.getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, this.getWidth()*2)
+        let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, this.getWidth()*2)
         return {
             x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * (0.5 + xDistRatio),
             y: edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
@@ -397,9 +399,9 @@ class Graph {
     }
 
     getReentrancyEndPoint(edge_position_data) {
-        let xDistRatio = this.getXDistRation(edge_position_data.childNode, edge_position_data.parentNode, this.getWidth()*2)
+        let xDistRatio = getXDistRation(edge_position_data.childNode, edge_position_data.parentNode, this.getWidth()*2)
         let endPointX = edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth() * (0.5 + xDistRatio)
-        if (this.childIsBelowParent(edge_position_data)) {
+        if (childIsBelowParent(edge_position_data)) {
             return {
                 x: endPointX,
                 y: edge_position_data.childNode.getY()
@@ -413,14 +415,6 @@ class Graph {
     }
 
 
-    childIsBelowParent(edge_position_data) {
-        return edge_position_data.childNode.getY() >
-            edge_position_data.parentNode.getY()+edge_position_data.parentNode.getHeight()
-    }
-
-    getXDistRation(mainNode, referenceNode, normalizingFactor) {
-        return (referenceNode.getX()+referenceNode.getWidth()/2 - mainNode.getX() - mainNode.getWidth()/2)/normalizingFactor
-    }
 
 
     registerNodesGlobally(canvas_name) {
@@ -432,6 +426,15 @@ class Graph {
     }
 
 
+}
+
+function getXDistRation(mainNode, referenceNode, normalizingFactor) {
+    return (referenceNode.getX()+referenceNode.getWidth()/2 - mainNode.getX() - mainNode.getWidth()/2)/normalizingFactor
+}
+
+function childIsBelowParent(edge_position_data) {
+    return edge_position_data.childNode.getY() >
+        edge_position_data.parentNode.getY()+edge_position_data.parentNode.getHeight()
 }
 
 let alias = 0
