@@ -12,6 +12,7 @@ const canvas_name_to_node_name_to_node_dict = {}
 
 let current_corpus_position = 0
 let corpus_length = 0
+let saved_layout = null
 
 const window_width  = window.innerWidth || document.documentElement.clientWidth ||
 document.body.clientWidth;
@@ -28,6 +29,7 @@ function create_canvas(width_percent, height_percent, name="") {
 
     let container = d3.select("div#chartId")
       .append("div")
+      .attr("class","layoutDiv")
       .style("width", width_percent + "%")
       .style("padding-bottom", height_percent + "%")
       .classed("svg-container", true)
@@ -183,7 +185,12 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
 }
 
 sio.on("set_layout", (layout) => {
+    saved_layout = layout
     corpus_length = layout[0][0].length
+    set_layout(layout)
+})
+
+function set_layout(layout) {
     let canvas_heights = []
     layout.forEach(row => {
         let height_here = 0
@@ -210,7 +217,11 @@ sio.on("set_layout", (layout) => {
 
         })
     }
-})
+}
+
+function reset() {
+    d3.selectAll(".layoutDiv").remove()
+}
 
 sio.on("set_corpus_length", (data) => {
     corpus_length = data;
@@ -229,6 +240,8 @@ function set_corpus_position() {
     // (current_corpus_position+1)+
     document.getElementById("corpusPositionInput").value = current_corpus_position+1
     d3.select("#corpusPositionText").text("/"+corpus_length)
+    reset()
+    set_layout(saved_layout)
 }
 
 d3.select("body").on("keydown", function () {
