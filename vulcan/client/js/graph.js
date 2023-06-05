@@ -1,10 +1,23 @@
 NODE_BUFFER_WIDTH = 30
 NODE_LEVEL_HEIGHT = 70
+HEIGHT_SWITCH_BUFFER = 6
 BACKGROUND_CLASSNAME = "backgroundbox"
 EDGE_CLASSNAME = "edge"
 EDGE_COLOR = "#000080"
 REENTRANT_EDGE_COLOR = "#7777FF"
 
+
+function child_is_above_parent(edge_position_data) {
+    return edge_position_data.parentNode.getY() > edge_position_data.childNode.getY() + edge_position_data.childNode.getHeight() + HEIGHT_SWITCH_BUFFER;
+}
+
+function child_is_below_parent(edge_position_data) {
+    return edge_position_data.childNode.getY() > edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight() + HEIGHT_SWITCH_BUFFER;
+}
+
+function edge_is_sideways(edge_position_data) {
+    return !(child_is_below_parent(edge_position_data) || child_is_above_parent(edge_position_data));
+}
 
 class Graph {
 
@@ -168,14 +181,7 @@ class Graph {
     drawEdges() {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, currentNode => {
             currentNode.child_nodes.forEach(child => {
-                let edge_position_data = {
-                    parentNode: this.node_dict[currentNode.node_name],
-                    childNode: this.node_dict[child.node_name],
-                    edge_label: child.incoming_edge,
-                    is_reentrancy: child.is_reentrancy,
-                    parentBoxWidth: this.total_widths_dict[currentNode.node_name],
-                    childBoxWidth: this.total_widths_dict[child.node_name]
-                }
+                let edge_position_data = this.get_edge_position_data(currentNode, child)
                 let edge_object = this.draw_edge_from_data(edge_position_data);
                 let edge_label_object = this.draw_edge_label_from_data(edge_position_data);
                 this.registerEdgeMouseover(edge_object, edge_label_object)
@@ -185,6 +191,29 @@ class Graph {
                 this.node_dict[child.node_name].registerEdge(edge_object, edge_label_object, edge_position_data, this)
             })
         })
+    }
+
+    get_edge_position_data(current_node, child_node) {
+        // check if edge label ends with "-of"
+        if (child_node.incoming_edge.endsWith("-of")) {
+            return {
+                    parentNode: this.node_dict[child_node.node_name],
+                    childNode: this.node_dict[current_node.node_name],
+                    edge_label: child_node.incoming_edge.slice(0, -3),
+                    is_reentrancy: child_node.is_reentrancy,
+                    parentBoxWidth: this.total_widths_dict[child_node.node_name],
+                    childBoxWidth: this.total_widths_dict[current_node.node_name]
+                }
+        } else {
+            return {
+                parentNode: this.node_dict[current_node.node_name],
+                childNode: this.node_dict[child_node.node_name],
+                edge_label: child_node.incoming_edge,
+                is_reentrancy: child_node.is_reentrancy,
+                parentBoxWidth: this.total_widths_dict[current_node.node_name],
+                childBoxWidth: this.total_widths_dict[child_node.node_name]
+            }
+        }
     }
 
     draw_edge_label_from_data(edge_position_data) {
@@ -209,7 +238,11 @@ class Graph {
         let distance = c.getX() + c.getWidth()/2 - p.getX() - p.getWidth()/2 // negative if child is to the left
         if (distance < -this.EDGE_LABEL_FAR_RANGE) {
             // child is far to the left, we put label above edge close to child
-            return (c.getX() + c.getWidth()/2)
+            if (edge_is_sideways(edge_position_data)) {
+                return c.getX() + c.getWidth() + 20
+            } else {
+                return (c.getX() + c.getWidth()/2)
+            }
         } else if (distance < -this.EDGE_LABEL_CLOSE_RANGE) {
             //child is medium to the left, we put label below middle of edge
             return (p.getX() + p.getWidth()/2 + c.getX() + c.getWidth()/2)/2-10 // -10 compensates to quasi-center text
@@ -221,7 +254,11 @@ class Graph {
             return (p.getX() + p.getWidth()/2 + c.getX() + c.getWidth()/2)/2+5
         } else {
             // child is far to the right, we put label above edge close to child
-            return (c.getX() + c.getWidth()/2)-20
+            if (edge_is_sideways(edge_position_data)) {
+                return c.getX() - 10 - Node.get_hypothetical_node_width(edge_position_data.edge_label)
+            } else {
+                return (c.getX() + c.getWidth()/2)-20
+            }
         }
     }
 
@@ -236,19 +273,27 @@ class Graph {
         let distance = c.getX() + c.getWidth()/2 - p.getX() - p.getWidth()/2 // negative if child is to the left
         if (distance < -this.EDGE_LABEL_FAR_RANGE) {
             // child is far to the left, we put label above edge close to child
-            baseY = c.getY() - 25
+            if (edge_is_sideways(edge_position_data)) {
+                baseY = c.getY() - 5
+            } else {
+                baseY = c.getY() - 25
+            }
         } else if (distance < -this.EDGE_LABEL_CLOSE_RANGE) {
             //child is medium to the left, we put label below middle of edge
-            baseY = (p.getY() + p.getHeight() + c.getY()) / 2 + 5 // +20 to be below center
+            baseY = (p.getY() + p.getHeight() + c.getY()) / 2 + 20 - 0.2*(c.getY()-p.getY()) // +20 to be below center
         } else if (distance < this.EDGE_LABEL_CLOSE_RANGE) {
             // child is nearly centered, we put label left of middle of edge
             baseY = (p.getY() + p.getHeight() + c.getY()) / 2
         } else if (distance < this.EDGE_LABEL_FAR_RANGE) {
             // child is medium to the right, we put label above middle of edge
-            baseY = (p.getY() + p.getHeight() + c.getY()) / 2 - 15 // -20 to be above center
+            baseY = (p.getY() + p.getHeight() + c.getY()) / 2 - 12 - 0.18*(c.getY()-p.getY()) // -20 to be above center
         } else {
             // child is far to the right, we put label above edge close to child
-            baseY = c.getY() - 25
+            if (edge_is_sideways(edge_position_data)) {
+                baseY = c.getY() - 5
+            } else {
+                baseY = c.getY() - 25
+            }
         }
         return baseY + yShift
     }
@@ -365,8 +410,13 @@ class Graph {
             let endpoint = this.getEdgeEndPoint(edge_position_data)
             let edge = d3.path()
             edge.moveTo(startpoint.x, startpoint.y)
-            let verticalCenter = (startpoint.y+endpoint.y) / 2
-            edge.bezierCurveTo(startpoint.x, verticalCenter, endpoint.x, startpoint.y, endpoint.x, endpoint.y)
+            if (edge_is_sideways(edge_position_data)) {
+                let horizontal_center = (startpoint.x + endpoint.x) / 2
+                edge.bezierCurveTo(horizontal_center, startpoint.y, horizontal_center, endpoint.y, endpoint.x, endpoint.y)
+            } else {
+                let verticalCenter = (startpoint.y + endpoint.y) / 2
+                edge.bezierCurveTo(startpoint.x, verticalCenter, endpoint.x, startpoint.y, endpoint.x, endpoint.y)
+            }
             return edge
         }
     }
@@ -376,16 +426,50 @@ class Graph {
 
     getEdgeStartPoint(edge_position_data) {
         let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, edge_position_data.parentBoxWidth)
+        let x
+        let default_x = edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * 0.8 * sigmoid(xDistRatio)
+        let y
+        if (child_is_above_parent(edge_position_data)) {
+            y = edge_position_data.parentNode.getY()
+            x = default_x
+        } else if (child_is_below_parent(edge_position_data)) {
+            y = edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
+            x = default_x
+        } else {
+            y = edge_position_data.parentNode.getY() + 0.5 * edge_position_data.parentNode.getHeight()
+            if (edge_position_data.parentNode.getX() < edge_position_data.childNode.getX()) {
+                x = edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth()
+            } else {
+                x = edge_position_data.parentNode.getX()
+            }
+        }
         return {
-            x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * (0.5 + xDistRatio),
-            y: edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
+            x: x,
+            y: y
         }
     }
 
     getEdgeEndPoint(edge_position_data) {
+        let x
+        let default_x = edge_position_data.childNode.getX() + 0.5 * edge_position_data.childNode.getWidth()
+        let y
+        if (child_is_above_parent(edge_position_data)) {
+            y = edge_position_data.childNode.getY() + edge_position_data.childNode.getHeight()
+            x = default_x
+        } else if (child_is_below_parent(edge_position_data)) {
+            y = edge_position_data.childNode.getY()
+            x = default_x
+        } else {
+            y = edge_position_data.childNode.getY() + 0.5 * edge_position_data.childNode.getHeight()
+            if (edge_position_data.parentNode.getX() < edge_position_data.childNode.getX()) {
+                x = edge_position_data.childNode.getX()
+            } else {
+                x = edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth()
+            }
+        }
         return {
-            x: edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth() * 0.5,
-            y: edge_position_data.childNode.getY()
+            x: x,
+            y: y
         }
     }
 
@@ -393,14 +477,14 @@ class Graph {
     getReentrancyStartPoint(edge_position_data) {
         let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, this.getWidth()*2)
         return {
-            x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * (0.5 + xDistRatio),
+            x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * 0.8 * sigmoid(xDistRatio),
             y: edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
         }
     }
 
     getReentrancyEndPoint(edge_position_data) {
         let xDistRatio = getXDistRation(edge_position_data.childNode, edge_position_data.parentNode, this.getWidth()*2)
-        let endPointX = edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth() * (0.5 + xDistRatio)
+        let endPointX = edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth() * 0.8 * sigmoid(xDistRatio)
         if (childIsBelowParent(edge_position_data)) {
             return {
                 x: endPointX,
@@ -431,6 +515,11 @@ class Graph {
 function getXDistRation(mainNode, referenceNode, normalizingFactor) {
     return (referenceNode.getX()+referenceNode.getWidth()/2 - mainNode.getX() - mainNode.getWidth()/2)/normalizingFactor
 }
+
+function sigmoid(z) {
+  return 1 / (1 + Math.exp(-z));
+}
+
 
 function childIsBelowParent(edge_position_data) {
     return edge_position_data.childNode.getY() >
