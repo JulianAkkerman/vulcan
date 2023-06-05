@@ -226,7 +226,9 @@ function remove_strings_from_canvas(canvas) {
 }
 
 function set_corpus_position() {
-    d3.select("#corpusPositionText").text((current_corpus_position+1)+"/"+corpus_length)
+    // (current_corpus_position+1)+
+    document.getElementById("corpusPositionInput").value = current_corpus_position+1
+    d3.select("#corpusPositionText").text("/"+corpus_length)
 }
 
 d3.select("body").on("keydown", function () {
@@ -248,3 +250,17 @@ d3.select("body").on("keyup", function () {
         }
     }
 });
+
+d3.select("#corpusPositionInput").on("keypress", function() {
+    if (d3.event.keyCode == 13) {
+        let new_position = parseInt(d3.select("#corpusPositionInput").property("value")) - 1
+        if (new_position >= 0 && new_position < corpus_length) {
+            current_corpus_position = new_position
+            set_corpus_position()
+            sio.emit("instance_requested", current_corpus_position)
+        } else {
+            d3.select("#corpusPositionText").text("/" + corpus_length + " Error: invalid position requested")
+        }
+        return true
+    }
+})

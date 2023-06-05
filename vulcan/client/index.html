@@ -15,6 +15,13 @@
     <h2>Graph visualization</h2>
     <button id="previousButton">&lt;Previous</button>
     <button id="nextButton">Next&gt;</button>
+    <!--input text field with width 50 and right alignment-->
+    <!--restricting to numbers as per
+    https://stackoverflow.com/questions/13952686/how-to-make-html-input-tag-only-accept-numerical-values
+     (somewhere a bit down)-->
+    <input style="text-align: right" type="text" size="5" id="corpusPositionInput" value="0"
+    onkeypress="
+    return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
     <div style="display: inline;" id="corpusPositionText"></div>
 
     <div id="chartId"></div>
