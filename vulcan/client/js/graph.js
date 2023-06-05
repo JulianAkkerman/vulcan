@@ -1,5 +1,5 @@
-NODE_BUFFER_WIDTH = 30
-NODE_LEVEL_HEIGHT = 70
+NODE_BUFFER_WIDTH = 50
+NODE_LEVEL_HEIGHT = 100
 HEIGHT_SWITCH_BUFFER = 6
 BACKGROUND_CLASSNAME = "backgroundbox"
 EDGE_CLASSNAME = "edge"
@@ -162,10 +162,10 @@ class Graph {
         const height = Math.max.apply( null, arr ) - top_left_y;
         // draw white box around graph with NODE_BUFFER_WIDTH as margin
         this.canvas.append("rect")
-            .attr("x", top_left_x - NODE_BUFFER_WIDTH)
-            .attr("y", top_left_y - NODE_BUFFER_WIDTH)
-            .attr("width", this.total_widths_dict[this.graph_as_dict.node_name] + 2 * NODE_BUFFER_WIDTH)
-            .attr("height",  height + 2 * NODE_BUFFER_WIDTH)
+            .attr("x", top_left_x - NODE_BUFFER_WIDTH - 200)
+            .attr("y", top_left_y - NODE_BUFFER_WIDTH - 150)
+            .attr("width", this.total_widths_dict[this.graph_as_dict.node_name] + 2 * NODE_BUFFER_WIDTH + 400)
+            .attr("height",  height + 2 * NODE_BUFFER_WIDTH + 300)
             .attr("fill", "white")
             .attr("class", BACKGROUND_CLASSNAME)
             .lower()
@@ -267,7 +267,7 @@ class Graph {
         let c = edge_position_data.childNode
         let yShift = 0
         if (edge_position_data.is_reentrancy && !childIsBelowParent(edge_position_data)) {
-            yShift = NODE_LEVEL_HEIGHT
+            yShift = 50
         }
         let baseY;
         let distance = c.getX() + c.getWidth()/2 - p.getX() - p.getWidth()/2 // negative if child is to the left
