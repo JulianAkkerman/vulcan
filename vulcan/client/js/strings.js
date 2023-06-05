@@ -26,7 +26,7 @@ class Strings {
     create_token_node(token, pos_x, i) {
         let do_highlight = this.highlights != null && this.highlights.includes(i)
         let node = createNode(pos_x, this.top_left_y, token, "STRING", this.canvas, false, do_highlight,
-            TOKEN_CLASSNAME)
+            false, TOKEN_CLASSNAME)
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {
             this.registerNodeAlternativeMouseover(node, this.label_alternatives[i])

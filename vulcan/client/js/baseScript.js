@@ -23,7 +23,7 @@ var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
 
-function create_canvas(width_percent, height_percent, name="") {
+function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
     let canvas_width = width_percent*window_width/100
     let canvas_height = canvas_width * height_percent/100
 
@@ -49,6 +49,16 @@ function create_canvas(width_percent, height_percent, name="") {
       {
         // Transform the 'g' element when zooming
         // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
+        // console.log(d3.event.transform)
+        // let actual_transform = {
+        //     x: d3.event.transform.x,
+        //     y: d3.event.transform.y,
+        //     k: d3.event.transform.k
+        // }
+        console.log(only_horizontal_zoom)
+        if (only_horizontal_zoom) {
+            d3.event.transform.y = 0
+        }
         d3.select(this).select("g").attr("transform", d3.event.transform);
       }))
 
@@ -155,7 +165,7 @@ sio.on("set_string", (data) => {
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
-    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives, highlights)
+    let strings = new Strings(20, 5, data["tokens"], canvas, label_alternatives, highlights)
     strings.registerNodesGlobally(data["canvas_name"])
 })
 
@@ -213,7 +223,8 @@ function set_layout(layout) {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"])
+            canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
+                only_horizontal_zoom = slice["visualization_type"] == "STRING")
 
         })
     }

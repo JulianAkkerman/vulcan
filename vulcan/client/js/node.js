@@ -45,7 +45,8 @@ class Node {
 
 }
 
-function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight, classname=NODE_CLASSNAME) {
+function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight,
+                    draggable=true, classname=NODE_CLASSNAME) {
 
     var node_position = [{ x: x, y: y , id: ALL_NODES.length}];
 
@@ -79,10 +80,11 @@ function createNode(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     ALL_NODES.push(node_object)
 
-    let nodeDragHandler = d3.drag().on('drag', nodeDragged);
+    if (draggable) {
+        let nodeDragHandler = d3.drag().on('drag', nodeDragged);
 
-    nodeDragHandler(node_group);
-
+        nodeDragHandler(node_group);
+    }
 
     return node_object
 }
