@@ -24,7 +24,10 @@ def main():
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050)
     args = parser.parse_args()
 
-    propbank_path = args.propbank_frames + "/"
+    if args.propbank_frames is not None:
+        propbank_path = args.propbank_frames + "/"
+    else:
+        propbank_path = None
 
     with open(args.pickle_filename, "rb") as f:
         input_dicts = pickle.load(f)
