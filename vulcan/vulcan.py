@@ -24,12 +24,14 @@ def main():
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050)
     args = parser.parse_args()
 
+    propbank_path = args.propbank_frames + "/"
+
     with open(args.pickle_filename, "rb") as f:
         input_dicts = pickle.load(f)
 
     # input_dicts = make_highlights_example()
 
-    data_corpus = from_dict_list(input_dicts, propbank_frames_path=args.propbank_frames,
+    data_corpus = from_dict_list(input_dicts, propbank_frames_path=propbank_path,
                                  show_wikipedia=args.show_wikipedia_articles)
 
     layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
