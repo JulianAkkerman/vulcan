@@ -12,6 +12,7 @@ const canvas_name_to_node_name_to_node_dict = {}
 
 let current_corpus_position = 0
 let corpus_length = 0
+let saved_layout = null
 
 const window_width  = window.innerWidth || document.documentElement.clientWidth ||
 document.body.clientWidth;
@@ -22,12 +23,13 @@ var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
 
-function create_canvas(width_percent, height_percent, name="") {
+function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
     let canvas_width = width_percent*window_width/100
     let canvas_height = canvas_width * height_percent/100
 
     let container = d3.select("div#chartId")
       .append("div")
+      .attr("class","layoutDiv")
       .style("width", width_percent + "%")
       .style("padding-bottom", height_percent + "%")
       .classed("svg-container", true)
@@ -47,6 +49,16 @@ function create_canvas(width_percent, height_percent, name="") {
       {
         // Transform the 'g' element when zooming
         // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
+        // console.log(d3.event.transform)
+        // let actual_transform = {
+        //     x: d3.event.transform.x,
+        //     y: d3.event.transform.y,
+        //     k: d3.event.transform.k
+        // }
+        console.log(only_horizontal_zoom)
+        if (only_horizontal_zoom) {
+            d3.event.transform.y = 0
+        }
         d3.select(this).select("g").attr("transform", d3.event.transform);
       }))
 
@@ -153,7 +165,7 @@ sio.on("set_string", (data) => {
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
-    let strings = new Strings(20, 20, data["tokens"], canvas, label_alternatives, highlights)
+    let strings = new Strings(20, 5, data["tokens"], canvas, label_alternatives, highlights)
     strings.registerNodesGlobally(data["canvas_name"])
 })
 
@@ -183,7 +195,12 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
 }
 
 sio.on("set_layout", (layout) => {
+    saved_layout = layout
     corpus_length = layout[0][0].length
+    set_layout(layout)
+})
+
+function set_layout(layout) {
     let canvas_heights = []
     layout.forEach(row => {
         let height_here = 0
@@ -206,11 +223,16 @@ sio.on("set_layout", (layout) => {
         let row = layout[i]
         let height = canvas_heights[i]
         row.forEach(slice => {
-            canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"])
+            canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
+                only_horizontal_zoom = slice["visualization_type"] == "STRING")
 
         })
     }
-})
+}
+
+function reset() {
+    d3.selectAll(".layoutDiv").remove()
+}
 
 sio.on("set_corpus_length", (data) => {
     corpus_length = data;
@@ -226,7 +248,11 @@ function remove_strings_from_canvas(canvas) {
 }
 
 function set_corpus_position() {
-    d3.select("#corpusPositionText").text((current_corpus_position+1)+"/"+corpus_length)
+    // (current_corpus_position+1)+
+    document.getElementById("corpusPositionInput").value = current_corpus_position+1
+    d3.select("#corpusPositionText").text("/"+corpus_length)
+    reset()
+    set_layout(saved_layout)
 }
 
 d3.select("body").on("keydown", function () {
@@ -248,3 +274,17 @@ d3.select("body").on("keyup", function () {
         }
     }
 });
+
+d3.select("#corpusPositionInput").on("keypress", function() {
+    if (d3.event.keyCode == 13) {
+        let new_position = parseInt(d3.select("#corpusPositionInput").property("value")) - 1
+        if (new_position >= 0 && new_position < corpus_length) {
+            current_corpus_position = new_position
+            set_corpus_position()
+            sio.emit("instance_requested", current_corpus_position)
+        } else {
+            d3.select("#corpusPositionText").text("/" + corpus_length + " Error: invalid position requested")
+        }
+        return true
+    }
+})
