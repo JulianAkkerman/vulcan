@@ -8,7 +8,8 @@ from data_handling.linguistic_objects.trees.am_tree_as_dict import generate_rand
     alignments_from_amtree
 from server.basic_layout import BasicLayout
 from server.server import Server
-from data_handling.data_corpus import from_dict_list, FORMAT_NAME_GRAPH, FORMAT_NAME_STRING
+from data_handling.data_corpus import from_dict_list
+from data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_GRAPH
 from amconll import parse_amconll
 
 
