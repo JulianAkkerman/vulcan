@@ -2,17 +2,17 @@ from typing import List, Dict
 import copy
 import textwrap
 
-from data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
+from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
     FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING
-from data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
+from vulcan.data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
-from data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
-from data_handling.instance_readers.string_instance_reader import StringInstanceReader, TokenInstanceReader, \
+from vulcan.data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
+from vulcan.data_handling.instance_readers.string_instance_reader import StringInstanceReader, TokenInstanceReader, \
     TokenizedStringInstanceReader
-from data_handling.visualization_type import VisualizationType
+from vulcan.data_handling.visualization_type import VisualizationType
 from collections import OrderedDict
-from data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
-from data_handling.linguistic_objects.graphs.propbank_frame_reader import create_frame_to_definition_dict
+from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
+from vulcan.data_handling.linguistic_objects.graphs.propbank_frame_reader import create_frame_to_definition_dict
 import wikipedia
 
 

@@ -3,12 +3,12 @@ from typing import List, Dict, Set
 import socketio
 from eventlet import wsgi
 
-from data_handling.data_corpus import CorpusSlice
-from data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
+from vulcan.data_handling.data_corpus import CorpusSlice
+from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 import eventlet
 
-from data_handling.visualization_type import VisualizationType
-from server.basic_layout import BasicLayout
+from vulcan.data_handling.visualization_type import VisualizationType
+from vulcan.server.basic_layout import BasicLayout
 
 eventlet.monkey_patch()
 

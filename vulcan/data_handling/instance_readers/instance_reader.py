@@ -1,4 +1,4 @@
-from data_handling.visualization_type import VisualizationType
+from vulcan.data_handling.visualization_type import VisualizationType
 
 
 class InstanceReader:

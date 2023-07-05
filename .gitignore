@@ -3,3 +3,5 @@
 *.pyc
 vulcan/negations_testset.pkl
 vulcan/pickle_builder/test.pickle
+build/*
+vulcan.egg-info/*

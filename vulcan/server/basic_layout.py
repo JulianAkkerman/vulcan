@@ -1,5 +1,5 @@
-from data_handling.data_corpus import CorpusSlice
-from data_handling.visualization_type import VisualizationType
+from vulcan.data_handling.data_corpus import CorpusSlice
+from vulcan.data_handling.visualization_type import VisualizationType
 
 
 class BasicLayout:
