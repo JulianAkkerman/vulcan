@@ -3,10 +3,13 @@ import copy
 import textwrap
 
 from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
-    FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING
+    FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING, FORMAT_NAME_NLTK_TREE, \
+    FORMAT_NAME_NLTK_TREE_STRING
 from vulcan.data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
 from vulcan.data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
+from vulcan.data_handling.instance_readers.nltk_instance_reader import NLTKTreeInstanceReader, \
+    NLTKTreeStringInstanceReader
 from vulcan.data_handling.instance_readers.string_instance_reader import StringInstanceReader, TokenInstanceReader, \
     TokenizedStringInstanceReader
 from vulcan.data_handling.visualization_type import VisualizationType
@@ -125,14 +128,18 @@ def get_instance_reader_by_name(reader_name):
         return TokenInstanceReader()
     elif reader_name == FORMAT_NAME_TOKENIZED_STRING:
         return TokenizedStringInstanceReader()
-    elif reader_name == FORMAT_NAME_AMTREE:
-        return AMTreeInstanceReader()
-    elif reader_name == FORMAT_NAME_AMTREE_STRING:
-        return AMTreeStringInstanceReader()
+    elif reader_name == FORMAT_NAME_NLTK_TREE:
+        return NLTKTreeInstanceReader()
+    elif reader_name == FORMAT_NAME_NLTK_TREE_STRING:
+        return NLTKTreeStringInstanceReader()
     elif reader_name == FORMAT_NAME_GRAPH:
         return AMRGraphInstanceReader()
     elif reader_name == FORMAT_NAME_GRAPH_STRING:
         return AMRGraphStringInstanceReader()
+    elif reader_name == FORMAT_NAME_AMTREE:
+        return AMTreeInstanceReader()
+    elif reader_name == FORMAT_NAME_AMTREE_STRING:
+        return AMTreeStringInstanceReader()
 
 
 def read_label_alternatives(corpus_entry):

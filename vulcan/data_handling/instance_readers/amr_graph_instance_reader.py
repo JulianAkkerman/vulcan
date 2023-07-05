@@ -1,4 +1,4 @@
-from instance_reader import InstanceReader
+from vulcan.data_handling.instance_readers.instance_reader import InstanceReader
 from vulcan.data_handling.visualization_type import VisualizationType
 from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 from penman import decode

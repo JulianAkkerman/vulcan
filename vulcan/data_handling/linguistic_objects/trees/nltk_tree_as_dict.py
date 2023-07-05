@@ -2,7 +2,7 @@ from typing import Dict
 
 from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import create_root, add_child
 
-from nltk.tree.tree import Tree
+from nltk import Tree
 
 
 def nltk_tree_to_dict(tree: Tree):

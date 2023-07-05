@@ -32,7 +32,7 @@ class Server:
         self.sio.on("connect", on_connect)
         self.sio.on("disconnect", on_disconnect)
         self.app = socketio.WSGIApp(self.sio, static_files={
-            '/': './client/'
+            '/': './vulcan/client/'
         })
 
         @self.sio.event

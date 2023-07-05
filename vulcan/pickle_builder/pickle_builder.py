@@ -24,7 +24,7 @@ class PickleBuilder:
         if run_checks:
             names_match_data_structure = set(name_to_instance.keys()) == set(self.data.keys())
             assert names_match_data_structure
-            assert self.instance_counts_are_in_sync()
+            assert self._instance_counts_are_in_sync()
         for name, instance in name_to_instance.items():
             self._add_instance_to_data(name, instance)
 
@@ -42,12 +42,12 @@ class PickleBuilder:
     def _get_all_instance_counts(self):
         return [len(d['instances']) for d in self.data.values()]
 
-    def instance_counts_are_in_sync(self):
+    def _instance_counts_are_in_sync(self):
         return len(set(self._get_all_instance_counts())) == 1
 
     def _make_data_for_pickle(self, run_checks: bool = True):
         if run_checks:
-            assert self.instance_counts_are_in_sync()
+            assert self._instance_counts_are_in_sync()
         data_for_pickle = []
         for name, data in self.data.items():
             # create new dict that also includes {'name': name}

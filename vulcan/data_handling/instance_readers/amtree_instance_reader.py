@@ -1,4 +1,4 @@
-from instance_reader import InstanceReader
+from vulcan.data_handling.instance_readers.instance_reader import InstanceReader
 from vulcan.data_handling.visualization_type import VisualizationType
 from vulcan.data_handling.linguistic_objects.trees.am_tree_as_dict import from_string, from_amtree
 
