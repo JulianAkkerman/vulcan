@@ -1,4 +1,5 @@
 import pickle
+import json
 import sys
 from argparse import ArgumentParser
 
@@ -22,6 +23,7 @@ def main():
                         default=False, help="If given, vulcan will show Wikipedia articles on node mouseover."
                                             "Can take quite a while to load in the beginning!")
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050)
+    parser.add_argument("-d", "--json", action="store_true", dest="is_json_file", default=False)
     args = parser.parse_args()
 
     if args.propbank_frames is not None:
@@ -29,8 +31,12 @@ def main():
     else:
         propbank_path = None
 
-    with open(args.pickle_filename, "rb") as f:
-        input_dicts = pickle.load(f)
+    if args.is_json_file:
+        with open(args.pickle_filename, "r") as f:
+            input_dicts = json.load(f)
+    else:
+        with open(args.pickle_filename, "rb") as f:
+            input_dicts = pickle.load(f)
 
     # input_dicts = make_highlights_example()
 
