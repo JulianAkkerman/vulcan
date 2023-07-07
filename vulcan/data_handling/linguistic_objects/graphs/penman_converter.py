@@ -1,5 +1,5 @@
 import penman
-import data_handling.linguistic_objects.graphs.graph_as_dict as graph_as_dict
+import vulcan.data_handling.linguistic_objects.graphs.graph_as_dict as graph_as_dict
 
 MADEUP_NODENAME_BASE = "alias"
 

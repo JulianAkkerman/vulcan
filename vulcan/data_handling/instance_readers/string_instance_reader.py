@@ -1,5 +1,5 @@
-from data_handling.instance_readers.instance_reader import InstanceReader
-from data_handling.visualization_type import VisualizationType
+from vulcan.data_handling.instance_readers.instance_reader import InstanceReader
+from vulcan.data_handling.visualization_type import VisualizationType
 
 
 class StringInstanceReader(InstanceReader):

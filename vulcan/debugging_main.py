@@ -1,5 +1,5 @@
 import penman
-from server.server import Server
+from vulcan.server.server import Server
 
 if __name__ == "__main__":
 

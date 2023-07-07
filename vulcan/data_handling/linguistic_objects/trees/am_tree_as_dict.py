@@ -4,8 +4,8 @@ import random
 
 from amconll import AMSentence, parse_amconll
 
-from data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_root, ROOT_EDGE_LABEL
-from data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
+from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_root, ROOT_EDGE_LABEL
+from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 from penman import decode
 
 ADDRESS_SEPARATOR = "."

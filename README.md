@@ -15,6 +15,13 @@ First, `cd` into the `vulcan` subfolder (where the `vulcan.py` file is located).
 python3 vulcan.py path/to/pickle-file
 ```
 
+To visualise an AMR corpus file (in the standard format, e.g. the official AMR corpus), run
+
+```
+python3 visualize_amr_corpus.py path/to/corpus/file
+```
+
+
 This will start the server on `127.0.0.1:5050`. Open that website in a browser and you can look at the examples in the file.
 
 ### Options
