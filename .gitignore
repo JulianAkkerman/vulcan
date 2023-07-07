@@ -6,3 +6,4 @@ vulcan/pickle_builder/test.pickle
 build/*
 vulcan.egg-info/*
 vulcan/examples/nltk_example.pickle
+vulcan/examples/test.json

@@ -1,4 +1,5 @@
 import pickle
+import json
 from typing import Dict, Any
 
 
@@ -61,6 +62,14 @@ class PickleBuilder:
         data_for_pickle = self._make_data_for_pickle()
         with open(pickle_path, 'wb') as f:
             pickle.dump(data_for_pickle, f)
+
+    def write_as_json(self, json_path: str):
+        """
+        :param json_path: Path to the json file that will be created.
+        """
+        data_for_pickle = self._make_data_for_pickle()
+        with open(json_path, 'w') as f:
+            json.dump(data_for_pickle, f)
 
 
 def main():
