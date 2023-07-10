@@ -55,7 +55,6 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         //     y: d3.event.transform.y,
         //     k: d3.event.transform.k
         // }
-        console.log(only_horizontal_zoom)
         if (only_horizontal_zoom) {
             d3.event.transform.y = 0
         }
@@ -133,6 +132,9 @@ sio.on('disconnect', () => {
   console.log('disconnected');
 });
 
+sio.on('set_show_node_names', (data) => {
+    add_node_name_to_node_label = data["show_node_names"]
+})
 
 sio.on("set_graph", (data) => {
     let canvas = canvas_dict[data["canvas_name"]]
@@ -179,13 +181,16 @@ sio.on("set_linker", (data) => {
             let score = data["scores"][node_name1][node_name2]
             let node1 = canvas_name_to_node_name_to_node_dict[canvas_name1][node_name1]
             let node2 = canvas_name_to_node_name_to_node_dict[canvas_name2][node_name2]
-            register_mousover_alignment(node1, node2, score, canvas_name1+"_"+canvas_name2)
-            register_mousover_alignment(node2, node1, score, canvas_name1+"_"+canvas_name2)
+            register_mousover_alignment(node1, node2, score,
+                (canvas_name1+"_"+node_name1+"_"+canvas_name2+"_"+node_name2).replace(" ", "_"))
+            register_mousover_alignment(node2, node1, score,
+                (canvas_name2+"_"+node_name2+"_"+canvas_name1+"_"+node_name1).replace(" ", "_"))
         }
     }
 })
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
+    console.log(linker_id)
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
                 aligned_node.rectangle.style("fill", alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
             })

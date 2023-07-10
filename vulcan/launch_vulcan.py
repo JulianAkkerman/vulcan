@@ -23,7 +23,8 @@ def main():
                         default=False, help="If given, vulcan will show Wikipedia articles on node mouseover."
                                             "Can take quite a while to load in the beginning!")
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050)
-    parser.add_argument("-d", "--json", action="store_true", dest="is_json_file", default=False)
+    parser.add_argument("--json", action="store_true", dest="is_json_file", default=False)
+    parser.add_argument("--show_node_names", action="store_true", dest="show_node_names", default=False)
     args = parser.parse_args()
 
     if args.propbank_frames is not None:
@@ -47,7 +48,7 @@ def main():
 
     print(layout.layout)
 
-    server = Server(layout, port=args.port)
+    server = Server(layout, port=args.port, show_node_names=args.show_node_names)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 

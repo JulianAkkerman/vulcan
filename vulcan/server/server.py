@@ -15,7 +15,7 @@ eventlet.monkey_patch()
 
 class Server:
 
-    def __init__(self, layout: BasicLayout, port=5050):
+    def __init__(self, layout: BasicLayout, port=5050, show_node_names=False):
 
         self.port = port
 
@@ -23,6 +23,7 @@ class Server:
             print(sid, 'connected')
             self.sio.emit('set_layout', make_layout_sendable(layout))
             self.sio.emit('set_corpus_length', layout.corpus_size)
+            self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
             instance_requested(sid, 0)
 
         def on_disconnect(sid):

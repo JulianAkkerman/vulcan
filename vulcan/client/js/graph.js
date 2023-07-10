@@ -6,6 +6,8 @@ EDGE_CLASSNAME = "edge"
 EDGE_COLOR = "#000080"
 REENTRANT_EDGE_COLOR = "#7777FF"
 
+let add_node_name_to_node_label = false
+
 
 function child_is_above_parent(edge_position_data) {
     return edge_position_data.parentNode.getY() > edge_position_data.childNode.getY() + edge_position_data.childNode.getHeight() + HEIGHT_SWITCH_BUFFER;
@@ -105,6 +107,9 @@ class Graph {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
             if (!current_node.is_reentrancy) {
                 let label = current_node.node_label
+                if (add_node_name_to_node_label && current_node.label_type == "STRING") {
+                    label = current_node.node_name + " / " + label
+                }
                 let is_bold = current_node.node_name == this.graph_as_dict.node_name
                 let do_highlight = this.highlights != null && this.highlights.includes(current_node.node_name)
                 let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold,
