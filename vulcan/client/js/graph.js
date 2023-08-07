@@ -59,6 +59,10 @@ class Graph {
         return visitor(subgraph_as_dict, results)
     }
 
+    recenter(new_width) {
+        console.log("graph recenter is not implemented yet")
+    }
+
     static visit_graph_as_dict_top_down(subgraph_as_dict, visitor) {
         visitor(subgraph_as_dict)
         subgraph_as_dict["child_nodes"].forEach(child => {

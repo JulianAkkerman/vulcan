@@ -1,4 +1,4 @@
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple, Any
 
 import socketio
 from eventlet import wsgi
@@ -11,6 +11,14 @@ from vulcan.data_handling.visualization_type import VisualizationType
 from vulcan.server.basic_layout import BasicLayout
 
 eventlet.monkey_patch()
+
+
+def transform_string_maps_to_table_maps(highlights, label_alternatives_by_node_name):
+    if label_alternatives_by_node_name:
+        label_alternatives_by_node_name = {(0, k): v for k, v in label_alternatives_by_node_name.items()}
+    if highlights:
+        highlights = {(0, k) for k in highlights}
+    return highlights, label_alternatives_by_node_name
 
 
 class Server:
@@ -58,6 +66,11 @@ class Server:
                                          corpus_slice.instances[instance_id],
                                          label_alternatives_by_node_name,
                                          highlights)
+                    elif corpus_slice.visualization_type == VisualizationType.TABLE:
+                        self.send_string_table(corpus_slice.name,
+                                               corpus_slice.instances[instance_id],
+                                               label_alternatives_by_node_name,
+                                               highlights)
                     elif corpus_slice.visualization_type == VisualizationType.TREE:
                         # trees are just graphs without reentrancies
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
@@ -75,12 +88,19 @@ class Server:
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
                     highlights: Set[int] = None):
-        dict_to_sent = {"canvas_name": slice_name, "tokens": tokens}
+        highlights, label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
+                                                                                          label_alternatives_by_node_name)
+        self.send_string_table(slice_name, [tokens], label_alternatives_by_node_name, highlights)
+
+    def send_string_table(self, slice_name: str, table: List[List[str]],
+                          label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
+                          highlights: Set[Tuple[int, int]] = None):
+        dict_to_sent = {"canvas_name": slice_name, "table": table}
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
             dict_to_sent["highlights"] = highlights
-        self.sio.emit('set_string', dict_to_sent)
+        self.sio.emit('set_table', dict_to_sent)
 
     def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
                    highlights: Set[str] = None, mouseover_texts: Dict[str, str] = None):

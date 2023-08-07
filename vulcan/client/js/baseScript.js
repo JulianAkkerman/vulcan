@@ -23,6 +23,7 @@ var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
 
+
 function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
     let canvas_width = width_percent*window_width/100
     let canvas_height = canvas_width * height_percent/100
@@ -60,6 +61,8 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         }
         d3.select(this).select("g").attr("transform", d3.event.transform);
       }))
+
+    addFilterDefinitions(canvas);
 
     let g = canvas.append("g")
 
@@ -156,7 +159,8 @@ sio.on("set_graph", (data) => {
     graph.registerNodesGlobally(data["canvas_name"])
 })
 
-sio.on("set_string", (data) => {
+sio.on("set_table", (data) => {
+    console.log(data.keys)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
     let label_alternatives = null
@@ -167,8 +171,8 @@ sio.on("set_string", (data) => {
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
-    let strings = new Strings(20, 5, data["tokens"], canvas, label_alternatives, highlights)
-    strings.registerNodesGlobally(data["canvas_name"])
+    let table = new Table(20, 5, data["table"], canvas, label_alternatives, highlights)
+    table.registerNodesGlobally(data["canvas_name"])
 })
 
 var alignment_color_scale = d3.scaleLinear().range(['white','#0742ac']);  // just kinda experimenting
@@ -293,3 +297,125 @@ d3.select("#corpusPositionInput").on("keypress", function() {
         return true
     }
 })
+
+
+
+function addFilterDefinitions(canvas) {
+    let defs = canvas.append("defs")
+
+    // blur
+    defs.append("filter")
+        .attr("id", "blur")
+        .append("feGaussianBlur")
+        .attr("stdDeviation", 2);
+
+    // cutting color in, inspired by https://css-tricks.com/adding-shadows-to-svg-icons-with-css-and-svg-filters/
+    // and syntax inspired by https://stackoverflow.com/questions/12277776/how-to-add-drop-shadow-to-d3-js-pie-or-donut-chart
+    let filter = defs.append("filter")
+        .attr("id", "white-border-inset")
+
+    filter.append("feOffset")
+        .attr("in", "SourceAlpha")
+        .attr("dx", 0)
+        .attr("dy", 0)
+        .attr("result", "offset")
+    filter.append("feGaussianBlur")
+        .attr("in", "SourceGraphic")
+        .attr("stdDeviation", 1.5)
+        .attr("result", "offsetBlur");
+    filter.append("feComposite")
+        .attr("operator", "out")
+        .attr("in", "SourceGraphic")
+        .attr("in2", "offsetBlur")
+        .attr("result", "inverse");
+    filter.append("feFlood")
+        .attr("flood-color", "white")
+        .attr("flood-opacity", "1.0")
+        .attr("result", "color");
+    filter.append("feComposite")
+        .attr("operator", "in")
+        .attr("in", "color")
+        .attr("in2", "inverse")
+        .attr("result", "shadow");
+    filter.append("feComposite")
+        .attr("operator", "over")
+        .attr("in", "shadow")
+        .attr("in2", "SourceGraphic")
+        .attr("result", "final");
+    filter.append("feComposite")
+        .attr("in", "offsetColor")
+        .attr("in2", "offsetBlur")
+        .attr("operator", "in")
+        .attr("result", "offsetBlur");
+    //
+    // let feMerge = filter.append("feMerge");
+    //
+    // feMerge.append("feMergeNode")
+    //     .attr("in", "offsetBlur")
+    // feMerge.append("feMergeNode")
+    //     .attr("in", "SourceGraphic");
+
+    // dropshadow, see https://stackoverflow.com/questions/12277776/how-to-add-drop-shadow-to-d3-js-pie-or-donut-chart
+    // let filter = defs.append("filter")
+    //     .attr("id", "dropshadow")
+    //
+    // filter.append("feGaussianBlur")
+    //     .attr("in", "SourceAlpha")
+    //     .attr("stdDeviation", 4)
+    //     .attr("result", "blur");
+    // filter.append("feOffset")
+    //     .attr("in", "blur")
+    //     .attr("dx", 2)
+    //     .attr("dy", 2)
+    //     .attr("result", "offsetBlur")
+    // filter.append("feFlood")
+    //     .attr("in", "offsetBlur")
+    //     .attr("flood-color", "#3d3d3d")
+    //     .attr("flood-opacity", "0.5")
+    //     .attr("result", "offsetColor");
+    // filter.append("feComposite")
+    //     .attr("in", "offsetColor")
+    //     .attr("in2", "offsetBlur")
+    //     .attr("operator", "in")
+    //     .attr("result", "offsetBlur");
+    //
+    // let feMerge = filter.append("feMerge");
+    //
+    // feMerge.append("feMergeNode")
+    //     .attr("in", "offsetBlur")
+    // feMerge.append("feMergeNode")
+    //     .attr("in", "SourceGraphic");
+
+
+    //   <filter id='inset-shadow'>
+    //   <!-- Shadow offset -->
+    //   <feOffset
+    //           dx='0'
+    //           dy='0'></feOffset>
+    //   <!-- Shadow blur -->
+    // <feGaussianBlur
+    //           stdDeviation='1'
+    //           result='offset-blur'></feGaussianBlur>
+    //   <!-- Invert drop shadow to make an inset shadow-->
+    //   <feComposite
+    //           operator='out'
+    //           in='SourceGraphic'
+    //           in2='offset-blur'
+    //           result='inverse'></feComposite>
+    //   <!-- Cut colour inside shadow -->
+    //   <feFlood
+    //           flood-color='black'
+    //           flood-opacity='.95'
+    //           result='color'></feFlood>
+    //   <feComposite
+    //           operator='in'
+    //           in='color'
+    //           in2='inverse'
+    //           result='shadow'></feComposite>
+    //   <!-- Placing shadow over element -->
+    //   <feComposite
+    //           operator='over'
+    //           in='shadow'
+    //           in2='SourceGraphic'></feComposite>
+    // </filter>
+}

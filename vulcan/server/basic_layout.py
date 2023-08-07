@@ -25,7 +25,7 @@ class BasicLayout:
 
 
 def get_slice_screen_width(corpus_slice: CorpusSlice) -> float:
-    if corpus_slice.visualization_type == VisualizationType.STRING:
+    if corpus_slice.visualization_type in [VisualizationType.STRING, VisualizationType.TABLE]:
         return 1.0
     elif corpus_slice.visualization_type in [VisualizationType.TREE, VisualizationType.GRAPH]:
         return 0.3

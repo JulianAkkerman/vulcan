@@ -20,8 +20,18 @@ def make_nltk_json_example():
     pb.add_instance_by_name('Sentence', 'The cat chased the dog.')
     pb.write_as_json("nltk_example.json")
 
+
+def make_tagging_example():
+    pb = PickleBuilder({'Tagged sentence': 'string_table'})
+    pb.add_instance_by_name('Tagged sentence', [['The', 'DT'], ['dog', 'NN'], ['chased', 'VBD'], ['the', 'DT'], ['cat', 'NN'], ['.', '.']])
+    pb.add_instance_by_name('Tagged sentence', [['The', 'DT'], ['black', 'JJ'], ['cat', 'NN'], ['chased', 'VBD'], ['the', 'DT'], ['dog', 'NN'], ['.', '.']])
+    pb.write("tagging_example.pickle")
+
+
 def main():
     make_nltk_json_example()
+    make_nltk_example()
+    make_tagging_example()
 
 
 if __name__ == '__main__':

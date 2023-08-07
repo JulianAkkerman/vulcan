@@ -2,9 +2,10 @@ from typing import List, Dict
 import copy
 import textwrap
 
+from data_handling.instance_readers.table_readers import StringTableInstanceReader
 from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
     FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING, FORMAT_NAME_NLTK_TREE, \
-    FORMAT_NAME_NLTK_TREE_STRING
+    FORMAT_NAME_NLTK_TREE_STRING, FORMAT_NAME_STRING_TABLE
 from vulcan.data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
     AMRGraphInstanceReader
 from vulcan.data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
@@ -140,6 +141,8 @@ def get_instance_reader_by_name(reader_name):
         return AMTreeInstanceReader()
     elif reader_name == FORMAT_NAME_AMTREE_STRING:
         return AMTreeStringInstanceReader()
+    elif reader_name == FORMAT_NAME_STRING_TABLE:
+        return StringTableInstanceReader()
 
 
 def read_label_alternatives(corpus_entry):

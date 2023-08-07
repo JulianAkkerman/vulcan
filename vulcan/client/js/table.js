@@ -1,35 +1,52 @@
 TOKEN_CLASSNAME = "token_obj"
-TOKEN_DISTANCE = 10
+TOKEN_DISTANCE = 5
 
 
 
-class Strings {
-    constructor(top_left_x, top_left_y, tokens, canvas, label_alternatives, highlights) {
+class Table {
+    constructor(top_left_x, top_left_y, content, canvas, label_alternatives, highlights) {
         this.top_left_x = top_left_x
         this.top_left_y = top_left_y
         this.tokens = []
         this.canvas = canvas
         this.label_alternatives = label_alternatives
         this.highlights = highlights
-        this.create_tokens(tokens)
+        this.create_tokens(content)
     }
 
-    create_tokens(tokens) {
+    create_tokens(content) {
         let current_x = this.top_left_x
-        for (let i = 0; i < tokens.length; i++) {
-            let token_here = this.create_token_node(tokens[i], current_x, i)
-            current_x = current_x + parseFloat(token_here.getWidth()) + TOKEN_DISTANCE
-            this.tokens.push(token_here)
+        let current_y = this.top_left_y
+        // We do the rows such that the first row is at the bottom, because this is more intuitive for the tagging
+        //  scenario
+        for (let c = 0; c < content.length; c++) {
+            let column = content[c]
+            let max_width = 0
+            let cells_here = []
+            for (let r = column.length-1; r >= 0 ; r--) {
+                let cell_here = this.create_cell_node(column[r], current_x, current_y, [c, r])
+                cells_here.push(cell_here)
+                current_y = current_y + parseFloat(cell_here.getHeight()) + TOKEN_DISTANCE
+                let width_here = parseFloat(cell_here.getWidth())
+                max_width = Math.max(max_width, width_here)
+                this.tokens.push(cell_here)
+            }
+            // set all widths to max_width
+            for (let i = 0; i < cells_here.length; i++) {
+                cells_here[i].setWidth(max_width)
+            }
+            current_y = this.top_left_y
+            current_x = current_x + max_width + TOKEN_DISTANCE
         }
     }
 
-    create_token_node(token, pos_x, i) {
-        let do_highlight = this.highlights != null && this.highlights.includes(i)
-        let node = createNode(pos_x, this.top_left_y, token, "STRING", this.canvas, false, do_highlight,
+    create_cell_node(token, pos_x, pos_y, node_name) {
+        let do_highlight = this.highlights != null && this.highlights.includes(node_name)
+        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, do_highlight,
             false, TOKEN_CLASSNAME)
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {
-            this.registerNodeAlternativeMouseover(node, this.label_alternatives[i])
+            this.registerNodeAlternativeMouseover(node, this.label_alternatives[node_name])
         }
         return node
     }
