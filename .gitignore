@@ -7,3 +7,4 @@ build/*
 vulcan.egg-info/*
 vulcan/examples/nltk_example.pickle
 vulcan/examples/test.json
+vulcan/examples/conllu_example.pickle

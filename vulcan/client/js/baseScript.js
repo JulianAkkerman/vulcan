@@ -171,6 +171,9 @@ sio.on("set_table", (data) => {
     if ("highlights" in data) {
         highlights = data["highlights"]
     }
+    if ("dependency_trees" in data) {
+        console.log(data["dependency_trees"])
+    }
     let table = new Table(20, 5, data["table"], canvas, label_alternatives, highlights)
     table.registerNodesGlobally(data["canvas_name"])
 })

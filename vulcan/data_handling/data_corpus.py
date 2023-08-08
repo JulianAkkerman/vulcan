@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple, Any
 import copy
 import textwrap
 
@@ -27,13 +27,19 @@ class DataCorpus:
         self.slices = OrderedDict()
         self.linkers = []
 
-    def add_slice(self, name, instances, visualization_type, label_alternatives=None, highlights=None,
-                  mouseover_texts: Dict[str, str] = None):
+    def add_slice(self,
+                  name: str,
+                  instances: List[Any],
+                  visualization_type: VisualizationType,
+                  label_alternatives=None,
+                  highlights=None,
+                  mouseover_texts: Dict[str, str] = None,
+                  dependency_trees: List[List[Tuple[int, int, str]]] = None):
         """
         Add a slice of data to the corpus.
         """
         self.slices[name] = CorpusSlice(name, instances, visualization_type, label_alternatives, highlights,
-                                        mouseover_texts)
+                                        mouseover_texts, dependency_trees)
 
     def add_linker(self, linker):
         self.linkers.append(linker)
@@ -44,77 +50,127 @@ def from_dict_list(data: List[Dict], propbank_frames_path: str = None,
     """
     Create a DataCorpus object from a dictionary.
     """
+    propbank_frames_dict = load_propbank_if_applicable(propbank_frames_path)
+
+    data_corpus = DataCorpus()
+
+    for entry in data:
+        entry_type = entry.get('type', 'data')  # default to data
+
+        if entry_type == 'data':
+            load_data_entry(data_corpus, entry, propbank_frames_dict, show_wikipedia)
+
+        elif entry_type == 'linker':
+            load_linker_entry(data_corpus, entry)
+
+        else:
+            raise ValueError(f"Error when creating DataCorpus from dict list: unknown entry type '{entry_type}'")
+    return data_corpus
+
+
+def load_linker_entry(data_corpus, entry):
+    # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
+    data_corpus.add_linker(entry)
+    if data_corpus.size:
+        if data_corpus.size != len(entry['scores']):
+            print(f"WARNING: when creating DataCorpus from dict list: number of instances for"
+                  f" linker \"{entry['name1']}\"--\"{entry['name2']}\" ({len(entry['scores'])})"
+                  f" does not match previously seen data ({data_corpus.size} instances).")
+            if len(entry['scores']) < data_corpus.size:
+                data_corpus.size = len(entry['scores'])
+    else:
+        data_corpus.size = len(entry['scores'])
+        print(f"Retreived DataCorpus size from 'data' entry \"{entry['name1']}\"--\"{entry['name2']}\":"
+              f" {data_corpus.size} instances")
+
+
+def load_data_entry(data_corpus, entry, propbank_frames_dict, show_wikipedia):
+    name = process_name(entry)
+    input_format, instance_reader, instances = process_instancess(data_corpus, entry, name)
+    label_alternatives = process_label_alternatives(data_corpus, entry, name)
+    dependency_trees = process_dependency_trees(data_corpus, entry, name)
+    highlights = process_highlights(data_corpus, entry, name)
+    mouseover_texts = process_mouseover_texts(input_format, instances, propbank_frames_dict, show_wikipedia)
+    data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
+                          highlights, mouseover_texts, dependency_trees)
+
+
+def load_propbank_if_applicable(propbank_frames_path):
     if propbank_frames_path:
         print(f"Loading propbank frames from XML files in {propbank_frames_path}. This may take a minute or two...")
         propbank_frames_dict = create_frame_to_definition_dict(propbank_frames_path)
     else:
         propbank_frames_dict = None
-    data_corpus = DataCorpus()
-    for entry in data:
-        entry_type = entry.get('type', 'data')  # default to data
-        if entry_type == 'data':
+    return propbank_frames_dict
 
-            name = entry['name']
-            if not name:
-                raise ValueError('Error when creating DataCorpus from dict list: "name" entry is required for'
-                                 '"data" type dictionaries')
-            instances = entry['instances']
-            if not instances:
-                raise ValueError('Error when creating DataCorpus from dict list: "instances" entry is required for'
-                                 '"data" type dictionaries')
 
-            if data_corpus.size:
-                if len(entry['instances']) != data_corpus.size:
-                    print(f"WARNING: number of instances for {name} ({len(instances)})"
-                          f" does not match previously seen data ({data_corpus.size} instances).")
-                    if len(entry['instances']) < data_corpus.size:
-                        data_corpus.size = len(entry['instances'])
-            else:
+def process_name(entry):
+    name = entry['name']
+    if not name:
+        raise ValueError('Error when creating DataCorpus from dict list: "name" entry is required for'
+                         '"data" type dictionaries')
+    return name
+
+
+def process_instancess(data_corpus, entry, name):
+    instances = entry['instances']
+    if not instances:
+        raise ValueError('Error when creating DataCorpus from dict list: "instances" entry is required for'
+                         '"data" type dictionaries')
+    if data_corpus.size:
+        if len(entry['instances']) != data_corpus.size:
+            print(f"WARNING: number of instances for {name} ({len(instances)})"
+                  f" does not match previously seen data ({data_corpus.size} instances).")
+            if len(entry['instances']) < data_corpus.size:
                 data_corpus.size = len(entry['instances'])
-                print(f"Retreived DataCorpus size from 'data' entry {name}: {data_corpus.size} instances")
+    else:
+        data_corpus.size = len(entry['instances'])
+        print(f"Retreived DataCorpus size from 'data' entry {name}: {data_corpus.size} instances")
+    input_format = entry.get('format', 'string')
+    instance_reader = get_instance_reader_by_name(input_format)
+    instances = instance_reader.convert_instances(instances)
+    return input_format, instance_reader, instances
 
-            input_format = entry.get('format', 'string')
-            instance_reader = get_instance_reader_by_name(input_format)
-            instances = instance_reader.convert_instances(instances)
 
-            label_alternatives = read_label_alternatives(entry)
-            # data_corpus.size is now always defined here
-            if label_alternatives is not None and data_corpus.size != len(label_alternatives):
-                print(f"WARNING: number of label alternative entries for {name} ({len(label_alternatives)})"
-                      f" does not match previously seen data ({data_corpus.size} instances).")
-                if len(label_alternatives) < data_corpus.size:
-                    data_corpus.size = len(label_alternatives)
-            highlights = entry.get('highlights', None)
-            if highlights is not None:
-                check_is_list(highlights)
-                if len(highlights) != data_corpus.size:
-                    print(f"WARNING: number of highlight entries for {name} ({len(highlights)})"
-                          f" does not match previously seen data ({data_corpus.size} instances).")
-                    if len(highlights) < data_corpus.size:
-                        data_corpus.size = len(highlights)
-            mouseover_texts = None
-            if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING]:
-                mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict, show_wikipedia)
-            data_corpus.add_slice(name, instances, instance_reader.get_visualization_type(), label_alternatives,
-                                  highlights, mouseover_texts)
-        elif entry_type == 'linker':
-            # TODO: some sanity check that the linker refers to only existing names (but we may not have seen them yet, so check later?)
-            data_corpus.add_linker(entry)
-            if data_corpus.size:
-                if data_corpus.size != len(entry['scores']):
-                    print(f"WARNING: when creating DataCorpus from dict list: number of instances for"
-                          f" linker \"{entry['name1']}\"--\"{entry['name2']}\" ({len(entry['scores'])})"
-                          f" does not match previously seen data ({data_corpus.size} instances).")
-                    if len(entry['scores']) < data_corpus.size:
-                        data_corpus.size = len(entry['scores'])
-            else:
-                data_corpus.size = len(entry['scores'])
-                print(f"Retreived DataCorpus size from 'data' entry \"{entry['name1']}\"--\"{entry['name2']}\":"
-                      f" {data_corpus.size} instances")
+def process_mouseover_texts(input_format, instances, propbank_frames_dict, show_wikipedia):
+    mouseover_texts = None
+    if input_format in [FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING]:
+        mouseover_texts = get_mouseover_texts(instances, propbank_frames_dict, show_wikipedia)
+    return mouseover_texts
 
-        else:
-            raise ValueError(f"Error when creating DataCorpus from dict list: unknown entry type '{entry_type}'")
-    return data_corpus
+
+def process_highlights(data_corpus, entry, name):
+    highlights = entry.get('highlights', None)
+    if highlights is not None:
+        check_is_list(highlights)
+        if len(highlights) != data_corpus.size:
+            print(f"WARNING: number of highlight entries for {name} ({len(highlights)})"
+                  f" does not match previously seen data ({data_corpus.size} instances).")
+            if len(highlights) < data_corpus.size:
+                data_corpus.size = len(highlights)
+    return highlights
+
+
+def process_label_alternatives(data_corpus, entry, name):
+    label_alternatives = read_label_alternatives(entry)
+    # data_corpus.size is now always defined here
+    if label_alternatives is not None and data_corpus.size != len(label_alternatives):
+        print(f"WARNING: number of label alternative entries for {name} ({len(label_alternatives)})"
+              f" does not match previously seen data ({data_corpus.size} instances).")
+        if len(label_alternatives) < data_corpus.size:
+            data_corpus.size = len(label_alternatives)
+    return label_alternatives
+
+
+def process_dependency_trees(data_corpus, entry, name):
+    dependency_trees = read_dependency_trees(entry)
+    # data_corpus.size is now always defined here
+    if dependency_trees is not None and data_corpus.size != len(dependency_trees):
+        print(f"WARNING: number of dependency trees for {name} ({len(dependency_trees)})"
+              f" does not match previously seen data ({data_corpus.size} instances).")
+        if len(dependency_trees) < data_corpus.size:
+            data_corpus.size = len(dependency_trees)
+    return dependency_trees
 
 
 def get_instance_reader_by_name(reader_name):
@@ -173,6 +229,15 @@ def read_label_alternatives(corpus_entry):
                 ret_instance[node_name] = ret_node
             ret.append(ret_instance)
         return ret
+    else:
+        return None
+
+
+def read_dependency_trees(corpus_entry):
+    if 'dependency_trees' in corpus_entry:
+        dependency_trees = corpus_entry['dependency_trees']
+        check_is_list(dependency_trees)
+        return dependency_trees
     else:
         return None
 
@@ -241,14 +306,16 @@ class CorpusSlice:
                  visualization_type: VisualizationType,
                  label_alternatives=None,
                  highlights=None,
-                 mouseover_texts: List[Dict[str, str]] = None):
+                 mouseover_texts: List[Dict[str, str]] = None,
+                 dependency_trees: List[List[Tuple[int, int, str]]]=None):
         self.name = name
         self.instances = instances
         self.visualization_type = visualization_type
         self.label_alternatives = label_alternatives
         self.highlights = highlights
         self.mouseover_texts = mouseover_texts
-        if mouseover_texts is not None:
-            print("mouseover texts", len(mouseover_texts), mouseover_texts[0])
-        else:
-            print("no mouseover_texts found in corpus slice ", name)
+        # if mouseover_texts is not None:
+        #     print("mouseover texts", len(mouseover_texts), mouseover_texts[0])
+        # else:
+        #     print("no mouseover_texts found in corpus slice ", name)
+        self.dependency_trees = dependency_trees

@@ -1,5 +1,6 @@
 from nltk import Tree
 
+from examples.conllu_example import make_conllu_example_pickle
 from vulcan.pickle_builder.pickle_builder import PickleBuilder
 
 
@@ -28,10 +29,15 @@ def make_tagging_example():
     pb.write("tagging_example.pickle")
 
 
+def make_conllu_example():
+    make_conllu_example_pickle("conllu_example.pickle")
+
+
 def main():
     make_nltk_json_example()
     make_nltk_example()
     make_tagging_example()
+    make_conllu_example()
 
 
 if __name__ == '__main__':
