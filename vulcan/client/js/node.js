@@ -196,6 +196,9 @@ function nodeDragged(d) {
 function createNodeContent(content_data, content_type, append_to_this_object, classname) {
 
     if (content_type == "STRING") {
+        if (content_data == null) {
+            content_data = ""
+        }
         let rect_width = Node.get_hypothetical_node_width(content_data);
         let rect_height = 30;
         let text_object = append_to_this_object.append("text")

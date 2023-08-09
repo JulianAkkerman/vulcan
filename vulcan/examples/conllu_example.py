@@ -44,7 +44,8 @@ def make_conllu_example_pickle(pickle_path: str):
     for sentence in sentences:
         table = []
         for token in sentence:
-            table.append([token["form"], token["lemma"], token["upos"], token["xpos"]])
+            if isinstance(token["id"], int) :
+                table.append([token["form"], token["lemma"], token["upos"], token["xpos"]])
         pickle_builder.add_instance_by_name("Sentence", table)
         dependency_tree = []
         for token in sentence:

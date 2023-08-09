@@ -15,9 +15,9 @@ eventlet.monkey_patch()
 
 def transform_string_maps_to_table_maps(highlights, label_alternatives_by_node_name):
     if label_alternatives_by_node_name:
-        label_alternatives_by_node_name = {(0, k): v for k, v in label_alternatives_by_node_name.items()}
+        label_alternatives_by_node_name = {[0, k]: v for k, v in label_alternatives_by_node_name.items()}
     if highlights:
-        highlights = {(0, k) for k in highlights}
+        highlights = {[0, k] for k in highlights}
     return highlights, label_alternatives_by_node_name
 
 
@@ -62,21 +62,21 @@ class Server:
                     else:
                         mouseover_texts = None
                     if corpus_slice.dependency_trees is not None:
-                        dependency_trees = corpus_slice.dependency_trees[instance_id]
+                        dependency_tree = corpus_slice.dependency_trees[instance_id]
                     else:
-                        dependency_trees = None
+                        dependency_tree = None
                     if corpus_slice.visualization_type == VisualizationType.STRING:
                         self.send_string(corpus_slice.name,
                                          corpus_slice.instances[instance_id],
                                          label_alternatives_by_node_name,
                                          highlights,
-                                         dependency_trees)
+                                         dependency_tree)
                     elif corpus_slice.visualization_type == VisualizationType.TABLE:
                         self.send_string_table(corpus_slice.name,
                                                corpus_slice.instances[instance_id],
                                                label_alternatives_by_node_name,
                                                highlights,
-                                               dependency_trees)
+                                               dependency_tree)
                     elif corpus_slice.visualization_type == VisualizationType.TREE:
                         # trees are just graphs without reentrancies
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
@@ -94,22 +94,22 @@ class Server:
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
                     highlights: Set[int] = None,
-                    dependency_trees: List[List[Tuple[int, int, str]]] = None):
+                    dependency_tree: List[Tuple[int, int, str]] = None):
         highlights, label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
                                                                                           label_alternatives_by_node_name)
-        self.send_string_table(slice_name, [tokens], label_alternatives_by_node_name, highlights, dependency_trees)
+        self.send_string_table(slice_name, [tokens], label_alternatives_by_node_name, highlights, dependency_tree)
 
     def send_string_table(self, slice_name: str, table: List[List[str]],
                           label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
                           highlights: Set[Tuple[int, int]] = None,
-                          dependency_trees: List[List[Tuple[int, int, str]]] = None):
+                          dependency_tree: List[Tuple[int, int, str]] = None):
         dict_to_sent = {"canvas_name": slice_name, "table": table}
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
             dict_to_sent["highlights"] = highlights
-        if dependency_trees is not None:
-            dict_to_sent["dependency_trees"] = dependency_trees
+        if dependency_tree is not None:
+            dict_to_sent["dependency_tree"] = dependency_tree
         self.sio.emit('set_table', dict_to_sent)
 
     def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,

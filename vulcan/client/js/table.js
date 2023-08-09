@@ -1,25 +1,31 @@
-TOKEN_CLASSNAME = "token_obj"
-TOKEN_DISTANCE = 5
+const TOKEN_CLASSNAME = "token_obj"
+const TOKEN_DISTANCE = 5
+const MAX_DEPTREE_HEIGHT = 10
+const MIN_DEPLABEL_CELL_DIST = 20
+const MIN_DEPLABEL_DEPLABEL_DIST = 15
 
 
 
 class Table {
-    constructor(top_left_x, top_left_y, content, canvas, label_alternatives, highlights) {
+    constructor(top_left_x, top_left_y, content, canvas, label_alternatives, highlights, dependency_tree) {
         this.top_left_x = top_left_x
         this.top_left_y = top_left_y
-        this.tokens = []
+        this.cells = []
         this.canvas = canvas
         this.label_alternatives = label_alternatives
         this.highlights = highlights
-        this.create_tokens(content)
+        this.dependency_tree = dependency_tree
+        this.create_cells(content)
+        this.create_dependency_tree()
     }
 
-    create_tokens(content) {
+    create_cells(content) {
         let current_x = this.top_left_x
         let current_y = this.top_left_y
         // We do the rows such that the first row is at the bottom, because this is more intuitive for the tagging
         //  scenario
         for (let c = 0; c < content.length; c++) {
+            let cells_in_column = []
             let column = content[c]
             let max_width = 0
             let cells_here = []
@@ -29,8 +35,9 @@ class Table {
                 current_y = current_y + parseFloat(cell_here.getHeight()) + TOKEN_DISTANCE
                 let width_here = parseFloat(cell_here.getWidth())
                 max_width = Math.max(max_width, width_here)
-                this.tokens.push(cell_here)
+                cells_in_column.push(cell_here)
             }
+            this.cells.push(cells_in_column)
             // set all widths to max_width
             for (let i = 0; i < cells_here.length; i++) {
                 cells_here[i].setWidth(max_width)
@@ -51,6 +58,300 @@ class Table {
         return node
     }
 
+    create_dependency_tree() {
+        if (this.dependency_tree != null) {
+            // sort edges in dependency tree by absolute distance between head and tail, shortest distance first
+            this.dependency_tree.sort(function(a, b) {
+                let distance_a = Math.abs(a[0] - a[1])
+                let distance_b = Math.abs(b[0] - b[1])
+                return distance_a - distance_b
+            })
+            let edge_count_at_position = []
+            let label_at_position = []
+            // position i, j is (i+1)-st level above the table, and between token j and j+1.
+            for (let i = 0; i <= MAX_DEPTREE_HEIGHT; i++) {
+                let edge_counts_in_this_level = []
+                for (let j = 0; j < this.dependency_tree.length - 1; j++) {
+                    edge_counts_in_this_level.push(0)
+                }
+                edge_count_at_position.push(edge_counts_in_this_level)
+                let labels_in_this_level = []
+                for (let j = 0; j < this.dependency_tree.length - 1; j++) {
+                    labels_in_this_level.push(null)
+                }
+                label_at_position.push(labels_in_this_level)
+            }
+            let max_level_here = 0
+            let total_min_y = 0
+            for (let i = 0; i < this.dependency_tree.length; i++) {
+                let edge = this.dependency_tree[i]
+                let head = edge[0]
+                let tail = edge[1]
+                let label = edge[2]
+
+                if (head >= 0) {
+                    let min_bound = Math.min(head, tail)
+                    let max_bound = Math.max(head, tail)
+
+                    let found_position = false
+                    let current_level = 0
+                    let best_label_slot = null
+                    while (!found_position) {
+                        let max_edge_count = 0;
+                        for (let k = min_bound; k < max_bound; k++) {
+                            max_edge_count = Math.max(max_edge_count, edge_count_at_position[current_level][k])
+                        }
+                        if (max_edge_count >= 3 && !(current_level === MAX_DEPTREE_HEIGHT - 1)) {
+                            current_level++
+                            continue
+                        }
+                        let available_label_slots = []
+                        for (let k = min_bound; k < max_bound; k++) {
+                            if (label_at_position[current_level][k] == null) {
+                                available_label_slots.push(k)
+                            }
+                        }
+                        if (available_label_slots.length === 0 && !(current_level === MAX_DEPTREE_HEIGHT - 1)) {
+                            current_level++
+                            continue
+                        }
+                        found_position = true
+                        // choose the label slot that is closest to the center of the edge
+                        best_label_slot = this.find_slot_closest_to_center(best_label_slot, available_label_slots,
+                                                                           min_bound, max_bound);
+                        max_level_here = Math.max(max_level_here, current_level)
+                        for (let k = min_bound; k < max_bound; k++) {
+                            edge_count_at_position[current_level][k]++
+                        }
+                        let y = -50-current_level*50
+                        label_at_position[current_level][best_label_slot] = [head, tail, createNode(40 + best_label_slot*60,
+                            y, label, "STRING", this.canvas,
+                            false, false, true)]
+                        total_min_y = Math.min(total_min_y, y)
+                    }
+
+                }
+
+
+            }
+            for (let i = 0; i < this.dependency_tree.length; i++) {
+                let edge = this.dependency_tree[i]
+                let head = edge[0]
+                let tail = edge[1]
+                let label = edge[2]
+                if (head === -1) {
+                    let y = -50-(max_level_here + 1)*50
+                    label_at_position[max_level_here + 1][tail] = [head, tail, createNode(40 + (tail - 0.5) *60,
+                        y, label, "STRING", this.canvas,
+                        false, false, true)]
+                    total_min_y = Math.min(total_min_y, y)
+                }
+            }
+
+            // fix column and node positions
+            for (let i = 0; i < this.cells.length; i++) {
+                // fix column position first
+
+                // get the rightmost edge of any attached edge that is to the left of this
+                let max_edge_right = -MIN_DEPLABEL_CELL_DIST // so if we add that distance later, we get 0
+                for (let gap_index = 0; gap_index < i; gap_index++) {
+                    for (let level_index = 0; level_index < label_at_position.length; level_index++) {
+                        let label = label_at_position[level_index][gap_index]
+                        if (label != null) {
+                            // check if the edge is actually an edge that is attached here (and the edge is to the left)
+                            let right_attached_column = Math.max(label[0], label[1])
+                            if (right_attached_column === i) {
+                                let label_node = label[2]
+                                max_edge_right = Math.max(max_edge_right, label_node.getX() + label_node.getWidth())
+                            }
+                        }
+                    }
+                }
+                let min_x_by_dep_node = max_edge_right - 0.5 * this.cells[i][0].getWidth() + MIN_DEPLABEL_CELL_DIST
+
+                let min_x_by_cell = 0
+                if (i > 0) {
+                    min_x_by_cell = this.cells[i-1][0].getX() + this.cells[i-1][0].getWidth() + TOKEN_DISTANCE
+                }
+                let new_cell_x = Math.max(min_x_by_cell, min_x_by_dep_node)
+
+
+                for (let j = 0; j<this.cells[i].length; j++) {
+                    let cell = this.cells[i][j]
+                    cell.translate(new_cell_x, cell.getY() - total_min_y)
+                }
+
+
+                // now fix node positions
+                for (let level_index = 0; level_index < label_at_position.length; level_index++) {
+                    let label = label_at_position[level_index][i]
+                    if (label != null) {
+                        // get minimum x as per the labels to the left of this
+                        let min_x_by_label = -MIN_DEPLABEL_DEPLABEL_DIST
+                        for (let gap_index = 0; gap_index < i; gap_index++) {
+                            let label_here = label_at_position[level_index][gap_index]
+                            if (label_here != null) {
+                                let label_node = label_here[2]
+                                min_x_by_label = Math.max(min_x_by_label, label_node.getX() + label_node.getWidth())
+                            }
+                        }
+                        min_x_by_label = min_x_by_label + MIN_DEPLABEL_DEPLABEL_DIST
+
+                        // get minimum_x as per the left cell this attaches to
+                        let min_x_by_cell = 0
+                        let left_attached_column = Math.min(label[0], label[1])
+                        if (left_attached_column === -1) {
+                            // center-align root node with its column
+                            let right_attached_column = Math.max(label[0], label[1])
+                            min_x_by_cell = this.cells[right_attached_column][0].getX()
+                                + 0.5 * this.cells[right_attached_column][0].getWidth()
+                                - 0.5 * label[2].getWidth()
+                        } else {
+                            min_x_by_cell = this.cells[left_attached_column][0].getX()
+                                + 0.5 * this.cells[left_attached_column][0].getWidth()
+                                + MIN_DEPLABEL_CELL_DIST
+                        }
+                        let new_node_x = Math.max(min_x_by_cell, min_x_by_label)
+
+                        let label_node = label[2]
+                        label_node.translate(new_node_x, label_node.getY() - total_min_y)
+                    }
+                }
+            }
+
+
+            // draw edges
+
+
+            for (let level_index = 0; level_index < label_at_position.length; level_index++) {
+                for (let gap_index = 0; gap_index < label_at_position[level_index].length; gap_index++) {
+                    if (label_at_position[level_index][gap_index] != null) {
+                        let label = label_at_position[level_index][gap_index]
+                        let color = "black"
+
+                        // arrow in
+                        if (label[0] >= 0) {
+                            let entering_edge = this.canvas.append("path").data([label])
+                                .attr("shape-rendering", "geometricPrecision")
+                                .style("stroke", color)
+                                .style("stroke-width", 1.5)
+                                .style("fill", "none")
+                                // .attr("marker-end", marker(color, this.canvas))
+                                .attr("d", d => this.getEnteringEdgePathFromLabel(d))
+                                .attr("class", EDGE_CLASSNAME)
+                                .lower()
+                            this.registerEdgeHighlightingOnObjectMouseover(entering_edge, entering_edge)
+                            this.registerEdgeHighlightingOnObjectMouseover(label[2].rectangle, entering_edge)
+                        }
+                        let outgoing_edge = this.canvas.append("path").data([label])
+                            .attr("shape-rendering", "geometricPrecision")
+                            .style("stroke", color)
+                            .style("stroke-width", 1.5)
+                            .style("fill", "none")
+                            .attr("marker-end", marker(color, this.canvas))
+                            .attr("d", d => this.getOutgoingEdgePathFromLabel(d))
+                            .attr("class", EDGE_CLASSNAME)
+                            .lower()
+                        this.registerEdgeHighlightingOnObjectMouseover(outgoing_edge, outgoing_edge)
+                            this.registerEdgeHighlightingOnObjectMouseover(label[2].rectangle, outgoing_edge)
+                    }
+                }
+            }
+
+        }
+    }
+
+    getEnteringEdgePathFromLabel(label) {
+        let cell_x_width_factor = 0.5
+        if (label[0] >= 0) {
+            cell_x_width_factor = 0.1 + 0.8 * sigmoid((label[1] - label[0])/2)
+        }
+        let cell_x = this.cells[label[0]][0].getX() + cell_x_width_factor * this.cells[label[0]][0].getWidth()
+        let cell_y = this.cells[label[0]][0].getY()
+        let edge_goes_left_to_right = label[0] < label[1]
+        let label_x = null
+        if (edge_goes_left_to_right) {
+            label_x = label[2].getX()
+        } else {
+            label_x = label[2].getX() + label[2].getWidth()
+        }
+        let label_y = label[2].getY() + 0.5 * label[2].getHeight()
+        let startpoint = {x: cell_x, y: cell_y}
+        let endpoint = {x: label_x, y: label_y}
+        let edge = d3.path()
+        edge.moveTo(startpoint.x, startpoint.y)
+        edge.bezierCurveTo(startpoint.x, endpoint.y,
+            startpoint.x, endpoint.y,
+            endpoint.x, endpoint.y)
+        return edge
+    }
+
+    getOutgoingEdgePathFromLabel(label) {
+        let cell_x_width_factor = 0.5
+        if (label[0] >= 0) {
+            cell_x_width_factor = 0.1 + 0.8 * sigmoid((label[0] - label[1])/2)
+        }
+        let cell_x = this.cells[label[1]][0].getX() + cell_x_width_factor * this.cells[label[1]][0].getWidth()
+        let cell_y = this.cells[label[1]][0].getY()
+        let label_x
+        let label_y
+        if (label[0] === -1) {
+            label_x = label[2].getX() + 0.5 * label[2].getWidth()
+            label_y = label[2].getY() + label[2].getHeight()
+        } else {
+            let edge_goes_left_to_right = label[0] < label[1]
+            if (edge_goes_left_to_right) {
+                label_x = label[2].getX() + label[2].getWidth()
+            } else {
+                label_x = label[2].getX()
+            }
+            label_y = label[2].getY() + 0.5 * label[2].getHeight()
+        }
+        let startpoint = {x: label_x, y: label_y}
+        let endpoint = {x: cell_x, y: cell_y}
+        let edge = d3.path()
+        edge.moveTo(startpoint.x, startpoint.y)
+        edge.bezierCurveTo(endpoint.x, startpoint.y,
+            endpoint.x, startpoint.y,
+            endpoint.x, endpoint.y)
+        return edge
+    }
+
+
+    registerEdgeHighlightingOnObjectMouseover(object, edge_object, stroke_width=4) {
+        object.on("mouseover.edge"+create_alias(), function() {
+                edge_object.style("stroke-width", stroke_width)
+            })
+            .on("mouseout.edge"+create_alias(), function() {
+                edge_object.style("stroke-width", 1.5)
+            })
+    }
+
+    registerNodeHighlightingOnObjectMouseover(object, node_object) {
+        let current_stroke_width = parseInt(node_object.rectangle.style("stroke-width"))
+        let bold_stroke_width = current_stroke_width + 2
+        object.on("mouseover", function() {
+                node_object.rectangle.style("stroke-width", bold_stroke_width)
+            })
+            .on("mouseout", function() {
+                node_object.rectangle.style("stroke-width", current_stroke_width)
+            })
+    }
+
+    find_slot_closest_to_center(best_label_slot, available_label_slots, min_bound, max_bound) {
+        let center = (min_bound + max_bound - 1) / 2
+        best_label_slot = available_label_slots[0]
+        let best_distance = Math.abs(best_label_slot - center)
+        for (let k = 1; k < available_label_slots.length; k++) {
+            let distance_here = Math.abs(available_label_slots[k] - center)
+            if (distance_here < best_distance) {
+                best_distance = distance_here
+                best_label_slot = available_label_slots[k]
+            }
+        }
+        return best_label_slot;
+    }
+
     register_mouseover_highlighting(node_object) {
         let current_stroke_width = parseInt(node_object.rectangle.style("stroke-width"))
         let bold_stroke_width = current_stroke_width + 2
@@ -64,8 +365,14 @@ class Table {
 
     registerNodesGlobally(canvas_name) {
         let dict_here = {}
-        for (let i = 0; i < this.tokens.length; i++) {
-            dict_here[i] = this.tokens[i]
+        for (let i = 0; i < this.cells.length; i++) {
+            for (let j = 0; j < this.cells[i].length; j++) {
+                // note that node names have the row index first, and then the column index
+                // even though in this.cells, the column index comes first
+                // this is to match the general convention of having the row index first in the node name
+                // the fact that this.cells is the other way around has technical reasons, and shouldn't spread further.
+                dict_here[[j, i]] = this.cells[i][j]
+            }
         }
         canvas_name_to_node_name_to_node_dict[canvas_name] = dict_here
     }

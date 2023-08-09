@@ -434,7 +434,7 @@ class Graph {
 
 
     getEdgeStartPoint(edge_position_data) {
-        let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, edge_position_data.parentBoxWidth)
+        let xDistRatio = getXDistRatio(edge_position_data.parentNode, edge_position_data.childNode, edge_position_data.parentBoxWidth)
         let x
         let default_x = edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * 0.8 * sigmoid(xDistRatio)
         let y
@@ -484,7 +484,7 @@ class Graph {
 
 
     getReentrancyStartPoint(edge_position_data) {
-        let xDistRatio = getXDistRation(edge_position_data.parentNode, edge_position_data.childNode, this.getWidth()*2)
+        let xDistRatio = getXDistRatio(edge_position_data.parentNode, edge_position_data.childNode, this.getWidth()*2)
         return {
             x: edge_position_data.parentNode.getX() + edge_position_data.parentNode.getWidth() * 0.8 * sigmoid(xDistRatio),
             y: edge_position_data.parentNode.getY() + edge_position_data.parentNode.getHeight()
@@ -492,7 +492,7 @@ class Graph {
     }
 
     getReentrancyEndPoint(edge_position_data) {
-        let xDistRatio = getXDistRation(edge_position_data.childNode, edge_position_data.parentNode, this.getWidth()*2)
+        let xDistRatio = getXDistRatio(edge_position_data.childNode, edge_position_data.parentNode, this.getWidth()*2)
         let endPointX = edge_position_data.childNode.getX() + edge_position_data.childNode.getWidth() * 0.8 * sigmoid(xDistRatio)
         if (childIsBelowParent(edge_position_data)) {
             return {
@@ -521,7 +521,7 @@ class Graph {
 
 }
 
-function getXDistRation(mainNode, referenceNode, normalizingFactor) {
+function getXDistRatio(mainNode, referenceNode, normalizingFactor) {
     return (referenceNode.getX()+referenceNode.getWidth()/2 - mainNode.getX() - mainNode.getWidth()/2)/normalizingFactor
 }
 
