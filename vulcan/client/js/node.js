@@ -198,7 +198,7 @@ function nodeDragged(d) {
         edge_label.attr("x", d => graph.getEdgeLabelXFromData(edge_position_data))
                   .attr("y", d => graph.getEdgeLabelYFromData(edge_position_data))
     }
-    console.log(registeredEdges.length)
+    // console.log(registeredEdges.length)
     d3.select(this).attr("transform", "translate(" + d.x + "," + d.y + ")");
 }
 
