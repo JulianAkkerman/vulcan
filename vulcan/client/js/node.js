@@ -6,11 +6,13 @@ const SHADOW_OVERSIZE = 2
 const ALL_NODES = []
 
 class Node {
-    constructor(node_position, group, rectangle, content, shadow=null) {
+    constructor(node_position, group, rectangle, content, color, shadow) {
         this.position = node_position[0]
         this.group = group
         this.rectangle = rectangle
         this.content = content
+        this.color = color
+        this.rectangle.attr("stroke", color)
         this.shadow = shadow
         this.registeredEdges = []
     }
@@ -56,8 +58,9 @@ class Node {
 
 }
 
-function create_and_register_node_object(node_position, node_group, rect, content_object, draggable, shadow=null) {
-    let node_object = new Node(node_position, node_group, rect, content_object, shadow)
+function create_and_register_node_object(node_position, node_group, rect, content_object, draggable, color,
+                                         shadow=null) {
+    let node_object = new Node(node_position, node_group, rect, content_object, color, shadow)
 
     ALL_NODES.push(node_object)
 
@@ -96,7 +99,6 @@ function makeNodeRectangle(is_bold, do_highlight, node_group, content_object, cl
         .attr("width", content_object.getWidth())
         .attr("height", content_object.getHeight())
         .attr("fill", fill)
-        .attr("stroke", "black")
         .attr("stroke-width", stroke_width)
         .attr("class", classname)
         .lower();
@@ -120,7 +122,6 @@ function makeCellRectangle(is_bold, do_highlight, node_group, content_object, cl
         .attr("width", content_object.getWidth())
         .attr("height", content_object.getHeight())
         .attr("fill", fill)
-        .attr("stroke", "black")
         .attr("stroke-width", stroke_width)
         .attr("class", classname)
         .lower();
@@ -145,6 +146,14 @@ function makeCellShadow(node_group, content_object, classname) {
 function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight,
                     draggable=true, classname=NODE_CLASSNAME) {
 
+    return createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, "black",
+                    draggable, classname);
+
+}
+
+function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, color,
+                    draggable=true, classname=NODE_CLASSNAME) {
+
     let node_position = getNodePosition(x, y);
 
     let node_group = makeNodeGroup(canvas, node_position, classname)
@@ -153,7 +162,7 @@ function createNode(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     let rect = makeNodeRectangle(is_bold, do_highlight, node_group, content_object, classname);
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable);
+    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable, color);
 
 }
 
@@ -170,7 +179,8 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     let shadow = makeCellShadow(node_group, content_object, classname)
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable, shadow)
+    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable, "black",
+        shadow)
 
 }
 
