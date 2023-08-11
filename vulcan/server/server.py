@@ -26,16 +26,20 @@ class Server:
     def __init__(self, layout: BasicLayout, port=5050, show_node_names=False):
 
         self.port = port
+        self.current_layouts_by_sid = {}
+        self.basic_layout = layout
 
         def on_connect(sid, environ):
             print(sid, 'connected')
-            self.sio.emit('set_layout', make_layout_sendable(layout))
-            self.sio.emit('set_corpus_length', layout.corpus_size)
+            self.current_layouts_by_sid[sid] = self.basic_layout
+            self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
+            self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
             self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
             instance_requested(sid, 0)
 
         def on_disconnect(sid):
             print(sid, 'disconnected')
+            self.current_layouts_by_sid.pop(sid)  # avoiding a memory leak
 
         self.sio = socketio.Server(async_mode='eventlet')
         self.sio.on("connect", on_connect)
@@ -47,7 +51,7 @@ class Server:
         @self.sio.event
         def instance_requested(sid, data):
             instance_id = data
-            for row in layout.layout:
+            for row in self.current_layouts_by_sid[sid].layout:
                 for corpus_slice in row:
                     if corpus_slice.label_alternatives is not None:
                         label_alternatives_by_node_name = corpus_slice.label_alternatives[instance_id]
@@ -86,8 +90,21 @@ class Server:
                         self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
                                         label_alternatives_by_node_name,
                                         highlights, mouseover_texts)
-            for linker in layout.linkers:
+            for linker in self.current_layouts_by_sid[sid].linkers:
                 self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
+
+        @self.sio.event
+        def perform_search(sid, data):
+            corpus_slice_name: str = data["corpus_slice_name"]
+            outer_search_layer_name: str = data["outer_search_layer_name"]
+            inner_search_layer_names: List[str] = data["inner_search_layer_names"]
+            inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
+            self.current_layouts_by_sid[sid] = self.basic_layout.perform_search(corpus_slice_name,
+                                                                                outer_search_layer_name,
+                                                                                inner_search_layer_names,
+                                                                                inner_search_layer_arguments)
+            self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size)
+            self.sio.emit('search_completed', None)
 
     def start(self):
         wsgi.server(eventlet.listen(('localhost', self.port)), self.app)
@@ -143,5 +160,3 @@ def make_slice_sendable(corpus_slice: CorpusSlice):
         "visualization_type": corpus_slice.visualization_type,
     }
     return ret
-
-

@@ -109,23 +109,35 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
 d3.select("#previousButton")
     .on("click", function() {
-        if (current_corpus_position > 0) {
-            current_corpus_position -= 1
-        }
       console.log("previous_button_clicked");
-      sio.emit("instance_requested", current_corpus_position);
-      set_corpus_position()
-        });
+        if (set_corpus_position(current_corpus_position - 1)) {
+            sio.emit("instance_requested", current_corpus_position);
+        }
+    });
 
 d3.select("#nextButton")
     .on("click", function() {
-        if (current_corpus_position < corpus_length-1) {
-            current_corpus_position += 1
+        console.log("next_button_clicked");
+        if (set_corpus_position(current_corpus_position + 1)) {
+            sio.emit("instance_requested", current_corpus_position);
         }
-      console.log("next_button_clicked");
-      sio.emit("instance_requested", current_corpus_position);
-      set_corpus_position()
-        });
+    });
+
+d3.select("#searchButton")
+    .on("click", function() {
+      console.log("search_button_clicked");
+      sio.emit("perform_search",
+            // corpus_slice_name: str = data["corpus_slice_name"]
+            // outer_search_layer_name: str = data["outer_search_layer_name"]
+            // inner_search_layer_names: List[str] = data["inner_search_layer_names"]
+            // inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
+          {
+              "corpus_slice_name": "Sentence",
+                "outer_search_layer_name": "OuterTableCellsLayer",
+                "inner_search_layer_names": ["CellContentEquals"],
+                "inner_search_layer_arguments": [["NOUN"]]
+          });
+    });
 
 sio.on('connect', () => {
     console.log('connected');
@@ -251,7 +263,12 @@ function reset() {
 
 sio.on("set_corpus_length", (data) => {
     corpus_length = data;
-    set_corpus_position()
+    set_corpus_position(current_corpus_position)
+})
+
+sio.on("search_completed", (data) => {
+    set_corpus_position(0)
+    sio.emit("instance_requested", current_corpus_position);
 })
 
 function remove_graphs_from_canvas(canvas) {
@@ -262,12 +279,17 @@ function remove_strings_from_canvas(canvas) {
     canvas.selectAll("."+TOKEN_CLASSNAME).remove()
 }
 
-function set_corpus_position() {
-    // (current_corpus_position+1)+
-    document.getElementById("corpusPositionInput").value = current_corpus_position+1
-    d3.select("#corpusPositionText").text("/"+corpus_length)
-    reset()
-    set_layout(saved_layout)
+function set_corpus_position(new_position) {
+    if (new_position >= 0 && new_position < corpus_length) {
+        current_corpus_position = new_position
+        document.getElementById("corpusPositionInput").value = current_corpus_position + 1
+        d3.select("#corpusPositionText").text("/" + corpus_length)
+        reset()
+        set_layout(saved_layout)
+        return true
+    } else {
+        return false
+    }
 }
 
 d3.select("body").on("keydown", function () {
@@ -293,9 +315,7 @@ d3.select("body").on("keyup", function () {
 d3.select("#corpusPositionInput").on("keypress", function() {
     if (d3.event.keyCode == 13) {
         let new_position = parseInt(d3.select("#corpusPositionInput").property("value")) - 1
-        if (new_position >= 0 && new_position < corpus_length) {
-            current_corpus_position = new_position
-            set_corpus_position()
+        if (set_corpus_position(new_position)) {
             sio.emit("instance_requested", current_corpus_position)
         } else {
             d3.select("#corpusPositionText").text("/" + corpus_length + " Error: invalid position requested")
