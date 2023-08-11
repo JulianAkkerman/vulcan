@@ -6,7 +6,7 @@ const MIN_DEPLABEL_DEPLABEL_DIST = 15
 const MAX_DEPEDGES_OVERLAPPING = 1
 const DEP_LEVEL_DISTANCE = 40
 const DEP_TREE_BASE_Y_OFFSET = 40
-
+const NODE_ID_TO_XY_BOX = {}
 
 function makeRandomDependencyEdgeColor() {
     let random_addition = Math.random()
@@ -82,7 +82,7 @@ class Table {
     create_cell_node(token, pos_x, pos_y, node_name) {
         let do_highlight = this.highlights != null && this.highlights.includes(node_name)
         let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, do_highlight,
-            false, TOKEN_CLASSNAME)
+            TOKEN_CLASSNAME)
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {
             this.registerNodeAlternativeMouseover(node, this.label_alternatives[node_name])
@@ -159,7 +159,7 @@ class Table {
                         label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithColor(
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
-                            false, false, color, true)]
+                            false, false, color, dependencyTreeNodeDragged)]
                         total_min_y = Math.min(total_min_y, y)
                     }
 
@@ -178,7 +178,7 @@ class Table {
                     label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithColor(
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
-                        false, false, color,true)]
+                        false, false, color, dependencyTreeNodeDragged)]
                     total_min_y = Math.min(total_min_y, y)
                 }
             }
@@ -258,20 +258,39 @@ class Table {
             }
 
             // recenter nodes now that the first pass is done
+            // also set XY boxes for dragging
             for (let level_index = 0; level_index < label_at_position.length; level_index++) {
                 for (let gap_index = 0; gap_index<label_at_position[level_index].length; gap_index++) {
                     let label = label_at_position[level_index][gap_index]
-                    if (label != null && label[0] >= 0) {
+                    if (label != null) {
                         let label_node = label[2]
-                        let left_attached_column = Math.min(label[0], label[1])
-                        let right_attached_column = Math.max(label[0], label[1])
-                        let new_node_x = 0
-                        new_node_x = (this.cells[left_attached_column][0].getX()
-                                + 0.5 * this.cells[left_attached_column][0].getWidth()
-                                + this.cells[right_attached_column][0].getX()
-                                + 0.5 * this.cells[right_attached_column][0].getWidth()) / 2
-                            - 0.5 * label_node.getWidth()
-                        label_node.translate(new_node_x, label_node.getY())
+                        let id = label_node.group.data()[0].id
+                        let min_x = label_node.getX()
+                        let max_x;
+                        if (label[0] >= 0) {
+                            let right_attached_column = Math.max(label[0], label[1])
+                            max_x = Math.max(this.cells[right_attached_column][0].getX()
+                                + 0.5 * this.cells[right_attached_column][0].getWidth(), min_x)
+                                - label_node.getWidth() - MIN_DEPLABEL_CELL_DIST
+                        } else {
+                            max_x = label_node.getX()
+                        }
+                        let min_y = -1000
+                        let max_y = -total_min_y - DEP_TREE_BASE_Y_OFFSET
+                        console.log("min_x: " + min_x + ", max_x: " + max_x + ", min_y: " + min_y + ", max_y: " + max_y)
+                        NODE_ID_TO_XY_BOX[id] = [min_x, max_x, min_y, max_y]
+
+                        if (label[0] >= 0) {
+                            let left_attached_column = Math.min(label[0], label[1])
+                            let right_attached_column = Math.max(label[0], label[1])
+                            let new_node_x = 0
+                            new_node_x = (this.cells[left_attached_column][0].getX()
+                                    + 0.5 * this.cells[left_attached_column][0].getWidth()
+                                    + this.cells[right_attached_column][0].getX()
+                                    + 0.5 * this.cells[right_attached_column][0].getWidth()) / 2
+                                - 0.5 * label_node.getWidth()
+                            label_node.translate(new_node_x, label_node.getY())
+                        }
                     }
                 }
             }
@@ -299,6 +318,7 @@ class Table {
                                 .attr("d", d => this.getEnteringEdgePathFromLabel(d))
                                 .attr("class", EDGE_CLASSNAME)
                                 .lower()
+                            label[2].registerDependencyEdge(entering_edge, false, label, this)
                         }
                         let outgoing_edge = this.canvas.append("path").data([label])
                             .attr("shape-rendering", "geometricPrecision")
@@ -309,6 +329,7 @@ class Table {
                             .attr("d", d => this.getOutgoingEdgePathFromLabel(d))
                             .attr("class", EDGE_CLASSNAME)
                             .lower()
+                        label[2].registerDependencyEdge(outgoing_edge, true, label, this)
                         if (entering_edge != null) {
                             this.registerFullDependencyEdgeHighlightingOnObjectMouseover(entering_edge, entering_edge,
                                 outgoing_edge, label[2])
@@ -496,4 +517,28 @@ class Table {
             //     }
             // })
     }
+}
+
+function dependencyTreeNodeDragged(d) {
+    // console.log(node_object.registeredEdges.length)
+    let min_x = NODE_ID_TO_XY_BOX[d.id][0]
+    let max_x = NODE_ID_TO_XY_BOX[d.id][1]
+    let min_y = NODE_ID_TO_XY_BOX[d.id][2]
+    let max_y = NODE_ID_TO_XY_BOX[d.id][3]
+    d.x = Math.max(Math.min(d.x + d3.event.dx, max_x), min_x);
+    d.y = Math.max(Math.min(d.y + d3.event.dy, max_y), min_y);
+    let registeredEdges = ALL_NODES[d.id].registeredEdges
+    for (let i = 0; i < registeredEdges.length; i++) {
+        let edge = registeredEdges[i][0]
+        let is_outgoing = registeredEdges[i][1]
+        let label = registeredEdges[i][2]
+        let table = registeredEdges[i][3]
+        if (is_outgoing) {
+            edge.attr("d", d => table.getOutgoingEdgePathFromLabel(label))
+        } else {
+            edge.attr("d", d => table.getEnteringEdgePathFromLabel(label))
+        }
+    }
+    // console.log(registeredEdges.length)
+    ALL_NODES[d.id].group.attr("transform", "translate(" + d.x + "," + d.y + ")");
 }

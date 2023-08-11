@@ -117,7 +117,7 @@ class Graph {
                 let is_bold = current_node.node_name == this.graph_as_dict.node_name
                 let do_highlight = this.highlights != null && this.highlights.includes(current_node.node_name)
                 let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold,
-                    do_highlight)
+                    do_highlight, graphNodeDragged)
                 this.node_dict[current_node.node_name] = node_object
                 this.registerNodeMouseoverNodeHighlighting(node_object)
                 if (this.node_label_alternatives_by_node_name != null) {
@@ -196,8 +196,8 @@ class Graph {
                 this.registerEdgeMouseover(edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[currentNode.node_name], edge_object, edge_label_object)
                 this.registerNodeMouseoverEdgeHighlighting(this.node_dict[child.node_name], edge_object, edge_label_object)
-                this.node_dict[currentNode.node_name].registerEdge(edge_object, edge_label_object, edge_position_data, this)
-                this.node_dict[child.node_name].registerEdge(edge_object, edge_label_object, edge_position_data, this)
+                this.node_dict[currentNode.node_name].registerGraphEdge(edge_object, edge_label_object, edge_position_data, this)
+                this.node_dict[child.node_name].registerGraphEdge(edge_object, edge_label_object, edge_position_data, this)
             })
         })
     }
@@ -533,6 +533,24 @@ function sigmoid(z) {
 function childIsBelowParent(edge_position_data) {
     return edge_position_data.childNode.getY() >
         edge_position_data.parentNode.getY()+edge_position_data.parentNode.getHeight()
+}
+
+function graphNodeDragged(d) {
+    // console.log(node_object.registeredEdges.length)
+    d.x += d3.event.dx;
+    d.y += d3.event.dy;
+    let registeredEdges = ALL_NODES[d3.select(this).data()[0].id].registeredEdges
+    for (let i = 0; i < registeredEdges.length; i++) {
+        let edge = registeredEdges[i][0]
+        let edge_label = registeredEdges[i][1]
+        let edge_position_data = registeredEdges[i][2]
+        let graph = registeredEdges[i][3]
+        edge.attr("d", d => graph.getEdgePathFromData(edge_position_data))
+        edge_label.attr("x", d => graph.getEdgeLabelXFromData(edge_position_data))
+                  .attr("y", d => graph.getEdgeLabelYFromData(edge_position_data))
+    }
+    // console.log(registeredEdges.length)
+    d3.select(this).attr("transform", "translate(" + d.x + "," + d.y + ")");
 }
 
 let alias = 0

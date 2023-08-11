@@ -52,22 +52,22 @@ class Node {
         return this.position.y
     }
 
-    registerEdge(edge, edge_label, edge_position_data, graph) {
+    registerGraphEdge(edge, edge_label, edge_position_data, graph) {
         this.registeredEdges.push([edge, edge_label, edge_position_data, graph])
+    }
+
+    registerDependencyEdge(edge, is_outgoing, label, table) {
+        this.registeredEdges.push([edge, is_outgoing, label, table])
     }
 
 }
 
-function create_and_register_node_object(node_position, node_group, rect, content_object, draggable, color,
+function create_and_register_node_object(node_position, node_group, rect, content_object, color,
                                          shadow=null) {
     let node_object = new Node(node_position, node_group, rect, content_object, color, shadow)
 
     ALL_NODES.push(node_object)
 
-    if (draggable) {
-        let nodeDragHandler = d3.drag().on('drag', nodeDragged);
-        nodeDragHandler(node_group);
-    }
     return node_object;
 }
 
@@ -144,15 +144,15 @@ function makeCellShadow(node_group, content_object, classname) {
 
 
 function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight,
-                    draggable=true, classname=NODE_CLASSNAME) {
+                    drag_function=null, classname=NODE_CLASSNAME) {
 
     return createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, "black",
-                    draggable, classname);
+                    drag_function, classname);
 
 }
 
 function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, color,
-                    draggable=true, classname=NODE_CLASSNAME) {
+                    drag_function, classname=NODE_CLASSNAME) {
 
     let node_position = getNodePosition(x, y);
 
@@ -162,12 +162,16 @@ function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, 
 
     let rect = makeNodeRectangle(is_bold, do_highlight, node_group, content_object, classname);
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable, color);
+    if (drag_function != null) {
+        let nodeDragHandler = d3.drag().on('drag', drag_function);
+        nodeDragHandler(node_group);
+    }
+
+    return create_and_register_node_object(node_position, node_group, rect, content_object, color);
 
 }
 
-function createCell(x, y, content_data, content_type, canvas, is_bold, do_highlight,
-                    draggable=true, classname=NODE_CLASSNAME) {
+function createCell(x, y, content_data, content_type, canvas, is_bold, do_highlight, classname=NODE_CLASSNAME) {
 
     let node_position = getNodePosition(x, y);
 
@@ -179,28 +183,12 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     let shadow = makeCellShadow(node_group, content_object, classname)
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, draggable, "black",
+    return create_and_register_node_object(node_position, node_group, rect, content_object, "black",
         shadow)
 
 }
 
-function nodeDragged(d) {
-    // console.log(node_object.registeredEdges.length)
-    d.x += d3.event.dx;
-    d.y += d3.event.dy;
-    let registeredEdges = ALL_NODES[d3.select(this).data()[0].id].registeredEdges
-    for (let i = 0; i < registeredEdges.length; i++) {
-        let edge = registeredEdges[i][0]
-        let edge_label = registeredEdges[i][1]
-        let edge_position_data = registeredEdges[i][2]
-        let graph = registeredEdges[i][3]
-        edge.attr("d", d => graph.getEdgePathFromData(edge_position_data))
-        edge_label.attr("x", d => graph.getEdgeLabelXFromData(edge_position_data))
-                  .attr("y", d => graph.getEdgeLabelYFromData(edge_position_data))
-    }
-    // console.log(registeredEdges.length)
-    d3.select(this).attr("transform", "translate(" + d.x + "," + d.y + ")");
-}
+
 
 
 function createNodeContent(content_data, content_type, append_to_this_object, classname) {
