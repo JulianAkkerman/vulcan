@@ -142,6 +142,7 @@ d3.select("#searchButton")
 
 sio.on('connect', () => {
     console.log('connected');
+    initializeSearchFilters()
 });
 
 sio.on('disconnect', () => {
