@@ -52,13 +52,24 @@ const FILTER_COLORS = ["#b3ffb3", "#b3ffff", "#ffffb3", "#ffb366", "#ff9999", "#
 const BORDER_COLOR = "#444444"
 const SEARCH_WINDOW_WIDTH = 500
 const SEARCH_WINDOW_HEIGHT = 400
+
 const FILTER_SELECTOR_SIZE = 40
+const FILTER_SELECTOR_BUFFER = 15
+
+const SELECTOR_MASK_MARGIN = 10
+const SELECTOR_MASK_ROUNDING = 10
+const SELECTOR_MASK_CLASSNAME = "searchSelectorMask"
 
 let searchFilters
+let searchFilterRects
 
 
 function initializeSearchFilters() {
     searchFilters = [new FilterInfo(null, null, [])]
+}
+
+function addEmptySearchFilter() {
+    searchFilters.push(new FilterInfo(null, null, []))
 }
 
 function createSearchWindowContainer() {
@@ -91,6 +102,78 @@ function createSearchWindowCanvas() {
         .style("position", "relative")
 }
 
+function drawFilterSelectorMask(activeFilterSelectorRect) {
+    let indentedLeftBoundary = parseFloat(activeFilterSelectorRect.attr("x"))
+        + FILTER_SELECTOR_SIZE + SELECTOR_MASK_MARGIN
+    let selectorRectBottomWithMargin = parseFloat(activeFilterSelectorRect.attr("y")) + FILTER_SELECTOR_SIZE + 5
+    let selectorRectTopWithMargin = parseFloat(activeFilterSelectorRect.attr("y")) - 5
+    let bottom = SEARCH_WINDOW_HEIGHT - SELECTOR_MASK_MARGIN
+    let right = SEARCH_WINDOW_WIDTH - SELECTOR_MASK_MARGIN
+    let top = SELECTOR_MASK_MARGIN
+    let left = SELECTOR_MASK_MARGIN
+
+
+    // should be able to generalize the below, by setting it up for a middle one, and not drawing a line if its length is negative.
+    drawXLine(indentedLeftBoundary, right, top)
+    drawCornerTopRight(right, top)
+    drawYLine(right, top, bottom)
+    drawCornerBottomRight(right, bottom)
+    drawXLine(indentedLeftBoundary, right, bottom)
+    if (selectorRectBottomWithMargin < bottom - 2*SELECTOR_MASK_ROUNDING) {
+        drawCornerBottomLeft(indentedLeftBoundary, bottom)
+        drawYLine(indentedLeftBoundary, selectorRectBottomWithMargin, bottom)
+        drawCornerTopRight(indentedLeftBoundary, selectorRectBottomWithMargin)
+    } else {
+        drawLine(indentedLeftBoundary, bottom, indentedLeftBoundary, selectorRectBottomWithMargin, SELECTOR_MASK_ROUNDING, 0)
+    }
+    drawXLine(left, indentedLeftBoundary, selectorRectBottomWithMargin)
+    drawCornerBottomLeft(left, selectorRectBottomWithMargin)
+    drawYLine(left, selectorRectTopWithMargin, selectorRectBottomWithMargin)
+    drawCornerTopLeft(left, selectorRectTopWithMargin)
+    drawXLine(left, indentedLeftBoundary, selectorRectTopWithMargin)
+    if (selectorRectTopWithMargin > top + 2*SELECTOR_MASK_ROUNDING) {
+        drawCornerBottomRight(indentedLeftBoundary, selectorRectTopWithMargin)
+        drawYLine(indentedLeftBoundary, top, selectorRectTopWithMargin)
+        drawCornerTopLeft(indentedLeftBoundary, top)
+    } else {
+        drawLine(indentedLeftBoundary, selectorRectTopWithMargin, indentedLeftBoundary, top, SELECTOR_MASK_ROUNDING, 0)
+    }
+
+}
+
+function createFilterSelectorRect(filterSelectorIndex) {
+    let y = 15 + filterSelectorIndex * (FILTER_SELECTOR_SIZE + FILTER_SELECTOR_BUFFER)
+    let activeFilterSelector = searchWindowCanvas.append("g")
+        .attr("id", "activeFilterSelector")
+        .attr("transform", "translate(0, 0)")
+    return activeFilterSelector.append("rect")
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .attr("x", 15)
+        .attr("y", y)
+        .attr("width", FILTER_SELECTOR_SIZE)
+        .attr("height", FILTER_SELECTOR_SIZE)
+        .attr("fill", FILTER_COLORS[filterSelectorIndex])
+        .attr("stroke", BORDER_COLOR)
+        .attr("stroke-width", 2)
+        .on("click", function () {
+            selectSelectorRect(d3.select(this))
+        })
+}
+
+function selectSelectorRect(selectorRect) {
+    selectorRect.style("opacity", "1")
+    for (let i = 0; i < searchFilterRects.length; i++) {
+        if (searchFilterRects[i].node() !== selectorRect.node()) {
+            searchFilterRects[i].style("opacity", "0.5")
+        }
+    }
+    // select all objects of class SELECTOR_MASK_CLASSNAME and remove them
+    d3.selectAll("." + SELECTOR_MASK_CLASSNAME).remove()
+    drawFilterSelectorMask(selectorRect)
+
+}
+
 function onSearchIconClick() {
     if (!searchWindowVisible) {
         createSearchWindowContainer();
@@ -98,41 +181,13 @@ function onSearchIconClick() {
         createSearchWindowCanvas();
 
         // create visuals for active filter
-        let activeFilter = searchFilters[0]
-        let activeFilterSelector = searchWindowCanvas.append("g")
-            .attr("id", "activeFilterSelector")
-            .attr("transform", "translate(0, 0)")
-        let activeFilterSelectorRect = activeFilterSelector.append("rect")
-            .attr("rx", 5)
-            .attr("ry", 5)
-            .attr("x", 15)
-            .attr("y", 15)
-            .attr("width", FILTER_SELECTOR_SIZE)
-            .attr("height", FILTER_SELECTOR_SIZE)
-            .attr("fill", FILTER_COLORS[0])
-            .attr("stroke", BORDER_COLOR)
-            .attr("stroke-width", 2)
+        // let activeFilter = searchFilters[0]
+        searchFilterRects = []
+        for (let i = 0; i < FILTER_COLORS.length; i++) {
+            searchFilterRects.push(createFilterSelectorRect(i));
+        }
 
-        let m = 10
-        let s = 10
-        console.log(activeFilterSelectorRect.attr("x"))
-        let leftBoundary = parseFloat(activeFilterSelectorRect.attr("x")) + FILTER_SELECTOR_SIZE + m
-        console.log("leftBoundary: " + leftBoundary)
-        let lowerCornerOfSelector = parseFloat(activeFilterSelectorRect.attr("y")) + FILTER_SELECTOR_SIZE + 5
-        console.log("lowerCornerOfSelector: " + lowerCornerOfSelector)
-        // should be able to generalize the below, by setting it up for a middle one, and not drawing a line if its length is negative.
-        drawLine(m, m, SEARCH_WINDOW_WIDTH-m, m, s, 0)
-        drawCorner(SEARCH_WINDOW_WIDTH-m, m, -s, 0, 0, s)
-        drawLine(SEARCH_WINDOW_WIDTH-m, m, SEARCH_WINDOW_WIDTH-m, SEARCH_WINDOW_HEIGHT-m, 0, s)
-        drawCorner(SEARCH_WINDOW_WIDTH-m, SEARCH_WINDOW_HEIGHT-m, 0, -s, -s, 0)
-        drawLine(SEARCH_WINDOW_WIDTH-m, SEARCH_WINDOW_HEIGHT-m, leftBoundary, SEARCH_WINDOW_HEIGHT-m, -s, 0)
-        drawCorner(leftBoundary, SEARCH_WINDOW_HEIGHT-m, s, 0, 0, -s)
-        drawLine(leftBoundary, SEARCH_WINDOW_HEIGHT-m, leftBoundary, lowerCornerOfSelector, 0, -s)
-        drawCorner(leftBoundary, lowerCornerOfSelector, 0, s, -s, 0)
-        drawLine(leftBoundary, lowerCornerOfSelector, m, lowerCornerOfSelector, -s, 0)
-        drawCorner(m, lowerCornerOfSelector, s, 0, 0, -s)
-        drawLine(m, lowerCornerOfSelector, m, m, 0, -s)
-        drawCorner(m, m, 0, s, s, 0)
+        drawFilterSelectorMask(searchFilterRects[3]);
 
 
     } else {
@@ -140,6 +195,22 @@ function onSearchIconClick() {
         searchWindowContainer.remove()
     }
 }
+
+function drawXLine(x1, x2, y) {
+    if (x1 < x2) {
+        drawLine(x1, y, x2, y, SELECTOR_MASK_ROUNDING, 0)
+    }
+    // else the line has "negative length" and we don't draw it.
+}
+
+function drawYLine(x, y1, y2) {
+    if (y1 < y2) {
+        drawLine(x, y1, x, y2, 0, SELECTOR_MASK_ROUNDING)
+    }
+    // else the line has "negative length" and we don't draw it.
+}
+
+
 
 function drawLine(x1, y1, x2, y2, xShortening, yShortening) {
     // assumes that x2 >= x1 and y2 >= y1
@@ -154,7 +225,26 @@ function drawLine(x1, y1, x2, y2, xShortening, yShortening) {
         .attr("y2", y2)
         .attr("stroke", BORDER_COLOR)
         .attr("stroke-width", 2)
+        .attr("class", SELECTOR_MASK_CLASSNAME)
 }
+
+
+function drawCornerTopRight(xCorner, yCorner) {
+    drawCorner(xCorner, yCorner, -SELECTOR_MASK_ROUNDING, 0, 0, SELECTOR_MASK_ROUNDING)
+}
+
+function drawCornerBottomRight(xCorner, yCorner) {
+    drawCorner(xCorner, yCorner, 0, -SELECTOR_MASK_ROUNDING, -SELECTOR_MASK_ROUNDING, 0)
+}
+
+function drawCornerBottomLeft(xCorner, yCorner) {
+    drawCorner(xCorner, yCorner, SELECTOR_MASK_ROUNDING, 0, 0, -SELECTOR_MASK_ROUNDING)
+}
+
+function drawCornerTopLeft(xCorner, yCorner) {
+    drawCorner(xCorner, yCorner, 0, SELECTOR_MASK_ROUNDING, SELECTOR_MASK_ROUNDING, 0)
+}
+
 
 function drawCorner(xCorner, yCorner, xOffsetIn, yOffsetIn, xOffsetOut, yOffsetOut) {
     let edge = d3.path()
@@ -169,6 +259,7 @@ function drawCorner(xCorner, yCorner, xOffsetIn, yOffsetIn, xOffsetOut, yOffsetO
         .attr("stroke", BORDER_COLOR)
         .attr("stroke-width", 2)
         .attr("fill", "none")
+        .attr("class", SELECTOR_MASK_CLASSNAME)
 }
 
 class FilterInfo {
