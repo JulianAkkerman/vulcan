@@ -126,17 +126,18 @@ d3.select("#nextButton")
 d3.select("#searchButton")
     .on("click", function() {
       console.log("search_button_clicked");
-      sio.emit("perform_search",
-            // corpus_slice_name: str = data["corpus_slice_name"]
-            // outer_search_layer_name: str = data["outer_search_layer_name"]
-            // inner_search_layer_names: List[str] = data["inner_search_layer_names"]
-            // inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
-          {
-              "corpus_slice_name": "Sentence",
-                "outer_search_layer_name": "OuterTableCellsLayer",
-                "inner_search_layer_names": ["CellContentEquals"],
-                "inner_search_layer_arguments": [["NOUN"]]
-          });
+      onSearchIconClick()
+      // sio.emit("perform_search",
+      //       // corpus_slice_name: str = data["corpus_slice_name"]
+      //       // outer_search_layer_name: str = data["outer_search_layer_name"]
+      //       // inner_search_layer_names: List[str] = data["inner_search_layer_names"]
+      //       // inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
+      //     {
+      //         "corpus_slice_name": "Sentence",
+      //           "outer_search_layer_name": "OuterTableCellsLayer",
+      //           "inner_search_layer_names": ["CellContentEquals"],
+      //           "inner_search_layer_arguments": [["NOUN"]]
+      //     });
     });
 
 sio.on('connect', () => {

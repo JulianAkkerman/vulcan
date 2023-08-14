@@ -12,6 +12,9 @@ class OuterTableCellsLayer(OuterSearchLayer):
     def get_label(self) -> str:
         return "Any cell in the table matches:"
 
+    def get_id(self) -> str:
+        return "OuterTableCellsLayer"
+
     def apply(self, inner_search_layers: List[InnerSearchLayer], user_arguments: List[List[str]], object: List[List[str]]):
         for row in object:
             for cell in row:

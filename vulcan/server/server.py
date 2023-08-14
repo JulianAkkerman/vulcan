@@ -114,7 +114,7 @@ class Server:
                     dependency_tree: List[Tuple[int, int, str]] = None):
         highlights, label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
                                                                                           label_alternatives_by_node_name)
-        self.send_string_table(slice_name, [tokens], label_alternatives_by_node_name, highlights, dependency_tree)
+        self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights, dependency_tree)
 
     def send_string_table(self, slice_name: str, table: List[List[str]],
                           label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
