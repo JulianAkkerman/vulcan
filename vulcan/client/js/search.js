@@ -1,51 +1,49 @@
 
-
+// pattern is: slice name maps to dict 1
+// in dict 1, outer layer id maps to outer layer in dict form
+// outer layer dict has entries "label", "description", and "innerLayers"
+// The first two are strings
+// innerLayers is a dictionary again, mapping inner layer id to inner layer in dict form
+// inner layer dict has entries "label" and "description" (string and list of strings respectively)
 const SEARCH_PATTERNS = {
-    "Sentence": [
-         {
-             "id": "OuterTableCellsLayer",
-             "innerLayers": [
-                 {
-                     "id": "CellContentEquals",
-                     "label": ["Cell content equals", ""],
-                     "description": "This checks if the cell content equals the given string (modulo casing and outer whitespace)."
-                 },
-                 {
-                     "id": "CellContentMatches",
-                     "label": ["Cell content matches", "(regular expression)"],
-                     "description": "This checks if the cell content matches the given regular expression."
-                 }
-             ],
-             "label": "Any cell in the table matches:",
-             "description": "This layer checks if any cell in a table matches the given criteria, and highlights the cells that do."
-         },
-        {
-             "id": "OuterTableAsAWholeLayer",
-             "innerLayers": [
-                 {
-                     "id": "ColumnCountAtLeast",
-                     "label": ["The sentence has at least length", " (or the table has at least this many columns)"],
-                     "description": "Checks minimum sentence length / table width."
-                 }
-             ],
-             "label": "The sentence/table as a whole matches:",
-             "description": "This layer checks if the sentence (or table) itself matches a given criterion."
-         }
-    ],
-    "Tree": [
-         {
-             "id": "OuterGraphNodeLayer",
-             "innerLayers": [
-                 {
-                     "id": "NodeContentEquals",
-                     "label": ["Node has label", ""],
-                     "description": "This checks if a node is labeled with the given string (modulo casing and outer whitespace)."
-                 }
-             ],
-             "label": "Any node in the graph matches:",
-             "description": "This layer checks if any node in a graph matches the given criteria, and highlights the nodes that do."
-         }
-    ]
+    "Sentence": {
+        "OuterTableCellsLayer": {
+            "innerLayers": {
+                "CellContentEquals": {
+                    "label": ["Cell content equals", ""],
+                    "description": "This checks if the cell content equals the given string (modulo casing and outer whitespace)."
+                },
+                "CellContentMatches": {
+                    "label": ["Cell content matches", "(regular expression)"],
+                    "description": "This checks if the cell content matches the given regular expression."
+                }
+            },
+            "label": "Any cell in the table matches:",
+            "description": "This layer checks if any cell in a table matches the given criteria, and highlights the cells that do."
+        },
+        "OuterTableAsAWholeLayer": {
+            "innerLayers": {
+                "ColumnCountAtLeast": {
+                    "label": ["The sentence has at least length", " (or the table has at least this many columns)"],
+                    "description": "Checks minimum sentence length / table width."
+                }
+            },
+            "label": "The sentence/table as a whole matches:",
+            "description": "This layer checks if the sentence (or table) itself matches a given criterion."
+        }
+    },
+    "Tree": {
+        "OuterGraphNodeLayer": {
+            "innerLayers": {
+                "NodeContentEquals": {
+                    "label": ["Node has label", ""],
+                    "description": "This checks if a node is labeled with the given string (modulo casing and outer whitespace)."
+                }
+            },
+            "label": "Any node in the graph matches:",
+            "description": "This layer checks if any node in a graph matches the given criteria, and highlights the nodes that do."
+        }
+    }
 }
 
 let searchWindowVisible = false
@@ -64,6 +62,8 @@ const FILTER_SELECTOR_BUFFER = 15
 const SELECTOR_MASK_MARGIN = 10
 const SELECTOR_MASK_ROUNDING = 10
 const SELECTOR_MASK_CLASSNAME = "searchSelectorMask"
+const SELECTOR_TEXT_CLASSNAME = "searchSelectorText"
+const EMPTY_SELECTION_TEXT = "-- Select --"
 
 let searchFilters
 let searchFilterRects
@@ -186,6 +186,8 @@ function selectSelectorRect(selectorRect) {
     }
     // select all objects of class SELECTOR_MASK_CLASSNAME and remove them
     d3.selectAll("." + SELECTOR_MASK_CLASSNAME).remove()
+    // remove selector text
+    d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
     drawFilterSelectorMask(selectorRect)
     drawFilterSelectorText(selectedFilterIndex)
 }
@@ -196,30 +198,126 @@ function drawFilterSelectorText(selectedFilterIndex) {
     let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
     let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
 
+    // draw slice selector
     let sliceSelectionLabel = d3.select("div#chartId").append("text")
-        .attr("for", "sliceSelector")
         .text("Object to apply the filter to:")
         .style("position", "absolute")
         .style("left", x0 + "px")
         .style("top", y0 + "px")
-    // add slice selector with two values: "Sentence", "Tree"
+        .attr("class", SELECTOR_TEXT_CLASSNAME)
     let sliceSelectorDropdown = d3.select("div#chartId")
         .append("select")
         .attr("name", "sliceSelector")
         .style("position", "absolute")
         .style("left", (x0 + sliceSelectionLabel.node().getBoundingClientRect().width + 5) + "px")
         .style("top", y0 + "px")
+        .attr("class", SELECTOR_TEXT_CLASSNAME)
+    let slice_names = [EMPTY_SELECTION_TEXT]
+    // add all in Object.keys(canvas_name_to_node_name_to_node_dict)
+    for (let slice_name in canvas_name_to_node_name_to_node_dict) {
+        slice_names.push(slice_name)
+    }
     let options = sliceSelectorDropdown.selectAll("option")
-        .data(["Sentence", "Tree"])
+        .data(slice_names)
         .enter()
         .append("option")
         .text(function (d) { return d; })
         .attr("value", function (d) { return d; })
-    if (selectedFilter.slice_name != null) {
+    if (selectedFilter.slice_name == null) {
+        sliceSelectorDropdown.property("value", EMPTY_SELECTION_TEXT)
+    } else {
         sliceSelectorDropdown.property("value", selectedFilter.slice_name)
     }
 
+    // draw outer-layer selector
+    if (sliceSelectorDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
+        let sliceName = sliceSelectorDropdown.property("value")
+        let outerLayerDropdown = d3.select("div#chartId")
+            .append("select")
+            .attr("name", "outerLayerSelector")
+            .style("position", "absolute")
+            .style("left", x0 + "px")
+            .style("top", (y0 + 30) + "px")
+            .attr("class", SELECTOR_TEXT_CLASSNAME)
+        let outerLayerIDs = [EMPTY_SELECTION_TEXT]
+        console.log(SEARCH_PATTERNS[sliceName])
+        for (let outerLayerID in SEARCH_PATTERNS[sliceSelectorDropdown.property("value")]) {
+            outerLayerIDs.push(outerLayerID)
+        }
+        console.log(outerLayerIDs)
+        let outerLayerOptions = outerLayerDropdown.selectAll("option")
+            .data(outerLayerIDs)
+            .enter()
+            .append("option")
+            .text(function (d) {
+                if (d === EMPTY_SELECTION_TEXT) {
+                    return d;
+                } else {
+                    return getOuterLayer(sliceName, d)["label"];
+                }
+            })
+            .attr("value", function (d) { return d; })
 
+        if (selectedFilter.outer_layer_id == null) {
+            outerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
+        } else {
+            outerLayerDropdown.property("value", selectedFilter.outer_layer_id)
+        }
+
+        // draw inner-layer selector(s)
+        if (outerLayerDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
+            drawInnerLayerDropdown(selectedFilter)
+        }
+    }
+
+}
+
+function drawInnerLayerDropdown(searchFilter) {
+    let sliceName = searchFilter.slice_name
+    let outerLayerID = searchFilter.outer_layer_id
+    let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
+    let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
+    let y = y0 + 60 + 30 * searchFilter.inner_layer_ids.length
+
+    let sliceSelectionLabel = d3.select("div#chartId").append("text")
+        .text("and")
+        .style("position", "absolute")
+        .style("left", x0 + "px")
+        .style("top", y + "px")
+        .attr("class", SELECTOR_TEXT_CLASSNAME)
+    let x = x0 + sliceSelectionLabel.node().getBoundingClientRect().width + 5
+    let innerLayerDropdown = d3.select("div#chartId")
+        .append("select")
+        .attr("name", "innerLayerSelector")
+        .style("position", "absolute")
+        .style("left", x + "px")
+        .style("top", y + "px")
+        .attr("class", SELECTOR_TEXT_CLASSNAME)
+    let innerLayerIDs = [EMPTY_SELECTION_TEXT]
+    for (let innerLayerID in getOuterLayer(sliceName, outerLayerID)["innerLayers"]) {
+        innerLayerIDs.push(innerLayerID)
+    }
+    let innerLayerOptions = innerLayerDropdown.selectAll("option")
+        .data(innerLayerIDs)
+        .enter()
+        .append("option")
+        .text(function (d) {
+            if (d === EMPTY_SELECTION_TEXT) {
+                return d;
+            } else {
+                return getInnerLayer(sliceName, outerLayerID, d)["label"].join(" _ ");
+            }
+        })
+        .attr("value", function (d) { return d; })
+    innerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
+}
+
+function getOuterLayer(sliceName, outerLayerID) {
+    return SEARCH_PATTERNS[sliceName][outerLayerID]
+}
+
+function getInnerLayer(sliceName, outerLayerID, innerLayerID) {
+    return SEARCH_PATTERNS[sliceName][outerLayerID]["innerLayers"][innerLayerID]
 }
 
 function onSearchIconClick() {
@@ -239,6 +337,7 @@ function onSearchIconClick() {
         searchFilterRects = []
         searchWindowVisible = false
         searchWindowContainer.remove()
+        d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
     }
 }
 
