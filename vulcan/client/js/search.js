@@ -266,8 +266,42 @@ function drawFilterSelectorText(selectedFilterIndex) {
 
         // draw inner-layer selector(s)
         if (outerLayerDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
+            drawInnerLayerTexts(selectedFilter)
             drawInnerLayerDropdown(selectedFilter)
         }
+    }
+
+}
+
+function drawInnerLayerTexts(searchFilter) {
+    let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
+        + 25  // for indent
+    let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10 + 30
+
+    for (let i in searchFilter.inner_layer_ids) {
+        let y = y0 + 60 + 30 * i
+        let innerLayerID = searchFilter.inner_layer_ids[i]
+        let innerLayer = getInnerLayer(searchFilter.slice_name, searchFilter.outer_layer_id, innerLayerID)
+        console.log(i)
+        console.log(innerLayer["label"].join(" _ "))
+        let x;
+        if (i > 0) {
+            let andLabel = d3.select("div#chartId").append("text")
+                .text("and:")
+                .style("position", "absolute")
+                .style("left", x0 + "px")
+                .style("top", y + "px")
+                .attr("class", SELECTOR_TEXT_CLASSNAME)
+            x = x0 + andLabel.node().getBoundingClientRect().width + 5
+        } else {
+            x = x0
+        }
+        let innerLayerLabel = d3.select("div#chartId").append("text")
+            .text(innerLayer["label"].join(" _ "))
+            .style("position", "absolute")
+            .style("left", x + "px")
+            .style("top", y + "px")
+            .attr("class", SELECTOR_TEXT_CLASSNAME)
     }
 
 }
@@ -276,22 +310,34 @@ function drawInnerLayerDropdown(searchFilter) {
     let sliceName = searchFilter.slice_name
     let outerLayerID = searchFilter.outer_layer_id
     let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
-    let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
+        + 25  // for indent
+    let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10 + 30
     let y = y0 + 60 + 30 * searchFilter.inner_layer_ids.length
 
-    let sliceSelectionLabel = d3.select("div#chartId").append("text")
-        .text("and")
-        .style("position", "absolute")
-        .style("left", x0 + "px")
-        .style("top", y + "px")
-        .attr("class", SELECTOR_TEXT_CLASSNAME)
-    let x = x0 + sliceSelectionLabel.node().getBoundingClientRect().width + 5
+    let x;
+    let gray = "#aaaaaa"
+    if (searchFilter.inner_layer_ids.length > 0) {
+        let andLabel = d3.select("div#chartId").append("text")
+            .text("and:")
+            .style("position", "absolute")
+            .style("left", x0 + "px")
+            .style("top", y + "px")
+            // make text gray
+            .style("color", gray)
+            .attr("class", SELECTOR_TEXT_CLASSNAME)
+        x = x0 + andLabel.node().getBoundingClientRect().width + 5
+    } else {
+        x = x0
+    }
     let innerLayerDropdown = d3.select("div#chartId")
         .append("select")
         .attr("name", "innerLayerSelector")
         .style("position", "absolute")
         .style("left", x + "px")
         .style("top", y + "px")
+        // make the whole thing gray
+        .style("color", gray)
+        .style("border-color", gray)
         .attr("class", SELECTOR_TEXT_CLASSNAME)
     let innerLayerIDs = [EMPTY_SELECTION_TEXT]
     for (let innerLayerID in getOuterLayer(sliceName, outerLayerID)["innerLayers"]) {
@@ -309,6 +355,14 @@ function drawInnerLayerDropdown(searchFilter) {
             }
         })
         .attr("value", function (d) { return d; })
+    // make text black during the selection process
+    innerLayerDropdown.on("mousedown", function () {
+        d3.select(this).style("color", "black")
+    })
+    innerLayerDropdown.on("change", function () {
+        d3.select(this).style("color", gray)
+        //TODO handle selection of a non-empty value here
+    })
     innerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
 }
 
