@@ -9,6 +9,11 @@ const SEARCH_PATTERNS = {
                      "id": "CellContentEquals",
                      "label": ["Cell content equals", ""],
                      "description": "This checks if the cell content equals the given string (modulo casing and outer whitespace)."
+                 },
+                 {
+                     "id": "CellContentMatches",
+                     "label": ["Cell content matches", "(regular expression)"],
+                     "description": "This checks if the cell content matches the given regular expression."
                  }
              ],
              "label": "Any cell in the table matches:",
@@ -19,7 +24,7 @@ const SEARCH_PATTERNS = {
              "innerLayers": [
                  {
                      "id": "ColumnCountAtLeast",
-                     "label": ["The sentence has at least length ", " (or the table has at least this many columns)"],
+                     "label": ["The sentence has at least length", " (or the table has at least this many columns)"],
                      "description": "Checks minimum sentence length / table width."
                  }
              ],
@@ -50,8 +55,8 @@ let searchWindowCanvas = null
 // pastel green, pastel blue, pastel yellow, pastel orange, pastel red, pastel purple
 const FILTER_COLORS = ["#b3ffb3", "#b3ffff", "#ffffb3", "#ffb366", "#ff9999", "#e6ccff"]
 const BORDER_COLOR = "#444444"
-const SEARCH_WINDOW_WIDTH = 500
-const SEARCH_WINDOW_HEIGHT = 400
+const SEARCH_WINDOW_WIDTH = 1000
+const SEARCH_WINDOW_HEIGHT = 500
 
 const FILTER_SELECTOR_SIZE = 40
 const FILTER_SELECTOR_BUFFER = 15
@@ -65,11 +70,19 @@ let searchFilterRects
 
 
 function initializeSearchFilters() {
-    searchFilters = [new FilterInfo(null, null, [])]
+    searchFilters = []
+    searchFilterRects = []
+    // addEmptySearchFilter()
+    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer", ["CellContentEquals", "CellContentMatches"]))
+    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", ["NodeContentEquals"]))
 }
 
 function addEmptySearchFilter() {
-    searchFilters.push(new FilterInfo(null, null, []))
+    addSearchFilter(new FilterInfo(null, null, []))
+}
+
+function addSearchFilter(filterInfo) {
+    searchFilters.push(filterInfo)
 }
 
 function createSearchWindowContainer() {
@@ -163,14 +176,49 @@ function createFilterSelectorRect(filterSelectorIndex) {
 
 function selectSelectorRect(selectorRect) {
     selectorRect.style("opacity", "1")
+    let selectedFilterIndex;
     for (let i = 0; i < searchFilterRects.length; i++) {
         if (searchFilterRects[i].node() !== selectorRect.node()) {
             searchFilterRects[i].style("opacity", "0.5")
+        } else {
+            selectedFilterIndex = i
         }
     }
     // select all objects of class SELECTOR_MASK_CLASSNAME and remove them
     d3.selectAll("." + SELECTOR_MASK_CLASSNAME).remove()
     drawFilterSelectorMask(selectorRect)
+    drawFilterSelectorText(selectedFilterIndex)
+}
+
+function drawFilterSelectorText(selectedFilterIndex) {
+    let selectedFilter = searchFilters[selectedFilterIndex]
+    console.log("drawing slice selector")
+    let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
+    let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
+
+    let sliceSelectionLabel = d3.select("div#chartId").append("text")
+        .attr("for", "sliceSelector")
+        .text("Object to apply the filter to:")
+        .style("position", "absolute")
+        .style("left", x0 + "px")
+        .style("top", y0 + "px")
+    // add slice selector with two values: "Sentence", "Tree"
+    let sliceSelectorDropdown = d3.select("div#chartId")
+        .append("select")
+        .attr("name", "sliceSelector")
+        .style("position", "absolute")
+        .style("left", (x0 + sliceSelectionLabel.node().getBoundingClientRect().width + 5) + "px")
+        .style("top", y0 + "px")
+    let options = sliceSelectorDropdown.selectAll("option")
+        .data(["Sentence", "Tree"])
+        .enter()
+        .append("option")
+        .text(function (d) { return d; })
+        .attr("value", function (d) { return d; })
+    if (selectedFilter.slice_name != null) {
+        sliceSelectorDropdown.property("value", selectedFilter.slice_name)
+    }
+
 
 }
 
@@ -180,17 +228,15 @@ function onSearchIconClick() {
 
         createSearchWindowCanvas();
 
-        // create visuals for active filter
-        // let activeFilter = searchFilters[0]
-        searchFilterRects = []
-        for (let i = 0; i < FILTER_COLORS.length; i++) {
-            searchFilterRects.push(createFilterSelectorRect(i));
+        for (let i = 0; i < searchFilters.length; i++) {
+            searchFilterRects[i] = createFilterSelectorRect(i)
         }
 
-        drawFilterSelectorMask(searchFilterRects[3]);
+        selectSelectorRect(searchFilterRects[0]);
 
 
     } else {
+        searchFilterRects = []
         searchWindowVisible = false
         searchWindowContainer.remove()
     }
