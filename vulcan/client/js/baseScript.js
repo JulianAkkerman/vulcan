@@ -120,6 +120,9 @@ d3.select("#nextButton")
         console.log("next_button_clicked");
         if (set_corpus_position(current_corpus_position + 1)) {
             sio.emit("instance_requested", current_corpus_position);
+        } else {
+            console.log("no more instances");
+            console.log(corpus_length)
         }
     });
 
@@ -290,6 +293,12 @@ function set_corpus_position(new_position) {
         set_layout(saved_layout)
         return true
     } else {
+        if (corpus_length == 0) {
+            // TODO maybe show some message that the search was empty, or that the corpus is empty.
+            reset()
+            document.getElementById("corpusPositionInput").value = 0
+            d3.select("#corpusPositionText").text("/" + corpus_length)
+        }
         return false
     }
 }

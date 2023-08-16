@@ -15,12 +15,21 @@ class OuterTableCellsLayer(OuterSearchLayer):
     def get_id(self) -> str:
         return "OuterTableCellsLayer"
 
-    def apply(self, inner_search_layers: List[InnerSearchLayer], user_arguments: List[List[str]], object: List[List[str]]):
-        for row in object:
-            for cell in row:
-                for inner_search_layer, user_args in zip(inner_search_layers, user_arguments):
-                    if inner_search_layer.apply(cell, user_args):
-                        return True
+    def apply(self, inner_search_layers: List[InnerSearchLayer], user_arguments: List[List[str]], obj: List[List[str]]):
+        # print(obj)
+        # TODO make different versions of this class for strings and tables
+        # for row in obj:
+        for cell in obj:  # in row:
+            result = True
+            for inner_search_layer, user_args in zip(inner_search_layers, user_arguments):
+                if inner_search_layer.apply(cell, user_args):
+                    pass
+                else:
+                    result = False
+                    print(cell, inner_search_layer.get_label(), user_args)
+            if result:
+                return True
+        return False
 
 
 class InnerTableCellsLayer(InnerSearchLayer, ABC):

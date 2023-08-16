@@ -54,7 +54,7 @@ let searchWindowCanvas = null
 const FILTER_COLORS = ["#b3ffb3", "#b3ffff", "#ffffb3", "#ffb366", "#ff9999", "#e6ccff"]
 const BORDER_COLOR = "#444444"
 const SEARCH_WINDOW_WIDTH = 1000
-const SEARCH_WINDOW_HEIGHT = 500
+const SEARCH_WINDOW_HEIGHT = 600
 
 const FILTER_SELECTOR_SIZE = 40
 const FILTER_SELECTOR_BUFFER = 15
@@ -63,6 +63,8 @@ const SELECTOR_MASK_MARGIN = 10
 const SELECTOR_MASK_ROUNDING = 10
 const SELECTOR_MASK_CLASSNAME = "searchSelectorMask"
 const SELECTOR_TEXT_CLASSNAME = "searchSelectorText"
+const OUTER_SEARCH_LAYER_CLASSNAME = "outerSearchLayer"
+const INNER_SEARCH_LAYER_CLASSNAME = "innerSearchLayer"
 const EMPTY_SELECTION_TEXT = "-- Select --"
 
 let searchFilters
@@ -73,8 +75,19 @@ function initializeSearchFilters() {
     searchFilters = []
     searchFilterRects = []
     // addEmptySearchFilter()
-    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer", ["CellContentEquals", "CellContentMatches"]))
-    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", ["NodeContentEquals"]))
+    let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
+    let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
+    let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
+    let argsTable = {}
+    argsTable[uniqueid1] = ["dog"]
+    argsTable[uniqueid2] = ["dog"]
+    let argsTree = {}
+    argsTree[uniqueid3] = ["dog"]
+    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
+        [uniqueid1, uniqueid2], argsTable))
+    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
+        argsTree))
+    console.log(searchFilters)
 }
 
 function addEmptySearchFilter() {
@@ -92,8 +105,6 @@ function createSearchWindowContainer() {
     let searchButtonX = searchButtonPosition.x
     let searchButtonY = searchButtonPosition.y
 
-    console.log(searchButtonY + searchButtonHeight + 10)
-    console.log(searchButtonX)
 
 
     searchWindowVisible = true
@@ -120,7 +131,7 @@ function drawFilterSelectorMask(activeFilterSelectorRect) {
         + FILTER_SELECTOR_SIZE + SELECTOR_MASK_MARGIN
     let selectorRectBottomWithMargin = parseFloat(activeFilterSelectorRect.attr("y")) + FILTER_SELECTOR_SIZE + 5
     let selectorRectTopWithMargin = parseFloat(activeFilterSelectorRect.attr("y")) - 5
-    let bottom = SEARCH_WINDOW_HEIGHT - SELECTOR_MASK_MARGIN
+    let bottom = SEARCH_WINDOW_HEIGHT - SELECTOR_MASK_MARGIN - 45 // the 45 makes space for the "search now" button
     let right = SEARCH_WINDOW_WIDTH - SELECTOR_MASK_MARGIN
     let top = SELECTOR_MASK_MARGIN
     let left = SELECTOR_MASK_MARGIN
@@ -192,9 +203,58 @@ function selectSelectorRect(selectorRect) {
     drawFilterSelectorText(selectedFilterIndex)
 }
 
+function drawOuterLayerTexts(sliceSelectorDropdown, x0, y0, selectedFilter) {
+    let sliceName = sliceSelectorDropdown.property("value")
+    let outerLayerDropdown = d3.select("div#chartId")
+        .append("select")
+        .attr("name", "outerLayerSelector")
+        .style("position", "absolute")
+        .style("left", x0 + "px")
+        .style("top", (y0 + 30) + "px")
+        .attr("class", SELECTOR_TEXT_CLASSNAME + " " + OUTER_SEARCH_LAYER_CLASSNAME)
+    let outerLayerIDs = [EMPTY_SELECTION_TEXT]
+    for (let outerLayerID in SEARCH_PATTERNS[sliceSelectorDropdown.property("value")]) {
+        outerLayerIDs.push(outerLayerID)
+    }
+    let outerLayerOptions = outerLayerDropdown.selectAll("option")
+        .data(outerLayerIDs)
+        .enter()
+        .append("option")
+        .text(function (d) {
+            if (d === EMPTY_SELECTION_TEXT) {
+                return d;
+            } else {
+                return getOuterLayer(sliceName, d)["label"];
+            }
+        })
+        .attr("value", function (d) {
+            return d;
+        })
+
+    if (selectedFilter.outer_layer_id == null) {
+        outerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
+    } else {
+        outerLayerDropdown.property("value", selectedFilter.outer_layer_id)
+    }
+
+    outerLayerDropdown.on("change", function () {
+        d3.select("div#chartId").selectAll("." + INNER_SEARCH_LAYER_CLASSNAME).remove()
+        selectedFilter.clearInnerLayers()
+        let selectedOuterLayerID = outerLayerDropdown.property("value")
+        if (selectedOuterLayerID === EMPTY_SELECTION_TEXT) {
+            selectedFilter.clearOuterLayer()
+        } else {
+            selectedFilter.outer_layer_id = selectedOuterLayerID
+            drawInnerLayerTexts(selectedFilter)
+            drawInnerLayerDropdown(selectedFilter)
+        }
+    })
+
+    return outerLayerDropdown;
+}
+
 function drawFilterSelectorText(selectedFilterIndex) {
     let selectedFilter = searchFilters[selectedFilterIndex]
-    console.log("drawing slice selector")
     let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
     let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
 
@@ -228,41 +288,23 @@ function drawFilterSelectorText(selectedFilterIndex) {
     } else {
         sliceSelectorDropdown.property("value", selectedFilter.slice_name)
     }
+    sliceSelectorDropdown.on("change", function () {
+        // remove inner and outer layer texts and dropdowns
+        d3.selectAll("." + INNER_SEARCH_LAYER_CLASSNAME).remove()
+        d3.selectAll("." + OUTER_SEARCH_LAYER_CLASSNAME).remove()
+        selectedFilter.outer_layer_id = null
+        selectedFilter.inner_layer_ids = []
+        if (sliceSelectorDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
+            selectedFilter.slice_name = sliceSelectorDropdown.property("value")
+            drawOuterLayerTexts(sliceSelectorDropdown, x0, y0, selectedFilter);
+        } else {
+            selectedFilter.clearSliceName()
+        }
+    })
 
     // draw outer-layer selector
     if (sliceSelectorDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
-        let sliceName = sliceSelectorDropdown.property("value")
-        let outerLayerDropdown = d3.select("div#chartId")
-            .append("select")
-            .attr("name", "outerLayerSelector")
-            .style("position", "absolute")
-            .style("left", x0 + "px")
-            .style("top", (y0 + 30) + "px")
-            .attr("class", SELECTOR_TEXT_CLASSNAME)
-        let outerLayerIDs = [EMPTY_SELECTION_TEXT]
-        console.log(SEARCH_PATTERNS[sliceName])
-        for (let outerLayerID in SEARCH_PATTERNS[sliceSelectorDropdown.property("value")]) {
-            outerLayerIDs.push(outerLayerID)
-        }
-        console.log(outerLayerIDs)
-        let outerLayerOptions = outerLayerDropdown.selectAll("option")
-            .data(outerLayerIDs)
-            .enter()
-            .append("option")
-            .text(function (d) {
-                if (d === EMPTY_SELECTION_TEXT) {
-                    return d;
-                } else {
-                    return getOuterLayer(sliceName, d)["label"];
-                }
-            })
-            .attr("value", function (d) { return d; })
-
-        if (selectedFilter.outer_layer_id == null) {
-            outerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
-        } else {
-            outerLayerDropdown.property("value", selectedFilter.outer_layer_id)
-        }
+        let outerLayerDropdown = drawOuterLayerTexts(sliceSelectorDropdown, x0, y0, selectedFilter);
 
         // draw inner-layer selector(s)
         if (outerLayerDropdown.property("value") !== EMPTY_SELECTION_TEXT) {
@@ -280,10 +322,9 @@ function drawInnerLayerTexts(searchFilter) {
 
     for (let i in searchFilter.inner_layer_ids) {
         let y = y0 + 60 + 30 * i
-        let innerLayerID = searchFilter.inner_layer_ids[i]
+        let uniqueInnerLayerID = searchFilter.inner_layer_ids[i]
+        let innerLayerID = getInnerLayerIDFromUniqueID(uniqueInnerLayerID)
         let innerLayer = getInnerLayer(searchFilter.slice_name, searchFilter.outer_layer_id, innerLayerID)
-        console.log(i)
-        console.log(innerLayer["label"].join(" _ "))
         let x;
         if (i > 0) {
             let andLabel = d3.select("div#chartId").append("text")
@@ -291,17 +332,56 @@ function drawInnerLayerTexts(searchFilter) {
                 .style("position", "absolute")
                 .style("left", x0 + "px")
                 .style("top", y + "px")
-                .attr("class", SELECTOR_TEXT_CLASSNAME)
+                .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
             x = x0 + andLabel.node().getBoundingClientRect().width + 5
         } else {
             x = x0
         }
-        let innerLayerLabel = d3.select("div#chartId").append("text")
-            .text(innerLayer["label"].join(" _ "))
+        for (let j in innerLayer["label"]) {
+            let innerLayerLabel = d3.select("div#chartId").append("text")
+                .text(innerLayer["label"][j])
+                .style("position", "absolute")
+                .style("left", x + "px")
+                .style("top", y + "px")
+                .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
+            x += innerLayerLabel.node().getBoundingClientRect().width + 5
+            // add editable field
+            if (j < innerLayer["label"].length - 1) {
+                let editableField = d3.select("div#chartId").append("textarea")
+                    .style("position", "absolute")
+                    .style("left", x + "px")
+                    .style("top", y + "px")
+                    .style("resize", "none")
+                    .attr("rows", 1)
+                    .on("focus", function () {
+                        this.rows = 5
+                        d3.select(this).style("z-index", 1); // Raise the element using z-index
+                    })
+                    .on("blur", function () {
+                        this.rows = 1
+                        d3.select(this).style("z-index", "auto"); // Raise the element using z-index
+                    })
+                    .text(searchFilter.inner_layer_inputs[uniqueInnerLayerID][j])
+                    .on("input", function () {
+                        searchFilter.inner_layer_inputs[uniqueInnerLayerID][j] = this.value
+                    })
+                    .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
+                x += editableField.node().getBoundingClientRect().width + 5
+            }
+        }
+        // add delete button
+        let deleteButton = d3.select("div#chartId").append("button")
+            .text("x")
             .style("position", "absolute")
             .style("left", x + "px")
             .style("top", y + "px")
-            .attr("class", SELECTOR_TEXT_CLASSNAME)
+            .on("click", function () {
+                searchFilter.removeInnerLayer(uniqueInnerLayerID)
+                d3.selectAll("." + INNER_SEARCH_LAYER_CLASSNAME).remove()
+                drawInnerLayerTexts(searchFilter)
+                drawInnerLayerDropdown(searchFilter)
+            })
+            .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
     }
 
 }
@@ -324,7 +404,7 @@ function drawInnerLayerDropdown(searchFilter) {
             .style("top", y + "px")
             // make text gray
             .style("color", gray)
-            .attr("class", SELECTOR_TEXT_CLASSNAME)
+            .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
         x = x0 + andLabel.node().getBoundingClientRect().width + 5
     } else {
         x = x0
@@ -338,7 +418,7 @@ function drawInnerLayerDropdown(searchFilter) {
         // make the whole thing gray
         .style("color", gray)
         .style("border-color", gray)
-        .attr("class", SELECTOR_TEXT_CLASSNAME)
+        .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
     let innerLayerIDs = [EMPTY_SELECTION_TEXT]
     for (let innerLayerID in getOuterLayer(sliceName, outerLayerID)["innerLayers"]) {
         innerLayerIDs.push(innerLayerID)
@@ -356,12 +436,17 @@ function drawInnerLayerDropdown(searchFilter) {
         })
         .attr("value", function (d) { return d; })
     // make text black during the selection process
-    innerLayerDropdown.on("mousedown", function () {
+    innerLayerDropdown.on("focus", function () {
         d3.select(this).style("color", "black")
     })
-    innerLayerDropdown.on("change", function () {
+    innerLayerDropdown.on("blur", function () {
         d3.select(this).style("color", gray)
-        //TODO handle selection of a non-empty value here
+    })
+    innerLayerDropdown.on("change", function () {
+        searchFilter.addInnerLayer(this.value)
+        d3.select("div#chartId").selectAll("." + INNER_SEARCH_LAYER_CLASSNAME).remove()
+        drawInnerLayerTexts(searchFilter)
+        drawInnerLayerDropdown(searchFilter)
     })
     innerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
 }
@@ -386,13 +471,53 @@ function onSearchIconClick() {
 
         selectSelectorRect(searchFilterRects[0]);
 
+        drawSearchNowButton();
 
     } else {
         searchFilterRects = []
         searchWindowVisible = false
         searchWindowContainer.remove()
         d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
+        d3.select("div#chartId").selectAll("." + "searchNowButton").remove()
     }
+}
+
+function drawSearchNowButton() {
+    let width = 120
+    let height = 33
+    let r = searchWindowCanvas.node().getBoundingClientRect()
+    let x = r.right - width - 15
+    let y = r.bottom - height - 15
+    let searchNowButton = d3.select("div#chartId").append("button")
+        .text("Search Now")
+        .style("position", "absolute")
+        .style("left", x + "px")
+        .style("top", y + "px")
+        .style("width", width + "px")
+        .style("height", height + "px")
+        // round the corners
+        .style("border-radius", "5px")
+        .on("click", function () {
+            performSearch()
+            onSearchIconClick()  // little hack to make the search window disappear
+        })
+        .attr("class", "searchNowButton")
+    // make the button stand out a bit more
+    searchNowButton.style("background-color", "white")
+    searchNowButton.style("border-color", "black")
+    searchNowButton.style("color", "black")
+    // make it bold and larger font
+    // searchNowButton.style("font-weight", "bold")
+    searchNowButton.style("font-size", "16px")
+
+}
+
+function performSearch() {
+    let searchFiltersToTransmit = []
+    for (let i = 0; i < searchFilters.length; i++) {
+        searchFiltersToTransmit.push(searchFilters[i].getTransmissibleDict())
+    }
+    sio.emit("perform_search", searchFiltersToTransmit)
 }
 
 function drawXLine(x1, x2, y) {
@@ -461,10 +586,83 @@ function drawCorner(xCorner, yCorner, xOffsetIn, yOffsetIn, xOffsetOut, yOffsetO
         .attr("class", SELECTOR_MASK_CLASSNAME)
 }
 
+function getInnerLayerIDFromUniqueID(uniqueID) {
+    return uniqueID.split("_bsdfe_uniquefier_fafswee_")[0]
+}
+
+function makeUniqueInnerLayerID(innerLayerID) {
+    return innerLayerID + "_bsdfe_uniquefier_fafswee_" + create_alias()
+}
+
 class FilterInfo {
-    constructor(slice_name, outer_layer_id, inner_layer_ids) {
+    constructor(slice_name, outer_layer_id, unique_inner_layer_ids, inner_layer_inputs=undefined) {
         this.slice_name = slice_name
         this.outer_layer_id = outer_layer_id
-        this.inner_layer_ids = inner_layer_ids
+        this.inner_layer_ids = unique_inner_layer_ids
+        if (inner_layer_inputs === undefined) {
+            this.inner_layer_inputs = {}  // maps inner layer id to list of input values
+            for (let i in unique_inner_layer_ids) {
+                let inner_layer_ID = getInnerLayerIDFromUniqueID(unique_inner_layer_ids[i])
+                let inner_label = getInnerLayer(slice_name, outer_layer_id, inner_layer_ID)["label"]
+                this.inner_layer_inputs[unique_inner_layer_ids[i]] = []
+                for (let j = 0; j< inner_label.length -1; j++) {
+                    this.inner_layer_inputs[unique_inner_layer_ids[i]].push("")
+                }
+            }
+        } else {
+            this.inner_layer_inputs = inner_layer_inputs
+        }
+    }
+
+    addInnerLayer(inner_layer_id) {
+        let unique_id = makeUniqueInnerLayerID(inner_layer_id)
+        this.inner_layer_ids.push(unique_id)
+        this.inner_layer_inputs[unique_id] = []
+        let inner_label = getInnerLayer(this.slice_name, this.outer_layer_id, inner_layer_id)["label"]
+        for (let j = 0; j< inner_label.length -1; j++) {
+            this.inner_layer_inputs[unique_id].push("")
+        }
+        return unique_id
+    }
+
+    clearInnerLayers() {
+        this.inner_layer_ids = []
+        this.inner_layer_inputs = {}
+    }
+
+    removeInnerLayer(unique_inner_layer_id) {
+        let index = this.inner_layer_ids.indexOf(unique_inner_layer_id)
+        if (index > -1) {
+            this.inner_layer_ids.splice(index, 1)
+        }
+        delete this.inner_layer_inputs[unique_inner_layer_id]
+    }
+
+    clearOuterLayer() {
+        this.outer_layer_id = null
+        this.clearInnerLayers()
+    }
+
+    clearSliceName() {
+        this.slice_name = null
+        this.clearOuterLayer()
+    }
+
+    getTransmissibleDict() {
+        let dict = {}
+        dict["slice_name"] = this.slice_name
+        dict["outer_layer_id"] = this.outer_layer_id
+        let inner_layer_ids = []
+        for (let i in this.inner_layer_ids) {
+            inner_layer_ids.push(getInnerLayerIDFromUniqueID(this.inner_layer_ids[i]))
+        }
+        dict["inner_layer_ids"] = inner_layer_ids
+        let inner_layer_inputs = []
+        for (let i in this.inner_layer_ids) {
+            let inner_layer_input = this.inner_layer_inputs[this.inner_layer_ids[i]]
+            inner_layer_inputs.push(inner_layer_input)
+        }
+        dict["inner_layer_inputs"] = inner_layer_inputs
+        return dict
     }
 }

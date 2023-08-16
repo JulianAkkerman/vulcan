@@ -3,6 +3,8 @@ from typing import List, Dict, Set, Tuple, Any
 import socketio
 from eventlet import wsgi
 
+import search
+from search.search import SearchFilter, perform_search_on_layout
 from vulcan.data_handling.data_corpus import CorpusSlice
 from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
 import eventlet
@@ -50,59 +52,57 @@ class Server:
 
         @self.sio.event
         def instance_requested(sid, data):
-            instance_id = data
-            for row in self.current_layouts_by_sid[sid].layout:
-                for corpus_slice in row:
-                    if corpus_slice.label_alternatives is not None:
-                        label_alternatives_by_node_name = corpus_slice.label_alternatives[instance_id]
-                    else:
-                        label_alternatives_by_node_name = None
-                    if corpus_slice.highlights is not None:
-                        highlights = corpus_slice.highlights[instance_id]
-                    else:
-                        highlights = None
-                    if corpus_slice.mouseover_texts is not None:
-                        mouseover_texts = corpus_slice.mouseover_texts[instance_id]
-                    else:
-                        mouseover_texts = None
-                    if corpus_slice.dependency_trees is not None:
-                        dependency_tree = corpus_slice.dependency_trees[instance_id]
-                    else:
-                        dependency_tree = None
-                    if corpus_slice.visualization_type == VisualizationType.STRING:
-                        self.send_string(corpus_slice.name,
-                                         corpus_slice.instances[instance_id],
-                                         label_alternatives_by_node_name,
-                                         highlights,
-                                         dependency_tree)
-                    elif corpus_slice.visualization_type == VisualizationType.TABLE:
-                        self.send_string_table(corpus_slice.name,
-                                               corpus_slice.instances[instance_id],
-                                               label_alternatives_by_node_name,
-                                               highlights,
-                                               dependency_tree)
-                    elif corpus_slice.visualization_type == VisualizationType.TREE:
-                        # trees are just graphs without reentrancies
-                        self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
-                                        label_alternatives_by_node_name,
-                                        highlights)
-                    elif corpus_slice.visualization_type == VisualizationType.GRAPH:
-                        self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
-                                        label_alternatives_by_node_name,
-                                        highlights, mouseover_texts)
-            for linker in self.current_layouts_by_sid[sid].linkers:
-                self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
+            if self.current_layouts_by_sid[sid].corpus_size > 0:
+                instance_id = data
+                for row in self.current_layouts_by_sid[sid].layout:
+                    for corpus_slice in row:
+                        if corpus_slice.label_alternatives is not None:
+                            label_alternatives_by_node_name = corpus_slice.label_alternatives[instance_id]
+                        else:
+                            label_alternatives_by_node_name = None
+                        if corpus_slice.highlights is not None:
+                            highlights = corpus_slice.highlights[instance_id]
+                        else:
+                            highlights = None
+                        if corpus_slice.mouseover_texts is not None:
+                            mouseover_texts = corpus_slice.mouseover_texts[instance_id]
+                        else:
+                            mouseover_texts = None
+                        if corpus_slice.dependency_trees is not None:
+                            dependency_tree = corpus_slice.dependency_trees[instance_id]
+                        else:
+                            dependency_tree = None
+                        if corpus_slice.visualization_type == VisualizationType.STRING:
+                            self.send_string(corpus_slice.name,
+                                             corpus_slice.instances[instance_id],
+                                             label_alternatives_by_node_name,
+                                             highlights,
+                                             dependency_tree)
+                        elif corpus_slice.visualization_type == VisualizationType.TABLE:
+                            self.send_string_table(corpus_slice.name,
+                                                   corpus_slice.instances[instance_id],
+                                                   label_alternatives_by_node_name,
+                                                   highlights,
+                                                   dependency_tree)
+                        elif corpus_slice.visualization_type == VisualizationType.TREE:
+                            # trees are just graphs without reentrancies
+                            self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                            label_alternatives_by_node_name,
+                                            highlights)
+                        elif corpus_slice.visualization_type == VisualizationType.GRAPH:
+                            self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                            label_alternatives_by_node_name,
+                                            highlights, mouseover_texts)
+                for linker in self.current_layouts_by_sid[sid].linkers:
+                    self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
+            else:
+                print("No instances in corpus")
 
         @self.sio.event
         def perform_search(sid, data):
-            corpus_slice_name: str = data["corpus_slice_name"]
-            outer_search_layer_name: str = data["outer_search_layer_name"]
-            inner_search_layer_names: List[str] = data["inner_search_layer_names"]
-            inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
-            self.current_layouts_by_sid[sid] = self.basic_layout.perform_search(corpus_slice_name,
-                                                                                outer_search_layer_name,
-                                                                                inner_search_layer_names,
-                                                                                inner_search_layer_arguments)
+            print(data)
+            self.current_layouts_by_sid[sid] = perform_search_on_layout(self.basic_layout,
+                                                                        get_search_filters_from_data(data))
             self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size)
             self.sio.emit('search_completed', None)
 
@@ -160,3 +160,12 @@ def make_slice_sendable(corpus_slice: CorpusSlice):
         "visualization_type": corpus_slice.visualization_type,
     }
     return ret
+
+
+def get_search_filters_from_data(data):
+    search_filters = []
+    for search_filter_data in data:
+        search_filters.append(SearchFilter(search_filter_data["slice_name"], search_filter_data["outer_layer_id"],
+                                           search_filter_data["inner_layer_ids"],
+                                           search_filter_data["inner_layer_inputs"]))
+    return search_filters
