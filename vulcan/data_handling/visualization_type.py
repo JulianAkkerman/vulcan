@@ -3,3 +3,4 @@ class VisualizationType:
     TREE = "TREE"
     GRAPH = "GRAPH"
     TABLE = "TABLE"
+    LINKER = "LINKER"

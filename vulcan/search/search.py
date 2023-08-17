@@ -5,30 +5,16 @@ from search.graph_nodes.node_content_equals import NodeContentEquals
 from search.graph_nodes.outer_graph_node_layer import OuterGraphNodeLayer
 from search.inner_search_layer import InnerSearchLayer
 from search.outer_search_layer import OuterSearchLayer
+from search.search_registry import OUTER_SEARCH_LAYERS, INNER_SEARCH_LAYERS, VISUALIZATION_TYPE_TO_OUTER_SEARCH_LAYERS, \
+    OUTER_TO_INNER_SEARCH_LAYERS
 from search.table.column_count_at_least import ColumnCountAtLeast
+from search.table.outer_table_as_a_whole_layer import OuterTableAsAWholeLayer
 from search.table_cells.cell_content_equals import CellContentEquals
 from search.table_cells.cell_content_matches import CellContentMatches
 from search.table_cells.outer_table_cells_layer import OuterTableCellsLayer
 from server.basic_layout import BasicLayout
 
-# TODO these lists should probably be in their own files. Maybe also this should be structured differently. Let's
-#  see how working with this goes.
-class OuterTableLayer:
-    pass
 
-
-OUTER_SEARCH_LAYERS = {
-    "OuterTableCellsLayer": OuterTableCellsLayer(),
-    "OuterTableLayer": OuterTableLayer(),
-    "OuterGraphNodeLayer": OuterGraphNodeLayer()
-}
-
-INNER_SEARCH_LAYERS = {
-    "CellContentEquals": CellContentEquals(),
-    "CellContentMatches": CellContentMatches(),
-    "NodeContentEquals": NodeContentEquals(),
-    "ColumnCountAtLeast": ColumnCountAtLeast()
-}
 
 
 class SearchFilter:
@@ -130,3 +116,28 @@ def get_outer_search_layer(name: str) -> OuterSearchLayer:
 
 def get_inner_search_layer(name: str) -> InnerSearchLayer:
     return INNER_SEARCH_LAYERS[name]
+
+
+def create_list_of_possible_search_filters(layout: BasicLayout):
+    ret = {}
+    for row in layout.layout:
+        for corpus_slice in row:
+            name = corpus_slice.name
+            visualization_type = corpus_slice.visualization_type
+            slice_dict = {}
+            for outer_search_layer_id in VISUALIZATION_TYPE_TO_OUTER_SEARCH_LAYERS[visualization_type]:
+                outer_search_layer = OUTER_SEARCH_LAYERS[outer_search_layer_id]
+                outer_layer_dict = {"label": outer_search_layer.get_label(),
+                                    "description": outer_search_layer.get_description(),
+                                    "innerLayers": {}}
+                for inner_search_layer_id in OUTER_TO_INNER_SEARCH_LAYERS[outer_search_layer_id]:
+                    inner_search_layer = INNER_SEARCH_LAYERS[inner_search_layer_id]
+                    inner_layer_dict = {"label": inner_search_layer.get_label(),
+                                        "description": inner_search_layer.get_description()}
+                    outer_layer_dict["innerLayers"][inner_search_layer_id] = inner_layer_dict
+
+                slice_dict[outer_search_layer_id] = outer_layer_dict
+
+            ret[name] = slice_dict
+    return ret
+

@@ -5,46 +5,47 @@
 // The first two are strings
 // innerLayers is a dictionary again, mapping inner layer id to inner layer in dict form
 // inner layer dict has entries "label" and "description" (string and list of strings respectively)
-const SEARCH_PATTERNS = {
-    "Sentence": {
-        "OuterTableCellsLayer": {
-            "innerLayers": {
-                "CellContentEquals": {
-                    "label": ["Cell content equals", ""],
-                    "description": "This checks if the cell content equals the given string (modulo casing and outer whitespace)."
-                },
-                "CellContentMatches": {
-                    "label": ["Cell content matches", "(regular expression)"],
-                    "description": "This checks if the cell content matches the given regular expression."
-                }
-            },
-            "label": "Any cell in the table matches:",
-            "description": "This layer checks if any cell in a table matches the given criteria, and highlights the cells that do."
-        },
-        "OuterTableAsAWholeLayer": {
-            "innerLayers": {
-                "ColumnCountAtLeast": {
-                    "label": ["The sentence has at least length", " (or the table has at least this many columns)"],
-                    "description": "Checks minimum sentence length / table width."
-                }
-            },
-            "label": "The sentence/table as a whole matches:",
-            "description": "This layer checks if the sentence (or table) itself matches a given criterion."
-        }
-    },
-    "Tree": {
-        "OuterGraphNodeLayer": {
-            "innerLayers": {
-                "NodeContentEquals": {
-                    "label": ["Node has label", ""],
-                    "description": "This checks if a node is labeled with the given string (modulo casing and outer whitespace)."
-                }
-            },
-            "label": "Any node in the graph matches:",
-            "description": "This layer checks if any node in a graph matches the given criteria, and highlights the nodes that do."
-        }
-    }
-}
+let SEARCH_PATTERNS
+    // = {
+//     "Sentence": {
+//         "OuterTableCellsLayer": {
+//             "innerLayers": {
+//                 "CellContentEquals": {
+//                     "label": ["Cell content equals", ""],
+//                     "description": "This checks if the cell content equals the given string (modulo casing and outer whitespace)."
+//                 },
+//                 "CellContentMatches": {
+//                     "label": ["Cell content matches", "(regular expression)"],
+//                     "description": "This checks if the cell content matches the given regular expression."
+//                 }
+//             },
+//             "label": "Any cell in the table matches:",
+//             "description": "This layer checks if any cell in a table matches the given criteria, and highlights the cells that do."
+//         },
+//         "OuterTableAsAWholeLayer": {
+//             "innerLayers": {
+//                 "ColumnCountAtLeast": {
+//                     "label": ["The sentence has at least length", " (or the table has at least this many columns)"],
+//                     "description": "Checks minimum sentence length / table width."
+//                 }
+//             },
+//             "label": "The sentence/table as a whole matches:",
+//             "description": "This layer checks if the sentence (or table) itself matches a given criterion."
+//         }
+//     },
+//     "Tree": {
+//         "OuterGraphNodeLayer": {
+//             "innerLayers": {
+//                 "NodeContentEquals": {
+//                     "label": ["Node has label", ""],
+//                     "description": "This checks if a node is labeled with the given string (modulo casing and outer whitespace)."
+//                 }
+//             },
+//             "label": "Any node in the graph matches:",
+//             "description": "This layer checks if any node in a graph matches the given criteria, and highlights the nodes that do."
+//         }
+//     }
+// }
 
 let searchWindowVisible = false
 let searchWindowContainer = null
@@ -74,20 +75,20 @@ let searchFilterRects
 function initializeSearchFilters() {
     searchFilters = []
     searchFilterRects = []
-    // addEmptySearchFilter()
-    let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
-    let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
-    let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
-    let argsTable = {}
-    argsTable[uniqueid1] = ["dog"]
-    argsTable[uniqueid2] = ["dog"]
-    let argsTree = {}
-    argsTree[uniqueid3] = ["dog"]
-    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
-        [uniqueid1, uniqueid2], argsTable))
-    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
-        argsTree))
-    console.log(searchFilters)
+    addEmptySearchFilter()
+    // let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
+    // let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
+    // let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
+    // let argsTable = {}
+    // argsTable[uniqueid1] = ["dog"]
+    // argsTable[uniqueid2] = ["dog"]
+    // let argsTree = {}
+    // argsTree[uniqueid3] = ["dog"]
+    // addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
+    //     [uniqueid1, uniqueid2], argsTable))
+    // addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
+    //     argsTree))
+    // console.log(searchFilters)
 }
 
 function addEmptySearchFilter() {
@@ -229,44 +230,49 @@ function addFilter() {
     searchFilterRects.push(createFilterSelectorRect(searchFilters.length - 1))
     d3.select("#addFilterButton").remove()
     createAddFilterButton()
+    selectSelectorRect(searchFilterRects[searchFilterRects.length - 1])
+}
+
+function removeFilter(selectedFilterIndex) {
+    // remove all search filters after (and including) the selected one
+    for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
+        searchFilterRects[i].remove()
+    }
+    d3.select("#addFilterButton").remove()
+
+    // remove the search filter
+    searchFilters.splice(selectedFilterIndex, 1)
+    // remove all search filter rects after (and including) the selected one
+    searchFilterRects.splice(selectedFilterIndex)
+    if (searchFilters.length <= selectedFilterIndex) {
+        selectedFilterIndex = searchFilters.length - 1
+    } else {
+        // shift colors
+        removedColor = FILTER_COLORS[selectedFilterIndex]
+        FILTER_COLORS.splice(selectedFilterIndex, 1)
+        FILTER_COLORS.push(removedColor)
+    }
+
+    // re-add the search filter rects below the selected one
+    for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
+        searchFilterRects[i] = createFilterSelectorRect(i)
+    }
+    createAddFilterButton()
+
+
+    selectSelectorRect(searchFilterRects[selectedFilterIndex])
 }
 
 function createRemoveFilterButton(selectedFilterIndex) {
     let removeButton = d3.select("div#chartId").append("button")
         .attr("id", "removeFilterButton")
-        .text("x")
+        .text("Remove this filter")
         .style("position", "absolute")
-        .style("left", (searchWindowCanvas.node().getBoundingClientRect().right - 100) + "px")
-        .style("top", (searchWindowCanvas.node().getBoundingClientRect().top + SELECTOR_MASK_MARGIN + 15) + "px")
+        .style("left", (searchWindowCanvas.node().getBoundingClientRect().right - 150) + "px")
+        .style("top", (searchWindowCanvas.node().getBoundingClientRect().top + SELECTOR_MASK_MARGIN + 10) + "px")
         .on("click", function () {
 
-            // remove all search filters after (and including) the selected one
-            for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
-                searchFilterRects[i].remove()
-            }
-            d3.select("#addFilterButton").remove()
-
-            // remove the search filter
-            searchFilters.splice(selectedFilterIndex, 1)
-            // remove all search filter rects after (and including) the selected one
-            searchFilterRects.splice(selectedFilterIndex)
-            if (searchFilters.length <= selectedFilterIndex) {
-                selectedFilterIndex = searchFilters.length - 1
-            }
-
-            // re-add the search filter rects below the selected one
-            for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
-                searchFilterRects[i] = createFilterSelectorRect(i)
-            }
-            createAddFilterButton()
-
-
-            // select all objects of class SELECTOR_MASK_CLASSNAME and remove them
-            d3.selectAll("." + SELECTOR_MASK_CLASSNAME).remove()
-            // remove selector text
-            d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
-            drawFilterSelectorMask(searchFilterRects[selectedFilterIndex])
-            drawFilterSelectorText(selectedFilterIndex)
+            removeFilter(selectedFilterIndex);
 
         })
         .attr("class", SELECTOR_TEXT_CLASSNAME)
@@ -322,6 +328,7 @@ function drawOuterLayerTexts(sliceSelectorDropdown, x0, y0, selectedFilter) {
         outerLayerDropdown.property("value", EMPTY_SELECTION_TEXT)
     } else {
         outerLayerDropdown.property("value", selectedFilter.outer_layer_id)
+        outerLayerDropdown.attr("title", getOuterLayer(sliceName, selectedFilter.outer_layer_id)["description"])
     }
 
     outerLayerDropdown.on("change", function () {
@@ -330,10 +337,12 @@ function drawOuterLayerTexts(sliceSelectorDropdown, x0, y0, selectedFilter) {
         let selectedOuterLayerID = outerLayerDropdown.property("value")
         if (selectedOuterLayerID === EMPTY_SELECTION_TEXT) {
             selectedFilter.clearOuterLayer()
+            outerLayerDropdown.attr("title", null)
         } else {
             selectedFilter.outer_layer_id = selectedOuterLayerID
             drawInnerLayerTexts(selectedFilter)
             drawInnerLayerDropdown(selectedFilter)
+            outerLayerDropdown.attr("title", getOuterLayer(sliceName, selectedOuterLayerID)["description"])
         }
     })
 
@@ -423,6 +432,7 @@ function drawInnerLayerTexts(searchFilter) {
                 .style("position", "absolute")
                 .style("left", x0 + "px")
                 .style("top", y + "px")
+                .attr("title", innerLayer["description"])
                 .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
             x = x0 + andLabel.node().getBoundingClientRect().width + 5
         } else {
@@ -434,6 +444,7 @@ function drawInnerLayerTexts(searchFilter) {
                 .style("position", "absolute")
                 .style("left", x + "px")
                 .style("top", y + "px")
+                .attr("title", innerLayer["description"])
                 .attr("class", SELECTOR_TEXT_CLASSNAME + " " + INNER_SEARCH_LAYER_CLASSNAME)
             x += innerLayerLabel.node().getBoundingClientRect().width + 5
             // add editable field
@@ -453,6 +464,7 @@ function drawInnerLayerTexts(searchFilter) {
                         d3.select(this).style("z-index", "auto"); // Raise the element using z-index
                     })
                     .text(searchFilter.inner_layer_inputs[uniqueInnerLayerID][j])
+                    .attr("title", innerLayer["description"])
                     .on("input", function () {
                         searchFilter.inner_layer_inputs[uniqueInnerLayerID][j] = this.value
                     })
@@ -573,6 +585,15 @@ function onSearchIconClick() {
         d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
         d3.select("div#chartId").selectAll("." + "searchNowButton").remove()
     }
+}
+
+function clearSearch() {
+    if (searchWindowVisible) {
+        onSearchIconClick()  // remove the search window
+    }
+    searchFilters = []
+    addEmptySearchFilter()
+    sio.emit("clear_search")
 }
 
 function drawSearchNowButton() {

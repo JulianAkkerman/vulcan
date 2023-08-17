@@ -128,19 +128,12 @@ d3.select("#nextButton")
 
 d3.select("#searchButton")
     .on("click", function() {
-      console.log("search_button_clicked");
       onSearchIconClick()
-      // sio.emit("perform_search",
-      //       // corpus_slice_name: str = data["corpus_slice_name"]
-      //       // outer_search_layer_name: str = data["outer_search_layer_name"]
-      //       // inner_search_layer_names: List[str] = data["inner_search_layer_names"]
-      //       // inner_search_layer_arguments: List[List[str]] = data["inner_search_layer_arguments"]
-      //     {
-      //         "corpus_slice_name": "Sentence",
-      //           "outer_search_layer_name": "OuterTableCellsLayer",
-      //           "inner_search_layer_names": ["CellContentEquals"],
-      //           "inner_search_layer_arguments": [["NOUN"]]
-      //     });
+    });
+
+d3.select("#clearSearchButton")
+    .on("click", function() {
+      clearSearch()
     });
 
 sio.on('connect', () => {
@@ -274,6 +267,15 @@ sio.on("set_corpus_length", (data) => {
 sio.on("search_completed", (data) => {
     set_corpus_position(0)
     sio.emit("instance_requested", current_corpus_position);
+})
+
+sio.on("set_search_filters", (data) => {
+    console.log(data)
+    SEARCH_PATTERNS = data
+})
+
+sio.on("server_error", (data) => {
+    alert("Error on the server side. If you experience issues, please try reloading the page.")
 })
 
 function remove_graphs_from_canvas(canvas) {
