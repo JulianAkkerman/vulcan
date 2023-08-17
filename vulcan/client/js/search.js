@@ -167,22 +167,109 @@ function drawFilterSelectorMask(activeFilterSelectorRect) {
 
 function createFilterSelectorRect(filterSelectorIndex) {
     let y = 15 + filterSelectorIndex * (FILTER_SELECTOR_SIZE + FILTER_SELECTOR_BUFFER)
-    let activeFilterSelector = searchWindowCanvas.append("g")
-        .attr("id", "activeFilterSelector")
+    let selectorRectGroup = searchWindowCanvas.append("g")
         .attr("transform", "translate(0, 0)")
-    return activeFilterSelector.append("rect")
+    return selectorRectGroup.append("rect")
         .attr("rx", 5)
         .attr("ry", 5)
         .attr("x", 15)
         .attr("y", y)
         .attr("width", FILTER_SELECTOR_SIZE)
         .attr("height", FILTER_SELECTOR_SIZE)
-        .attr("fill", FILTER_COLORS[filterSelectorIndex])
+        .attr("fill", FILTER_COLORS[filterSelectorIndex % FILTER_COLORS.length])
         .attr("stroke", BORDER_COLOR)
         .attr("stroke-width", 2)
+        .style("opacity", "0.5") // is by default unselected
         .on("click", function () {
             selectSelectorRect(d3.select(this))
         })
+}
+
+function createAddFilterButton() {
+    let y = 15 + searchFilters.length * (FILTER_SELECTOR_SIZE + FILTER_SELECTOR_BUFFER)
+    let buttonGroup = searchWindowCanvas.append("g")
+        .attr("id", "addFilterButton")
+        .attr("transform", "translate(0, 0)")
+    // plus sign
+    buttonGroup.append("line")
+        .attr("x1", 15 + FILTER_SELECTOR_SIZE / 2)
+        .attr("y1", y + FILTER_SELECTOR_SIZE / 4)
+        .attr("x2", 15 + FILTER_SELECTOR_SIZE / 2)
+        .attr("y2", y + 3 * FILTER_SELECTOR_SIZE / 4)
+        .attr("stroke", "#aaaaaa")
+        .attr("stroke-width", 2)
+    buttonGroup.append("line")
+        .attr("x1", 15 + FILTER_SELECTOR_SIZE / 4)
+        .attr("y1", y + FILTER_SELECTOR_SIZE / 2)
+        .attr("x2", 15 + 3 * FILTER_SELECTOR_SIZE / 4)
+        .attr("y2", y + FILTER_SELECTOR_SIZE / 2)
+        .attr("stroke", "#aaaaaa")
+        .attr("stroke-width", 2)
+    // border (and clickable thing, on top)
+    buttonGroup.append("rect")
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .attr("x", 15)
+        .attr("y", y)
+        .attr("width", FILTER_SELECTOR_SIZE)
+        .attr("height", FILTER_SELECTOR_SIZE)
+        // transparent fill
+        .attr("fill", "rgba(0,0,0,0)")
+        .attr("stroke", "#aaaaaa")
+        .attr("stroke-width", 2)
+        // dashed border
+        .attr("stroke-dasharray", "5,5")
+        .on("click", function () {
+            addFilter()
+        })
+}
+
+function addFilter() {
+    addEmptySearchFilter()
+    searchFilterRects.push(createFilterSelectorRect(searchFilters.length - 1))
+    d3.select("#addFilterButton").remove()
+    createAddFilterButton()
+}
+
+function createRemoveFilterButton(selectedFilterIndex) {
+    let removeButton = d3.select("div#chartId").append("button")
+        .attr("id", "removeFilterButton")
+        .text("x")
+        .style("position", "absolute")
+        .style("left", (searchWindowCanvas.node().getBoundingClientRect().right - 100) + "px")
+        .style("top", (searchWindowCanvas.node().getBoundingClientRect().top + SELECTOR_MASK_MARGIN + 15) + "px")
+        .on("click", function () {
+
+            // remove all search filters after (and including) the selected one
+            for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
+                searchFilterRects[i].remove()
+            }
+            d3.select("#addFilterButton").remove()
+
+            // remove the search filter
+            searchFilters.splice(selectedFilterIndex, 1)
+            // remove all search filter rects after (and including) the selected one
+            searchFilterRects.splice(selectedFilterIndex)
+            if (searchFilters.length <= selectedFilterIndex) {
+                selectedFilterIndex = searchFilters.length - 1
+            }
+
+            // re-add the search filter rects below the selected one
+            for (let i = selectedFilterIndex; i < searchFilters.length; i++) {
+                searchFilterRects[i] = createFilterSelectorRect(i)
+            }
+            createAddFilterButton()
+
+
+            // select all objects of class SELECTOR_MASK_CLASSNAME and remove them
+            d3.selectAll("." + SELECTOR_MASK_CLASSNAME).remove()
+            // remove selector text
+            d3.select("div#chartId").selectAll("." + SELECTOR_TEXT_CLASSNAME).remove()
+            drawFilterSelectorMask(searchFilterRects[selectedFilterIndex])
+            drawFilterSelectorText(selectedFilterIndex)
+
+        })
+        .attr("class", SELECTOR_TEXT_CLASSNAME)
 }
 
 function selectSelectorRect(selectorRect) {
@@ -257,6 +344,10 @@ function drawFilterSelectorText(selectedFilterIndex) {
     let selectedFilter = searchFilters[selectedFilterIndex]
     let x0 = searchWindowCanvas.node().getBoundingClientRect().x + 2 * SELECTOR_MASK_MARGIN + FILTER_SELECTOR_SIZE + 15
     let y0 = searchWindowCanvas.node().getBoundingClientRect().y + SELECTOR_MASK_MARGIN + 10
+
+    if (searchFilters.length > 1) {
+        createRemoveFilterButton(selectedFilterIndex)
+    }
 
     // draw slice selector
     let sliceSelectionLabel = d3.select("div#chartId").append("text")
@@ -373,7 +464,7 @@ function drawInnerLayerTexts(searchFilter) {
         let deleteButton = d3.select("div#chartId").append("button")
             .text("x")
             .style("position", "absolute")
-            .style("left", x + "px")
+            .style("left", (searchWindowCanvas.node().getBoundingClientRect().right - 50) + "px")
             .style("top", y + "px")
             .on("click", function () {
                 searchFilter.removeInnerLayer(uniqueInnerLayerID)
@@ -468,6 +559,8 @@ function onSearchIconClick() {
         for (let i = 0; i < searchFilters.length; i++) {
             searchFilterRects[i] = createFilterSelectorRect(i)
         }
+
+        createAddFilterButton()
 
         selectSelectorRect(searchFilterRects[0]);
 
