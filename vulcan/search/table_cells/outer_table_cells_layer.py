@@ -19,7 +19,8 @@ class OuterTableCellsLayer(OuterSearchLayer):
         # print(obj)
         # TODO make different versions of this class for strings and tables
         # for row in obj:
-        for cell in obj:  # in row:
+        ret = []
+        for i, cell in enumerate(obj):  # in row:
             result = True
             for inner_search_layer, user_args in zip(inner_search_layers, user_arguments):
                 if inner_search_layer.apply(cell, user_args):
@@ -28,8 +29,11 @@ class OuterTableCellsLayer(OuterSearchLayer):
                     result = False
                     print(cell, inner_search_layer.get_label(), user_args)
             if result:
-                return True
-        return False
+                ret.append(str(i))
+        if len(ret) > 0:
+            return ret
+        else:
+            return None
 
 
 class InnerTableCellsLayer(InnerSearchLayer, ABC):

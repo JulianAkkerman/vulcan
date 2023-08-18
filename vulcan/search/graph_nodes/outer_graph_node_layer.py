@@ -20,7 +20,10 @@ class OuterGraphNodeLayer(OuterSearchLayer):
         matching_node_names = []
         for_each_node_top_down(obj, lambda node: self._apply_to_node(node, obj, inner_search_layers,
                                                                      user_arguments, matching_node_names))
-        return len(matching_node_names) > 0
+        if len(matching_node_names) > 0:
+            return matching_node_names
+        else:
+            return None
 
     def _apply_to_node(self, node, graph, inner_search_layers, user_arguments, matching_node_names: List[str]):
         if all(inner_search_layer.apply((node, graph), user_args)

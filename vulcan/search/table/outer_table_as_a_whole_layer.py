@@ -17,8 +17,9 @@ class OuterTableAsAWholeLayer(OuterSearchLayer):
 
     def apply(self, inner_search_layers: List[InnerSearchLayer], user_arguments: List[List[str]], obj: List[List[str]]):
         for inner_search_layer, user_args in zip(inner_search_layers, user_arguments):
-            if inner_search_layer.apply(obj, user_args):
-                return True
+            if not inner_search_layer.apply(obj, user_args):
+                return None
+        return []
 
 
 class InnerTableLayer(InnerSearchLayer, ABC):

@@ -95,19 +95,22 @@ def _search_lists(lists_to_search: List[List[any]],
     inner_search_layers_list: List[List[InnerSearchLayer]] = [[get_inner_search_layer(name)
                                                           for name in f.inner_search_layer_names]
                                                             for f in filters]
-    ret = []
+    matching_indices = []
+    node_names_for_highlighting = []
     for index, items in enumerate(zip(*lists_to_search)):
         success = True
+        highlighting_here = {}
         for outer_search_layer, inner_search_layers, inner_search_layer_arguments, item in \
                 zip(outer_search_layers, inner_search_layers_list, [f.inner_search_layer_arguments for f in filters], items):
-            if not outer_search_layer.apply(inner_search_layers, inner_search_layer_arguments, item):
-                print(f"Search returned false for: {outer_search_layer.get_label()},"
-                      f" {[l.get_label() for l in inner_search_layers]}, {inner_search_layer_arguments}, {item}")
+            node_names_here = outer_search_layer.apply(inner_search_layers, inner_search_layer_arguments, item)
+            if node_names_here is None:
+                # print(f"Search returned false for: {outer_search_layer.get_label()},"
+                #       f" {[l.get_label() for l in inner_search_layers]}, {inner_search_layer_arguments}, {item}")
                 success = False
                 break
         if success:
-            ret.append(index)
-    return ret
+            matching_indices.append(index)
+    return matching_indices
 
 
 def get_outer_search_layer(name: str) -> OuterSearchLayer:
