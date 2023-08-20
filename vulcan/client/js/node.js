@@ -14,6 +14,15 @@ class Node {
         this.color = color
         this.rectangle.attr("stroke", color)
         this.shadow = shadow
+        this.mask_rect = this.group.append("defs").append("clipPath")
+            .attr("id", "mask_rect_" + this.position.id)
+            .append("rect")
+            .attr("rx", this.rectangle.attr("rx"))
+            .attr("ry", this.rectangle.attr("ry"))
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", this.getWidth())
+            .attr("height", this.getHeight())
         this.registeredEdges = []
     }
 
@@ -34,6 +43,7 @@ class Node {
         if (this.shadow != null) {
             this.shadow.attr("width", width + 2*SHADOW_OVERSIZE)
         }
+        this.mask_rect.attr("width", width)
     }
 
     static get_hypothetical_node_width(node_label) {
@@ -42,6 +52,15 @@ class Node {
 
     getHeight() {
         return this.content.getHeight()
+    }
+
+    setHeight(height) {
+        this.rectangle.attr("height", height)
+        this.content.recenter(height)
+        if (this.shadow != null) {
+            this.shadow.attr("height", height + 2*SHADOW_OVERSIZE)
+        }
+        this.mask_rect.attr("height", height)
     }
 
     getX() {
@@ -58,6 +77,50 @@ class Node {
 
     registerDependencyEdge(edge, is_outgoing, label, table) {
         this.registeredEdges.push([edge, is_outgoing, label, table])
+    }
+
+    setColor(colors) {
+
+        // check if colors is an Array
+        if (Array.isArray(colors)) {
+            if (colors.length === 0) {
+                this.setColor("white")
+            } else {
+                for (let r = 0; r < colors.length; r++) {
+                    if (Array.isArray(colors[r])) {
+                        if (colors.length === 0) {
+                            this.createColorRect("white", r, 0, colors.length, 1)
+                        } else {
+                            for (let c = 0; c< colors[r].length; c++) {
+                                this.createColorRect(colors[r][c], r, c, colors.length, colors[r].length)
+                            }
+                        }
+                    } else {
+                        this.createColorRect(colors[r], r, 0, colors.length, 1)
+                    }
+                }
+            }
+        } else {
+            this.createColorRect(colors, 0, 0, 1, 1)
+        }
+
+        if (this.shadow != null) {
+            this.shadow.lower()
+        }
+
+    }
+
+    createColorRect(color, r, c, num_rows, num_cols) {
+        let widths = this.getWidth() / num_cols
+        let heights = this.getHeight() / num_rows
+        this.group.append("rect")
+            .attr("x", c * widths)
+            .attr("y", r * heights)
+            .attr("width", widths)
+            .attr("height", heights)
+            .attr("fill", color)
+            .attr("clip-path", "url(#mask_rect_" + this.position.id + ")")
+            .lower()
     }
 
 }
@@ -91,6 +154,7 @@ function makeNodeRectangle(is_bold, do_highlight, node_group, content_object, cl
         fill = "#56e37c"
     }
 
+
     return node_group.append("rect")
         .attr("rx", 10)
         .attr("ry", 10)
@@ -99,9 +163,11 @@ function makeNodeRectangle(is_bold, do_highlight, node_group, content_object, cl
         .attr("width", content_object.getWidth())
         .attr("height", content_object.getHeight())
         .attr("fill", fill)
+        // 50% opacity
+        .attr("fill-opacity", 0.0)
         .attr("stroke-width", stroke_width)
         .attr("class", classname)
-        .lower();
+        // .lower();
 }
 
 function makeCellRectangle(is_bold, do_highlight, node_group, content_object, classname) {
@@ -124,6 +190,7 @@ function makeCellRectangle(is_bold, do_highlight, node_group, content_object, cl
         .attr("fill", fill)
         .attr("stroke-width", stroke_width)
         .attr("class", classname)
+        .attr("fill-opacity", 0.0)
         .lower();
 }
 
@@ -167,7 +234,11 @@ function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, 
         nodeDragHandler(node_group);
     }
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, color);
+    let node = create_and_register_node_object(node_position, node_group, rect, content_object, color);
+
+    node.setColor("white")
+
+    return node
 
 }
 
@@ -183,8 +254,12 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     let shadow = makeCellShadow(node_group, content_object, classname)
 
-    return create_and_register_node_object(node_position, node_group, rect, content_object, "black",
+    let cell = create_and_register_node_object(node_position, node_group, rect, content_object, "black",
         shadow)
+
+    cell.setColor("white")
+
+    return cell
 
 }
 
