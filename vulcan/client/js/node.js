@@ -275,7 +275,7 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, classname
 
 function createNodeContent(content_data, content_type, append_to_this_object, classname) {
 
-    if (content_type == "STRING") {
+    if (content_type === "STRING") {
         if (content_data == null) {
             content_data = ""
         }
@@ -290,7 +290,7 @@ function createNodeContent(content_data, content_type, append_to_this_object, cl
             .attr("class", classname)
             .text(content_data)
         return new NodeStringContent(text_object, rect_width, rect_height)
-    } else if (content_type == "GRAPH" || content_type == "TREE") {
+    } else if (content_type === "GRAPH" || content_type === "TREE") {
         return new Graph(0, 0, content_data, append_to_this_object, false,
             GRAPH_LABEL_MARGIN)
     }

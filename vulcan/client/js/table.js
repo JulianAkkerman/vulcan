@@ -84,7 +84,8 @@ class Table {
     }
 
     create_cell_node(token, pos_x, pos_y, node_name) {
-        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
+        let node = createNode(pos_x, pos_y, token, "STRING", this.canvas, false, null, TOKEN_CLASSNAME)
+        // let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
         let do_highlight = this.highlights != null && node_name in this.highlights
         if (do_highlight) {
             node.setColor(this.highlights[node_name])

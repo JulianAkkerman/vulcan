@@ -39,7 +39,7 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
     let canvas = container.append("svg")
       .attr("preserveAspectRatio", "xMinYMin meet")
-      .attr("viewBox", "0 0 " + canvas_width + " " + canvas_height)
+      .attr("viewBox", "0 0 " + canvas_width + " " + canvas_height)  // TODO this scales the image, with currently unintended consequences (strings are too small)
       .attr("width", "calc(100% - 16px)")  // that's 3 + 3 for the borders, I think, but I don't know where the 10 come from
       .attr("height", "calc(100% - 16px)")
       .classed("svg-content-responsive", true)
@@ -234,7 +234,7 @@ function set_layout(layout) {
         row.forEach(slice => {
             let vis_type = slice["visualization_type"]
             if (vis_type == "STRING") {
-                height_here = Math.max(height_here, 10)
+                height_here = Math.max(height_here, 15)
             } else {
                 height_here = Math.max(height_here, 99/row.length)
             }
