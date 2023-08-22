@@ -51,8 +51,8 @@ let searchWindowVisible = false
 let searchWindowContainer = null
 let searchWindowCanvas = null
 
-// pastel green, pastel blue, pastel yellow, pastel orange, pastel red, pastel purple
-const FILTER_COLORS = ["#b3ffb3", "#b3ffff", "#ffffb3", "#ffb366", "#ff9999", "#e6ccff"]
+// pastel green, pastel red, pastel yellow, pastel blue, pastel orange, pastel purple
+const FILTER_COLORS = ["#b3ffb3", "#ff9999", "#ffffb3", "#b3ffff", "#ffb366", "#e6ccff"]
 const BORDER_COLOR = "#444444"
 const SEARCH_WINDOW_WIDTH = 1000
 const SEARCH_WINDOW_HEIGHT = 600
@@ -91,6 +91,8 @@ function addDebuggingSearchFilters() {
     argsTree[uniqueid3] = ["dog"]
     addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
         [uniqueid1, uniqueid2], argsTable))
+    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
+        [uniqueid1, uniqueid2], argsTable))  // duplicate, to test dual highlighting
     addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
         argsTree))
 }

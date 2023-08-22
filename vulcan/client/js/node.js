@@ -87,17 +87,21 @@ class Node {
             if (colors.length === 0) {
                 this.setColor("white")
             } else {
-                for (let r = 0; r < colors.length; r++) {
-                    if (Array.isArray(colors[r])) {
-                        if (colors.length === 0) {
+                if (Array.isArray(colors[0])) {
+                    // then we have a table of colors
+                    for (let r = 0; r < colors.length; r++) {
+                        if (colors[r].length === 0) {
                             this.createColorRect("white", r, 0, colors.length, 1)
                         } else {
-                            for (let c = 0; c< colors[r].length; c++) {
+                            for (let c = 0; c < colors[r].length; c++) {
                                 this.createColorRect(colors[r][c], r, c, colors.length, colors[r].length)
                             }
                         }
-                    } else {
-                        this.createColorRect(colors[r], r, 0, colors.length, 1)
+                    }
+                } else {
+                    // then we have a list of colors, and we use them left to right
+                    for (let c = 0; c < colors.length; c++) {
+                        this.createColorRect(colors[c], 0, c, 1, colors.length)
                     }
                 }
             }
