@@ -111,13 +111,16 @@ class Graph {
         Graph.visit_graph_as_dict_top_down(this.graph_as_dict, (current_node) => {
             if (!current_node.is_reentrancy) {
                 let label = current_node.node_label
-                if (add_node_name_to_node_label && current_node.label_type == "STRING") {
+                if (add_node_name_to_node_label && current_node.label_type === "STRING") {
                     label = current_node.node_name + " / " + label
                 }
-                let is_bold = current_node.node_name == this.graph_as_dict.node_name
-                let do_highlight = this.highlights != null && this.highlights.includes(current_node.node_name)
+                let is_bold = current_node.node_name === this.graph_as_dict.node_name
                 let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold,
-                    do_highlight, graphNodeDragged)
+                    graphNodeDragged)
+                let do_highlight = this.highlights != null && current_node.node_name in this.highlights
+                if (do_highlight) {
+                    node_object.setColor(this.highlights[current_node.node_name])
+                }
                 this.node_dict[current_node.node_name] = node_object
                 this.registerNodeMouseoverNodeHighlighting(node_object)
                 if (this.node_label_alternatives_by_node_name != null) {

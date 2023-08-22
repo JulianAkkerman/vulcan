@@ -14,6 +14,7 @@ class Node {
         this.color = color
         this.rectangle.attr("stroke", color)
         this.shadow = shadow
+        this.baseColors = "white"
         this.mask_rect = this.group.append("defs").append("clipPath")
             .attr("id", "mask_rect_" + this.position.id)
             .append("rect")
@@ -80,7 +81,7 @@ class Node {
     }
 
     setColor(colors) {
-
+        this.group.select(".color_rect").remove()
         // check if colors is an Array
         if (Array.isArray(colors)) {
             if (colors.length === 0) {
@@ -107,7 +108,14 @@ class Node {
         if (this.shadow != null) {
             this.shadow.lower()
         }
+    }
 
+    setBaseColors(colors) {
+        this.baseColors = colors
+    }
+
+    getBaseColors() {
+        return this.baseColors
     }
 
     createColorRect(color, r, c, num_rows, num_cols) {
@@ -120,6 +128,8 @@ class Node {
             .attr("height", heights)
             .attr("fill", color)
             .attr("clip-path", "url(#mask_rect_" + this.position.id + ")")
+            // set class
+            .attr("class", this.rectangle.attr("class") + " color_rect")
             .lower()
     }
 
@@ -146,14 +156,10 @@ function makeNodeGroup(canvas, node_position, classname) {
         .attr("class", classname);
 }
 
-function makeNodeRectangle(is_bold, do_highlight, node_group, content_object, classname) {
+function makeNodeRectangle(is_bold, node_group, content_object, classname) {
     let stroke_width = is_bold ? "4" : "2"
 
     let fill = "white"
-    if (do_highlight) {
-        fill = "#56e37c"
-    }
-
 
     return node_group.append("rect")
         .attr("rx", 10)
@@ -170,7 +176,7 @@ function makeNodeRectangle(is_bold, do_highlight, node_group, content_object, cl
         // .lower();
 }
 
-function makeCellRectangle(is_bold, do_highlight, node_group, content_object, classname) {
+function makeCellRectangle(is_bold, node_group, content_object, classname) {
     if (is_bold) {
         console.log("Warning: Cell was marked as bold, but this is currently not possible.")
     }
@@ -178,9 +184,6 @@ function makeCellRectangle(is_bold, do_highlight, node_group, content_object, cl
     let stroke_width = "0"
 
     let fill = "white"
-    if (do_highlight) {
-        fill = "#56e37c"
-    }
 
     return node_group.append("rect")
         .attr("x", 0)
@@ -210,15 +213,15 @@ function makeCellShadow(node_group, content_object, classname) {
 }
 
 
-function createNode(x, y, content_data, content_type, canvas, is_bold, do_highlight,
+function createNode(x, y, content_data, content_type, canvas, is_bold,
                     drag_function=null, classname=NODE_CLASSNAME) {
 
-    return createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, "black",
+    return createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, "black",
                     drag_function, classname);
 
 }
 
-function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, do_highlight, color,
+function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, color,
                     drag_function, classname=NODE_CLASSNAME) {
 
     let node_position = getNodePosition(x, y);
@@ -227,7 +230,7 @@ function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, 
 
     let content_object = createNodeContent(content_data, content_type, node_group, classname)
 
-    let rect = makeNodeRectangle(is_bold, do_highlight, node_group, content_object, classname);
+    let rect = makeNodeRectangle(is_bold, node_group, content_object, classname);
 
     if (drag_function != null) {
         let nodeDragHandler = d3.drag().on('drag', drag_function);
@@ -242,7 +245,7 @@ function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, 
 
 }
 
-function createCell(x, y, content_data, content_type, canvas, is_bold, do_highlight, classname=NODE_CLASSNAME) {
+function createCell(x, y, content_data, content_type, canvas, is_bold, classname=NODE_CLASSNAME) {
 
     let node_position = getNodePosition(x, y);
 
@@ -250,7 +253,7 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, do_highli
 
     let content_object = createNodeContent(content_data, content_type, node_group, classname)
 
-    let rect = makeCellRectangle(is_bold, do_highlight, node_group, content_object, classname)
+    let rect = makeCellRectangle(is_bold, node_group, content_object, classname)
 
     let shadow = makeCellShadow(node_group, content_object, classname)
 

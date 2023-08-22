@@ -62,7 +62,7 @@ class Table {
             let max_width = 0
             let cells_here = []
             for (let r = column.length-1; r >= 0 ; r--) {
-                let cell_here = this.create_cell_node(column[r], current_x, current_y, [c, r])
+                let cell_here = this.create_cell_node(column[r], current_x, current_y, this.getCellName(c, r))
                 cells_here.push(cell_here)
                 current_y = current_y + parseFloat(cell_here.getHeight()) + TOKEN_DISTANCE
                 let width_here = parseFloat(cell_here.getWidth())
@@ -79,10 +79,16 @@ class Table {
         }
     }
 
+    getCellName(column, row) {
+        return "("+row+", "+column+")"  // mimic python's tuple notation, i.e. what you get for str((row, column))
+    }
+
     create_cell_node(token, pos_x, pos_y, node_name) {
-        let do_highlight = this.highlights != null && this.highlights.includes(node_name)
-        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, do_highlight,
-            TOKEN_CLASSNAME)
+        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
+        let do_highlight = this.highlights != null && node_name in this.highlights
+        if (do_highlight) {
+            node.setColor(this.highlights[node_name])
+        }
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {
             this.registerNodeAlternativeMouseover(node, this.label_alternatives[node_name])

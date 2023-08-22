@@ -159,6 +159,7 @@ sio.on("set_graph", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
+        console.log(highlights)
     }
     let mouseover_texts = null
     if ("mouseover_texts" in data) {
@@ -180,6 +181,7 @@ sio.on("set_table", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
+        console.log(highlights)
     }
     let dependency_tree = null
     if ("dependency_tree" in data) {

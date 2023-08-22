@@ -29,7 +29,7 @@ class OuterTableCellsLayer(OuterSearchLayer):
                     result = False
                     print(cell, inner_search_layer.get_label(), user_args)
             if result:
-                ret.append(str(i))
+                ret.append(i)
         if len(ret) > 0:
             return ret
         else:

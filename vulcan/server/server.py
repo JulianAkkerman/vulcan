@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple, Any
+from typing import List, Dict, Set, Tuple, Any, Union
 
 import socketio
 from eventlet import wsgi
@@ -11,15 +11,25 @@ import eventlet
 
 from vulcan.data_handling.visualization_type import VisualizationType
 from vulcan.server.basic_layout import BasicLayout
+import logging
 
 eventlet.monkey_patch()
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-def transform_string_maps_to_table_maps(highlights, label_alternatives_by_node_name):
+
+def transform_string_maps_to_table_maps(highlights: Dict[int, Union[str, List[str]]],
+                                        label_alternatives_by_node_name: Dict[int, Dict[str, Any]]):
     if label_alternatives_by_node_name:
-        label_alternatives_by_node_name = {[0, k]: v for k, v in label_alternatives_by_node_name.items()}
+        label_alternatives_by_node_name = {str((0, k)): v for k, v in label_alternatives_by_node_name.items()}
     if highlights:
-        highlights = {[0, k] for k in highlights}
+        print("transforming string highlights to table highlights")
+        print(highlights)
+        print(highlights.keys())
+        print(highlights.items())
+        highlights = {str((0, k)): v for k, v in highlights.items()}
+        print(highlights)
     return highlights, label_alternatives_by_node_name
 
 
@@ -32,18 +42,18 @@ class Server:
         self.basic_layout = layout
 
         def on_connect(sid, environ):
-            # try:
-            print(sid, 'connected')
-            self.current_layouts_by_sid[sid] = self.basic_layout
-            self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
-            self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
-            self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
-            print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
-            self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
-            instance_requested(sid, 0)
-            # except Exception as e:
-            #     print(e)
-            #     self.sio.emit("server_error")
+            try:
+                print(sid, 'connected')
+                self.current_layouts_by_sid[sid] = self.basic_layout
+                self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
+                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
+                self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
+                print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
+                self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
+                instance_requested(sid, 0)
+            except Exception as e:
+                logger.exception(e)
+                self.sio.emit("server_error")
 
         def on_disconnect(sid):
             print(sid, 'disconnected')
@@ -105,7 +115,7 @@ class Server:
                 else:
                     print("No instances in corpus")
             except Exception as e:
-                print(e)
+                logger.exception(e)
                 self.sio.emit("server_error")
 
         @self.sio.event
@@ -116,7 +126,7 @@ class Server:
                 self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size)
                 self.sio.emit('search_completed', None)
             except Exception as e:
-                print(e)
+                logger.exception(e)
                 self.sio.emit("server_error")
 
         @self.sio.event
@@ -126,34 +136,38 @@ class Server:
                 self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
                 self.sio.emit('search_completed', None)
             except Exception as e:
-                print(e)
+                logger.exception(e)
                 self.sio.emit("server_error")
 
     def start(self):
         wsgi.server(eventlet.listen(('localhost', self.port)), self.app)
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
-                    highlights: Set[int] = None,
+                    highlights: Dict[int, Union[str, List[str]]] = None,
                     dependency_tree: List[Tuple[int, int, str]] = None):
-        highlights, label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
-                                                                                          label_alternatives_by_node_name)
-        self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights, dependency_tree)
+        highlights,\
+        label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
+                                                                              label_alternatives_by_node_name)
+        print(highlights)
+        self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights,
+                               dependency_tree)
 
     def send_string_table(self, slice_name: str, table: List[List[str]],
                           label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
-                          highlights: Set[Tuple[int, int]] = None,
+                          highlights: Dict[Tuple[int, int], Union[str, List[str]]] = None,
                           dependency_tree: List[Tuple[int, int, str]] = None):
         dict_to_sent = {"canvas_name": slice_name, "table": table}
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
+            print(highlights)
             dict_to_sent["highlights"] = highlights
         if dependency_tree is not None:
             dict_to_sent["dependency_tree"] = dependency_tree
         self.sio.emit('set_table', dict_to_sent)
 
     def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
-                   highlights: Set[str] = None, mouseover_texts: Dict[str, str] = None):
+                   highlights: Dict[str, Union[str, List[str]]] = None, mouseover_texts: Dict[str, str] = None):
         """
         graph must be of the graph_as_dict type.
         """
@@ -161,6 +175,7 @@ class Server:
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
+            print(highlights)
             dict_to_sent["highlights"] = highlights
         if mouseover_texts is not None:
             dict_to_sent["mouseover_texts"] = mouseover_texts
@@ -190,5 +205,6 @@ def get_search_filters_from_data(data):
     for search_filter_data in data:
         search_filters.append(SearchFilter(search_filter_data["slice_name"], search_filter_data["outer_layer_id"],
                                            search_filter_data["inner_layer_ids"],
-                                           search_filter_data["inner_layer_inputs"]))
+                                           search_filter_data["inner_layer_inputs"],
+                                           search_filter_data["color"]))
     return search_filters

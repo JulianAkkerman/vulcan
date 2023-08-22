@@ -75,20 +75,24 @@ let searchFilterRects
 function initializeSearchFilters() {
     searchFilters = []
     searchFilterRects = []
-    addEmptySearchFilter()
-    // let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
-    // let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
-    // let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
-    // let argsTable = {}
-    // argsTable[uniqueid1] = ["dog"]
-    // argsTable[uniqueid2] = ["dog"]
-    // let argsTree = {}
-    // argsTree[uniqueid3] = ["dog"]
-    // addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
-    //     [uniqueid1, uniqueid2], argsTable))
-    // addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
-    //     argsTree))
-    // console.log(searchFilters)
+    // addEmptySearchFilter()
+    addDebuggingSearchFilters()
+    console.log(searchFilters)
+}
+
+function addDebuggingSearchFilters() {
+    let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
+    let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
+    let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
+    let argsTable = {}
+    argsTable[uniqueid1] = ["dog"]
+    argsTable[uniqueid2] = ["dog"]
+    let argsTree = {}
+    argsTree[uniqueid3] = ["dog"]
+    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
+        [uniqueid1, uniqueid2], argsTable))
+    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
+        argsTree))
 }
 
 function addEmptySearchFilter() {
@@ -629,7 +633,7 @@ function drawSearchNowButton() {
 function performSearch() {
     let searchFiltersToTransmit = []
     for (let i = 0; i < searchFilters.length; i++) {
-        searchFiltersToTransmit.push(searchFilters[i].getTransmissibleDict())
+        searchFiltersToTransmit.push(searchFilters[i].getTransmissibleDict(FILTER_COLORS[i % FILTER_COLORS.length]))
     }
     sio.emit("perform_search", searchFiltersToTransmit)
 }
@@ -762,7 +766,7 @@ class FilterInfo {
         this.clearOuterLayer()
     }
 
-    getTransmissibleDict() {
+    getTransmissibleDict(color) {
         let dict = {}
         dict["slice_name"] = this.slice_name
         dict["outer_layer_id"] = this.outer_layer_id
@@ -777,6 +781,7 @@ class FilterInfo {
             inner_layer_inputs.push(inner_layer_input)
         }
         dict["inner_layer_inputs"] = inner_layer_inputs
+        dict["color"] = color
         return dict
     }
 }
