@@ -3,6 +3,8 @@ from conllu import parse
 from data_handling.format_names import FORMAT_NAME_STRING_TABLE
 from pickle_builder.pickle_builder import PickleBuilder
 
+from vulcan.data_handling.conversion_scripts.conllu_to_vulcan import conllu_sentences_to_vulcan_pickle
+
 """
 Run generate_examples.py to actually generate the examples.
 """
@@ -38,24 +40,7 @@ conllu_input = """# sent_id = 1
 
 def make_conllu_example_pickle(pickle_path: str):
     sentences = parse(conllu_input)
-    pickle_builder = PickleBuilder({"Sentence": FORMAT_NAME_STRING_TABLE})
-    pickle_builder.setup_dependency_tree("Sentence")
-
-    for sentence in sentences:
-        table = []
-        for token in sentence:
-            if isinstance(token["id"], int) :
-                table.append([token["form"], token["lemma"], token["upos"], token["xpos"]])
-        pickle_builder.add_instance_by_name("Sentence", table)
-        dependency_tree = []
-        for token in sentence:
-            # format is "source", "target", "label"
-            # print(token.items())
-            if token["head"] is not None and isinstance(token["id"], int):
-                dependency_tree.append((token["head"] - 1, token["id"] - 1, token["deprel"]))
-        pickle_builder.add_dependency_tree_by_name("Sentence", dependency_tree)
-
-    pickle_builder.write(pickle_path)
+    conllu_sentences_to_vulcan_pickle(sentences, pickle_path)
 
 
 

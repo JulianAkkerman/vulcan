@@ -6,15 +6,16 @@ const SHADOW_OVERSIZE = 2
 const ALL_NODES = []
 
 class Node {
-    constructor(node_position, group, rectangle, content, color, shadow) {
+    constructor(node_position, group, rectangle, content, border_color, shadow) {
         this.position = node_position[0]
         this.group = group
         this.rectangle = rectangle
         this.content = content
-        this.color = color
-        this.rectangle.attr("stroke", color)
+        this.border_color = border_color
+        this.rectangle.attr("stroke", border_color)
         this.shadow = shadow
-        this.baseColors = "white"
+        this.baseFillColors = "white"
+        this.currentFillColors = "white"
         this.mask_rect = this.group.append("defs").append("clipPath")
             .attr("id", "mask_rect_" + this.position.id)
             .append("rect")
@@ -35,7 +36,7 @@ class Node {
     }
 
     getWidth() {
-        return this.content.getWidth()
+        return parseFloat(this.rectangle.attr("width"))
     }
 
     setWidth(width) {
@@ -45,6 +46,7 @@ class Node {
             this.shadow.attr("width", width + 2*SHADOW_OVERSIZE)
         }
         this.mask_rect.attr("width", width)
+        this.setColor(this.currentFillColors) // need to update the size of the color rects
     }
 
     static get_hypothetical_node_width(node_label) {
@@ -52,7 +54,7 @@ class Node {
     }
 
     getHeight() {
-        return this.content.getHeight()
+        return parseFloat(this.rectangle.attr("height"))
     }
 
     setHeight(height) {
@@ -62,6 +64,7 @@ class Node {
             this.shadow.attr("height", height + 2*SHADOW_OVERSIZE)
         }
         this.mask_rect.attr("height", height)
+        this.setColor(this.currentFillColors) // need to update the size of the color rects
     }
 
     getX() {
@@ -81,6 +84,7 @@ class Node {
     }
 
     setColor(colors) {
+        this.currentFillColors = colors
         this.group.select(".color_rect").remove()
         // check if colors is an Array
         if (Array.isArray(colors)) {
@@ -115,11 +119,11 @@ class Node {
     }
 
     setBaseColors(colors) {
-        this.baseColors = colors
+        this.baseFillColors = colors
     }
 
     getBaseColors() {
-        return this.baseColors
+        return this.baseFillColors
     }
 
     createColorRect(color, r, c, num_rows, num_cols) {
@@ -139,9 +143,9 @@ class Node {
 
 }
 
-function create_and_register_node_object(node_position, node_group, rect, content_object, color,
+function create_and_register_node_object(node_position, node_group, rect, content_object, border_color,
                                          shadow=null) {
-    let node_object = new Node(node_position, node_group, rect, content_object, color, shadow)
+    let node_object = new Node(node_position, node_group, rect, content_object, border_color, shadow)
 
     ALL_NODES.push(node_object)
 
@@ -220,13 +224,13 @@ function makeCellShadow(node_group, content_object, classname) {
 function createNode(x, y, content_data, content_type, canvas, is_bold,
                     drag_function=null, classname=NODE_CLASSNAME) {
 
-    return createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, "black",
+    return createNodeWithBorderColor(x, y, content_data, content_type, canvas, is_bold, "black",
                     drag_function, classname);
 
 }
 
-function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, color,
-                    drag_function, classname=NODE_CLASSNAME) {
+function createNodeWithBorderColor(x, y, content_data, content_type, canvas, is_bold, border_color,
+                                   drag_function, classname=NODE_CLASSNAME) {
 
     let node_position = getNodePosition(x, y);
 
@@ -241,7 +245,7 @@ function createNodeWithColor(x, y, content_data, content_type, canvas, is_bold, 
         nodeDragHandler(node_group);
     }
 
-    let node = create_and_register_node_object(node_position, node_group, rect, content_object, color);
+    let node = create_and_register_node_object(node_position, node_group, rect, content_object, border_color);
 
     node.setColor("white")
 

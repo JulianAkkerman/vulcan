@@ -2,7 +2,7 @@ import pickle
 import json
 from typing import Dict, Any, Tuple, List
 
-from data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKENIZED_STRING, FORMAT_NAME_TOKEN, \
+from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKENIZED_STRING, FORMAT_NAME_TOKEN, \
     FORMAT_NAME_OBJECT_TABLE, FORMAT_NAME_STRING_TABLE
 
 

@@ -84,11 +84,13 @@ class Table {
     }
 
     create_cell_node(token, pos_x, pos_y, node_name) {
-        let node = createNode(pos_x, pos_y, token, "STRING", this.canvas, false, null, TOKEN_CLASSNAME)
-        // let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
+        // let node = createNode(pos_x, pos_y, token, "STRING", this.canvas, false, null, TOKEN_CLASSNAME)
+        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
         let do_highlight = this.highlights != null && node_name in this.highlights
         if (do_highlight) {
             node.setColor(this.highlights[node_name])
+        } else {
+            node.setColor("white")
         }
         this.register_mouseover_highlighting(node)
         if (this.label_alternatives != null) {
@@ -163,10 +165,10 @@ class Table {
                         }
                         let y = -DEP_TREE_BASE_Y_OFFSET-current_level*DEP_LEVEL_DISTANCE
                         let color = makeRandomDependencyEdgeColor()
-                        label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithColor(
+                        label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithBorderColor(
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
-                            false, false, color, dependencyTreeNodeDragged)]
+                            false, color, dependencyTreeNodeDragged)]
                         total_min_y = Math.min(total_min_y, y)
                     }
 
@@ -182,10 +184,10 @@ class Table {
                 if (head === -1) {
                     let y = -DEP_TREE_BASE_Y_OFFSET-(max_level_here + 1)*DEP_LEVEL_DISTANCE
                     let color = makeRandomDependencyEdgeColor()
-                    label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithColor(
+                    label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithBorderColor(
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
-                        false, false, color, dependencyTreeNodeDragged)]
+                        false, color, dependencyTreeNodeDragged)]
                     total_min_y = Math.min(total_min_y, y)
                 }
             }
@@ -284,7 +286,6 @@ class Table {
                         }
                         let min_y = -1000
                         let max_y = -total_min_y - DEP_TREE_BASE_Y_OFFSET
-                        console.log("min_x: " + min_x + ", max_x: " + max_x + ", min_y: " + min_y + ", max_y: " + max_y)
                         NODE_ID_TO_XY_BOX[id] = [min_x, max_x, min_y, max_y]
 
                         if (label[0] >= 0) {
@@ -311,7 +312,7 @@ class Table {
                 for (let gap_index = 0; gap_index < label_at_position[level_index].length; gap_index++) {
                     if (label_at_position[level_index][gap_index] != null) {
                         let label = label_at_position[level_index][gap_index]
-                        let color = label[2].color
+                        let color = label[2].border_color
 
                         // arrow in
                         let entering_edge = null
@@ -528,6 +529,8 @@ class Table {
 
 function dependencyTreeNodeDragged(d) {
     // console.log(node_object.registeredEdges.length)
+    // console.log(d.id)
+    // console.log(NODE_ID_TO_XY_BOX)
     let min_x = NODE_ID_TO_XY_BOX[d.id][0]
     let max_x = NODE_ID_TO_XY_BOX[d.id][1]
     let min_y = NODE_ID_TO_XY_BOX[d.id][2]
