@@ -4,7 +4,7 @@
 ## Setup
 
 ```
-pip install python-socketio eventlet penman amconll wikipedia nltk
+pip install python-socketio eventlet penman amconll wikipedia nltk conllu
 ```
 
 ## Run
