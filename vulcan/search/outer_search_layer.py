@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from search.inner_search_layer import InnerSearchLayer
+from vulcan.search.inner_search_layer import InnerSearchLayer
 
 
 class OuterSearchLayer:

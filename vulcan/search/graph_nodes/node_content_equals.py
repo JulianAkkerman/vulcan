@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 
-from search.graph_nodes.outer_graph_node_layer import InnerGraphNodeLayer
-from search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
+from vulcan.search.graph_nodes.outer_graph_node_layer import InnerGraphNodeLayer
+from vulcan.search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
 
 
 class NodeContentEquals(InnerGraphNodeLayer):

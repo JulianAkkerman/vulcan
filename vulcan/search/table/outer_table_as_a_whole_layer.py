@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import List, Any
 
-from search.inner_search_layer import InnerSearchLayer
-from search.outer_search_layer import OuterSearchLayer
+from vulcan.search.inner_search_layer import InnerSearchLayer
+from vulcan.search.outer_search_layer import OuterSearchLayer
 
 
 class OuterTableAsAWholeLayer(OuterSearchLayer):

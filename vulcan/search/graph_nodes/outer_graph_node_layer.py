@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import List, Any, Dict, Tuple
 
-from search.inner_search_layer import InnerSearchLayer
-from search.outer_search_layer import OuterSearchLayer
+from vulcan.search.inner_search_layer import InnerSearchLayer
+from vulcan.search.outer_search_layer import OuterSearchLayer
 from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
 
 

@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Any
 import copy
 import textwrap
 
-from data_handling.instance_readers.table_readers import StringTableInstanceReader
+from vulcan.data_handling.instance_readers.table_readers import StringTableInstanceReader
 from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
     FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING, FORMAT_NAME_NLTK_TREE, \
     FORMAT_NAME_NLTK_TREE_STRING, FORMAT_NAME_STRING_TABLE

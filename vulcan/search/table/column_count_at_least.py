@@ -1,7 +1,7 @@
 from typing import List
 
-from search.table.outer_table_as_a_whole_layer import InnerTableLayer
-from search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
+from vulcan.search.table.outer_table_as_a_whole_layer import InnerTableLayer
+from vulcan.search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
 
 
 class ColumnCountAtLeast(InnerTableLayer):

@@ -8,3 +8,6 @@ vulcan.egg-info/*
 vulcan/examples/nltk_example.pickle
 vulcan/examples/test.json
 vulcan/examples/conllu_example.pickle
+ud_japanese_pud_test.pickle
+ud_japanese_bccwj_dev.pickle
+vulcan/examples/ja_bccwj-ud-dev.conllu

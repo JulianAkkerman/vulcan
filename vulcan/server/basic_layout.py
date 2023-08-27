@@ -1,9 +1,9 @@
 from typing import List, Any, Optional
 
-from search.inner_search_layer import InnerSearchLayer
-from search.outer_search_layer import OuterSearchLayer
-from search.table_cells.cell_content_equals import CellContentEquals
-from search.table_cells.outer_table_cells_layer import OuterTableCellsLayer
+from vulcan.search.inner_search_layer import InnerSearchLayer
+from vulcan.search.outer_search_layer import OuterSearchLayer
+from vulcan.search.table_cells.cell_content_equals import CellContentEquals
+from vulcan.search.table_cells.outer_table_cells_layer import OuterTableCellsLayer
 from vulcan.data_handling.data_corpus import CorpusSlice
 from vulcan.data_handling.visualization_type import VisualizationType
 

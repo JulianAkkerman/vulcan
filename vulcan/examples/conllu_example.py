@@ -1,7 +1,7 @@
 from conllu import parse
 
-from data_handling.format_names import FORMAT_NAME_STRING_TABLE
-from pickle_builder.pickle_builder import PickleBuilder
+from vulcan.data_handling.format_names import FORMAT_NAME_STRING_TABLE
+from vulcan.pickle_builder.pickle_builder import PickleBuilder
 
 from vulcan.data_handling.conversion_scripts.conllu_to_vulcan import conllu_sentences_to_vulcan_pickle
 

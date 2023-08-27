@@ -1,18 +1,18 @@
 from typing import List, Optional, Any, Dict, Tuple, Union
 
-from data_handling.data_corpus import CorpusSlice
-from search.graph_nodes.node_content_equals import NodeContentEquals
-from search.graph_nodes.outer_graph_node_layer import OuterGraphNodeLayer
-from search.inner_search_layer import InnerSearchLayer
-from search.outer_search_layer import OuterSearchLayer
-from search.search_registry import OUTER_SEARCH_LAYERS, INNER_SEARCH_LAYERS, VISUALIZATION_TYPE_TO_OUTER_SEARCH_LAYERS, \
+from vulcan.data_handling.data_corpus import CorpusSlice
+from vulcan.search.graph_nodes.node_content_equals import NodeContentEquals
+from vulcan.search.graph_nodes.outer_graph_node_layer import OuterGraphNodeLayer
+from vulcan.search.inner_search_layer import InnerSearchLayer
+from vulcan.search.outer_search_layer import OuterSearchLayer
+from vulcan.search.search_registry import OUTER_SEARCH_LAYERS, INNER_SEARCH_LAYERS, VISUALIZATION_TYPE_TO_OUTER_SEARCH_LAYERS, \
     OUTER_TO_INNER_SEARCH_LAYERS
-from search.table.column_count_at_least import ColumnCountAtLeast
-from search.table.outer_table_as_a_whole_layer import OuterTableAsAWholeLayer
-from search.table_cells.cell_content_equals import CellContentEquals
-from search.table_cells.cell_content_matches import CellContentMatches
-from search.table_cells.outer_table_cells_layer import OuterTableCellsLayer
-from server.basic_layout import BasicLayout
+from vulcan.search.table.column_count_at_least import ColumnCountAtLeast
+from vulcan.search.table.outer_table_as_a_whole_layer import OuterTableAsAWholeLayer
+from vulcan.search.table_cells.cell_content_equals import CellContentEquals
+from vulcan.search.table_cells.cell_content_matches import CellContentMatches
+from vulcan.search.table_cells.outer_table_cells_layer import OuterTableCellsLayer
+from vulcan.server.basic_layout import BasicLayout
 
 
 class SearchFilter:

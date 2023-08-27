@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
+from vulcan.search.table_cells.outer_table_cells_layer import InnerTableCellsLayer
 
 
 class CellContentMatches(InnerTableCellsLayer):

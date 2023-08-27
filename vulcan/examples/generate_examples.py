@@ -1,6 +1,6 @@
 from nltk import Tree
 
-from examples.conllu_example import make_conllu_example_pickle
+from vulcan.examples.conllu_example import make_conllu_example_pickle
 from vulcan.pickle_builder.pickle_builder import PickleBuilder
 
 
