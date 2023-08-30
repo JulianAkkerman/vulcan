@@ -50,6 +50,9 @@ class Node {
     }
 
     static get_hypothetical_node_width(node_label) {
+        if (isNaN(node_label.length*6.5 + 22)) {
+            console.log("node_label length is NaN: " + node_label)
+        }
         return node_label.length*6.5 + 22
     }
 
@@ -257,6 +260,7 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, classname
 
     let node_position = getNodePosition(x, y);
 
+
     let node_group = makeNodeGroup(canvas, node_position, classname)
 
     let content_object = createNodeContent(content_data, content_type, node_group, classname)
@@ -282,6 +286,8 @@ function createNodeContent(content_data, content_type, append_to_this_object, cl
     if (content_type === "STRING") {
         if (content_data == null) {
             content_data = ""
+        } else {
+            content_data = content_data.toString()
         }
         let rect_width = Node.get_hypothetical_node_width(content_data);
         let rect_height = 30;

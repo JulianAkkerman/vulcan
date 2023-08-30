@@ -85,7 +85,13 @@ class Table {
 
     create_cell_node(token, pos_x, pos_y, node_name) {
         // let node = createNode(pos_x, pos_y, token, "STRING", this.canvas, false, null, TOKEN_CLASSNAME)
-        let node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
+        // check if token is a string
+        let node;
+        if (typeof token === 'string' || token instanceof String) {
+            node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
+        } else {
+            node = createCell(pos_x, pos_y, token[1], token[0], this.canvas, false, TOKEN_CLASSNAME)
+        }
         let do_highlight = this.highlights != null && node_name in this.highlights
         if (do_highlight) {
             node.setColor(this.highlights[node_name])
@@ -133,6 +139,7 @@ class Table {
                 if (head >= 0) {
                     let min_bound = Math.min(head, tail)
                     let max_bound = Math.max(head, tail)
+                    console.log("min_bound: "+min_bound + ", max_bound: "+max_bound + ", head: "+head + ", tail: "+tail)
 
                     let found_position = false
                     let current_level = 0
@@ -151,9 +158,13 @@ class Table {
                                 available_label_slots.push(k)
                             }
                         }
-                        if (available_label_slots.length === 0 && !(current_level === MAX_DEPTREE_HEIGHT - 1)) {
-                            current_level++
-                            continue
+                        if (available_label_slots.length === 0) {
+                            if (!(current_level === MAX_DEPTREE_HEIGHT - 1)) {
+                                current_level++
+                                continue
+                            } else {
+                                available_label_slots = [min_bound]
+                            }
                         }
                         found_position = true
                         // choose the label slot that is closest to the center of the edge
@@ -165,6 +176,7 @@ class Table {
                         }
                         let y = -DEP_TREE_BASE_Y_OFFSET-current_level*DEP_LEVEL_DISTANCE
                         let color = makeRandomDependencyEdgeColor()
+                        console.log("best_label_slot" + best_label_slot)
                         label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithBorderColor(
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
@@ -184,6 +196,7 @@ class Table {
                 if (head === -1) {
                     let y = -DEP_TREE_BASE_Y_OFFSET-(max_level_here + 1)*DEP_LEVEL_DISTANCE
                     let color = makeRandomDependencyEdgeColor()
+                    console.log("tail" + tail)
                     label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithBorderColor(
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
@@ -550,5 +563,7 @@ function dependencyTreeNodeDragged(d) {
         }
     }
     // console.log(registeredEdges.length)
+    console.log(d.x)
+    console.log(d.y)
     ALL_NODES[d.id].group.attr("transform", "translate(" + d.x + "," + d.y + ")");
 }
