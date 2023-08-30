@@ -115,7 +115,7 @@ class Graph {
                     label = current_node.node_name + " / " + label
                 }
                 let is_bold = current_node.node_name === this.graph_as_dict.node_name
-                let node_object = createNode(50, 50, label, current_node.label_type, this.canvas, is_bold,
+                let node_object = createNode(0, 0, label, current_node.label_type, this.canvas, is_bold,
                     graphNodeDragged)
                 let do_highlight = this.highlights != null && current_node.node_name in this.highlights
                 if (do_highlight) {

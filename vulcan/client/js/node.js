@@ -16,6 +16,7 @@ class Node {
         this.shadow = shadow
         this.baseFillColors = "white"
         this.currentFillColors = "white"
+        this.setColor(this.currentFillColors)
         this.mask_rect = this.group.append("defs").append("clipPath")
             .attr("id", "mask_rect_" + this.position.id)
             .append("rect")
@@ -62,7 +63,7 @@ class Node {
 
     setHeight(height) {
         this.rectangle.attr("height", height)
-        this.content.recenter(height)
+        // this.content.recenter(height)
         if (this.shadow != null) {
             this.shadow.attr("height", height + 2*SHADOW_OVERSIZE)
         }

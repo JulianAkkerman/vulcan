@@ -77,6 +77,23 @@ class Table {
             current_y = this.top_left_y
             current_x = current_x + max_width + TOKEN_DISTANCE
         }
+
+        // realign vertically
+        let cumulative_max_heights = 0
+        for (let r = 0; r < this.cells[0].length; r++) {
+            let max_height = 0
+            for (let c = 0; c < this.cells.length; c++) {
+                let cell_here = this.cells[c][r]
+                let height_here = parseFloat(cell_here.getHeight())
+                max_height = Math.max(max_height, height_here)
+            }
+            for (let c = 0; c < this.cells.length; c++) {
+                let cell_here = this.cells[c][r]
+                cell_here.setHeight(max_height)
+                cell_here.translate(cell_here.getX(), this.top_left_y + cumulative_max_heights)
+            }
+            cumulative_max_heights += max_height + TOKEN_DISTANCE
+        }
     }
 
     getCellName(column, row) {
