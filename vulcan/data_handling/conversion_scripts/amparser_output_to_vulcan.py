@@ -27,7 +27,6 @@ def main():
         amconll_sents = [s for s in parse_amconll(f)]  # make it so we can close the file
     print(len(amconll_sents))
 
-
     pickle_builder = PickleBuilder({"Gold graph": "graph", "Predicted graph": "graph",
                                     "AM tree": "amtree", "Sentence": "object_table"})
     pickle_builder.setup_dependency_tree("Sentence")
@@ -60,16 +59,16 @@ def main():
 
 def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
     ret = {}
-    for i, el in enumerate(el_dict[1:]):
-        edge_name = get_edge_name(i-1, amconll_sent)
+    for i, el in enumerate(el_dict[1:len(amconll_sent.words) + 1]):
+        edge_name = get_edge_name(i, amconll_sent)
         label_alternatives_here = []
         ret[edge_name] = label_alternatives_here
         for edge_label, score in el.items():
             label_alternatives_here.append({"score": score,
                                             "label": edge_label,
                                             "format": "string"})
-    for i, head in enumerate(head_dict[1:]):
-        cell_name = str((1, i-1))
+    for i, head in enumerate(head_dict[1:len(amconll_sent.words) + 1]):
+        cell_name = str((1, i))
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for head_index, score in head.items():
@@ -77,8 +76,8 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
                                             "label": head_index,
                                             "format": "string"})
 
-    for i, st in enumerate(st_dict[1:]):
-        cell_name = str((2, i-1))
+    for i, st in enumerate(st_dict[1:len(amconll_sent.words) + 1]):
+        cell_name = str((2, i))
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():
@@ -89,10 +88,10 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
     return ret
 
 
-
 def get_edge_name(target_pos, amconll_sent: AMSentence):
     head_pos = amconll_sent.get_heads()[target_pos]
     return f"depedge_{head_pos}_{target_pos}"
+
 
 def read_custom_scores_file(file_path: str):
     edge_label_dicts = []
