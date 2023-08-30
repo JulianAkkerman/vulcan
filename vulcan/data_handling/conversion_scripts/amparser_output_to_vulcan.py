@@ -1,3 +1,4 @@
+import pickle
 from typing import Iterable
 
 from vulcan.pickle_builder.pickle_builder import PickleBuilder
@@ -43,7 +44,11 @@ def main():
             tagged_sentence.append(tagged_token)
             tagged_token.append(("token", entry.token))
             tagged_token.append(("token", entry.head))
-            tagged_token.append(("graph_string", entry.fragment.replace("--LEX--", entry.lexlabel)))
+            if entry.fragment == "_":
+                tagged_token.append(("token", entry.fragment))
+            else:
+                tagged_token.append(("graph_string", entry.fragment.replace("--LEX--", entry.lexlabel)))
+
         pickle_builder.add_instances_by_name({"Gold graph": gold_amr,
                                               "Predicted graph": predicted_amr,
                                               "AM tree": amconll_sent,
@@ -55,6 +60,9 @@ def main():
     for data_dict in final_data:
         if data_dict["name"] == "Sentence":
             data_dict["label_alternatives"] = label_alternatives_data
+
+    with open("little_prince.pickle", "wb") as f:
+        pickle.dump(final_data, f)
 
 
 def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
@@ -81,9 +89,14 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():
-            label_alternatives_here.append({"score": score,
-                                            "label": supertag,
-                                            "format": "graph_string"})
+            if supertag == "_" or supertag == "NONE":
+                label_alternatives_here.append({"score": score,
+                                                "label": supertag.replace("--LEX--", amconll_sent.words[i].lexlabel),
+                                                "format": "graph_string"})
+            else:
+                label_alternatives_here.append({"score": score,
+                                                "label": supertag,
+                                                "format": "token"})
 
     return ret
 

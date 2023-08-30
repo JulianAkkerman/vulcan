@@ -2,17 +2,18 @@ from typing import List, Dict, Tuple, Any
 import copy
 import textwrap
 
-from vulcan.data_handling.instance_readers.table_readers import StringTableInstanceReader
-from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, \
-    FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING, FORMAT_NAME_NLTK_TREE, \
-    FORMAT_NAME_NLTK_TREE_STRING, FORMAT_NAME_STRING_TABLE
-from vulcan.data_handling.instance_readers.amr_graph_instance_reader import AMRGraphStringInstanceReader, \
-    AMRGraphInstanceReader
-from vulcan.data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, AMTreeStringInstanceReader
+from vulcan.data_handling.format_names import FORMAT_NAME_GRAPH, FORMAT_NAME_GRAPH_STRING, FORMAT_NAME_STRING, \
+    FORMAT_NAME_TOKEN, FORMAT_NAME_TOKENIZED_STRING, FORMAT_NAME_NLTK_TREE, FORMAT_NAME_NLTK_TREE_STRING, \
+    FORMAT_NAME_AMTREE, FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_STRING_TABLE, FORMAT_NAME_OBJECT_TABLE
+from vulcan.data_handling.instance_readers.amr_graph_instance_reader import AMRGraphInstanceReader, \
+    AMRGraphStringInstanceReader
+from vulcan.data_handling.instance_readers.amtree_instance_reader import AMTreeInstanceReader, \
+    AMTreeStringInstanceReader
 from vulcan.data_handling.instance_readers.nltk_instance_reader import NLTKTreeInstanceReader, \
     NLTKTreeStringInstanceReader
 from vulcan.data_handling.instance_readers.string_instance_reader import StringInstanceReader, TokenInstanceReader, \
     TokenizedStringInstanceReader
+from vulcan.data_handling.instance_readers.table_readers import StringTableInstanceReader, ObjectTableInstanceReader
 from vulcan.data_handling.visualization_type import VisualizationType
 from collections import OrderedDict
 from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import for_each_node_top_down
@@ -173,34 +174,6 @@ def process_dependency_trees(data_corpus, entry, name):
     return dependency_trees
 
 
-def get_instance_reader_by_name(reader_name):
-    """
-
-    :param reader_name:
-    :return:
-    """
-    if reader_name == FORMAT_NAME_STRING:
-        return StringInstanceReader()
-    elif reader_name == FORMAT_NAME_TOKEN:
-        return TokenInstanceReader()
-    elif reader_name == FORMAT_NAME_TOKENIZED_STRING:
-        return TokenizedStringInstanceReader()
-    elif reader_name == FORMAT_NAME_NLTK_TREE:
-        return NLTKTreeInstanceReader()
-    elif reader_name == FORMAT_NAME_NLTK_TREE_STRING:
-        return NLTKTreeStringInstanceReader()
-    elif reader_name == FORMAT_NAME_GRAPH:
-        return AMRGraphInstanceReader()
-    elif reader_name == FORMAT_NAME_GRAPH_STRING:
-        return AMRGraphStringInstanceReader()
-    elif reader_name == FORMAT_NAME_AMTREE:
-        return AMTreeInstanceReader()
-    elif reader_name == FORMAT_NAME_AMTREE_STRING:
-        return AMTreeStringInstanceReader()
-    elif reader_name == FORMAT_NAME_STRING_TABLE:
-        return StringTableInstanceReader()
-
-
 def read_label_alternatives(corpus_entry):
     """
     Creates a copy of the 'label_alternatives' entry in corpus_entry, where each label alternative has been
@@ -319,3 +292,35 @@ class CorpusSlice:
         # else:
         #     print("no mouseover_texts found in corpus slice ", name)
         self.dependency_trees = dependency_trees
+
+
+def get_instance_reader_by_name(reader_name):
+    """
+
+    :param reader_name:
+    :return:
+    """
+    # TODO this has a duplicate in ObjectTableInstanceReader to avoid circular imports.
+    #  There should be a better solution!
+    if reader_name == FORMAT_NAME_STRING:
+        return StringInstanceReader()
+    elif reader_name == FORMAT_NAME_TOKEN:
+        return TokenInstanceReader()
+    elif reader_name == FORMAT_NAME_TOKENIZED_STRING:
+        return TokenizedStringInstanceReader()
+    elif reader_name == FORMAT_NAME_NLTK_TREE:
+        return NLTKTreeInstanceReader()
+    elif reader_name == FORMAT_NAME_NLTK_TREE_STRING:
+        return NLTKTreeStringInstanceReader()
+    elif reader_name == FORMAT_NAME_GRAPH:
+        return AMRGraphInstanceReader()
+    elif reader_name == FORMAT_NAME_GRAPH_STRING:
+        return AMRGraphStringInstanceReader()
+    elif reader_name == FORMAT_NAME_AMTREE:
+        return AMTreeInstanceReader()
+    elif reader_name == FORMAT_NAME_AMTREE_STRING:
+        return AMTreeStringInstanceReader()
+    elif reader_name == FORMAT_NAME_STRING_TABLE:
+        return StringTableInstanceReader()
+    elif reader_name == FORMAT_NAME_OBJECT_TABLE:
+        return ObjectTableInstanceReader()

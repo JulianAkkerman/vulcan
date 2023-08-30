@@ -11,3 +11,5 @@ class InstanceReader:
 
     def get_visualization_type(self) -> VisualizationType:
         raise NotImplementedError()
+
+
