@@ -1,4 +1,6 @@
 const sio = io();
+// sio.eio.pingTimeout = 120000; // 2 minutes
+// sio.eio.pingInterval = 20000;  // 20 seconds
 
 console.log(d3)
 
@@ -159,7 +161,6 @@ sio.on("set_graph", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
-        console.log(highlights)
     }
     let mouseover_texts = null
     if ("mouseover_texts" in data) {
@@ -171,7 +172,6 @@ sio.on("set_graph", (data) => {
 })
 
 sio.on("set_table", (data) => {
-    console.log(data.keys)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
     let label_alternatives = null
@@ -181,11 +181,9 @@ sio.on("set_table", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
-        console.log(highlights)
     }
     let dependency_tree = null
     if ("dependency_tree" in data) {
-        console.log(data["dependency_tree"])
         dependency_tree = data["dependency_tree"]
     }
     let table = new Table(20, 5, data["table"], canvas, label_alternatives, highlights,
@@ -212,12 +210,11 @@ sio.on("set_linker", (data) => {
 })
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
-    console.log(linker_id)
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
-                aligned_node.rectangle.style("fill", alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
+                aligned_node.setColor(alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
             })
             .on("mouseout.align_"+linker_id, function() {
-                aligned_node.rectangle.style("fill", "white")
+                aligned_node.setColor(aligned_node.baseFillColors)
             })
 }
 
@@ -272,7 +269,6 @@ sio.on("search_completed", (data) => {
 })
 
 sio.on("set_search_filters", (data) => {
-    console.log(data)
     SEARCH_PATTERNS = data
 })
 

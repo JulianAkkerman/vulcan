@@ -15,7 +15,7 @@ import logging
 
 eventlet.monkey_patch()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
@@ -182,6 +182,10 @@ class Server:
         self.sio.emit('set_graph', dict_to_sent)
 
     def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):
+        if self.basic_layout.get_visualization_type_for_slice_name(name1) == VisualizationType.STRING:
+            scores = {str((0, k)): v for k, v in scores.items()}
+        if self.basic_layout.get_visualization_type_for_slice_name(name2) == VisualizationType.STRING:
+            scores = {k: {str((0, k2)): v for k2, v in d.items()} for k, d in scores.items()}
         self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores})
 
 

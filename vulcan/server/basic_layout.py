@@ -30,6 +30,13 @@ class BasicLayout:
         self.linkers = linkers
         self.corpus_size = corpus_size
 
+    def get_visualization_type_for_slice_name(self, slice_name: str) -> Optional[VisualizationType]:
+        for row in self.layout:
+            for slc in row:
+                if slc.name == slice_name:
+                    return slc.visualization_type
+        return None
+
 
 def get_slice_screen_width(corpus_slice: CorpusSlice) -> float:
     if corpus_slice.visualization_type in [VisualizationType.STRING, VisualizationType.TABLE]:

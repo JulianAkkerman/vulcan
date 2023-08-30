@@ -487,7 +487,7 @@ class Table {
                 // even though in this.cells, the column index comes first
                 // this is to match the general convention of having the row index first in the node name
                 // the fact that this.cells is the other way around has technical reasons, and shouldn't spread further.
-                dict_here[[j, i]] = this.cells[i][j]
+                dict_here["("+j+", "+i+")"] = this.cells[i][j]
             }
         }
         canvas_name_to_node_name_to_node_dict[canvas_name] = dict_here
