@@ -28,7 +28,9 @@ var currently_showing_label_alternatives = false
 
 
 function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
+    console.log("input width_percent ", width_percent)
     let canvas_width = width_percent*window_width/100
+    console.log("original canvas_width ", canvas_width)
     let canvas_height = window_height * height_percent/100
 
     let container = d3.select("div#chartId")
@@ -36,19 +38,28 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
       .attr("class","layoutDiv")
       .style("width", width_percent + "%")
       .style("padding-bottom", height_percent + "%")
+      // .style("border", "3px dotted red")
       .classed("svg-container", true)
       .style("position", "relative") // Add position property to the container div
       // .style("padding-bottom", "3px") // Add padding to the bottom to make room for the border
+      //       .style("padding", "0px")
+            // .style("padding-right", "0px")
 
+    console.log("container width "+container.node().getBoundingClientRect().width)
+
+    let canvas_gap = 16 // that's 3 + 3 for the borders. The canvas is 10px down due to the css file. 10px less width adds a horizontal margin
     let canvas = container.append("svg")
       .attr("preserveAspectRatio", "xMinYMin meet")
-      .attr("viewBox", "0 0 " + canvas_width + " " + canvas_height)  // TODO this scales the image, with currently unintended consequences (strings are too small)
-      .attr("width", "calc(100% - 16px)")  // that's 3 + 3 for the borders, I think, but I don't know where the 10 come from
-      .attr("height", "calc(100% - 16px)")
+      .attr("viewBox", "0 0 " + (canvas_width - canvas_gap) + " " + (canvas_height - canvas_gap))  // TODO this scales the image, with currently unintended consequences (strings are too small)
+      // .attr("viewPort", "0 0 " + (canvas_width-16) + " " + (canvas_height-16))  // TODO this scales the image, with currently unintended consequences (strings are too small)
+      .attr("width", "calc(100% - " + canvas_gap + "px)")
+      .attr("height", "calc(100% - " + canvas_gap + "px)")
       .classed("svg-content-responsive", true)
       .style("background-color", "#eeeeee")
       .style("border", "3px solid black")
       //   .style("box-shadow", "0px 0px 0px 10px black inset")
+            .style("padding-left", "0px")
+            .style("padding-right", "0px")
       .call(d3.zoom().on("zoom", function ()
       {
         // Transform the 'g' element when zooming
@@ -65,12 +76,13 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         d3.select(this).select("g").attr("transform", d3.event.transform);
       }))
 
-    addFilterDefinitions(canvas);
+    console.log("canvas width after creation "+canvas.node().getBoundingClientRect().width)
 
-    let g = canvas.append("g")
 
     if (name !== "") {
-        let text_div = container.append("div")
+        let canvas_right = canvas.node().getBoundingClientRect().right
+        let canvas_top = canvas.node().getBoundingClientRect().top
+        let text_div = d3.select("div#chartId").append("div")
             .style("position", "absolute") // Add position property to the text div
             // .style("top", "10px") // Set position relative to the container div
             // .style("right", "10px") // Set position relative to the container div
@@ -80,17 +92,22 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
             .style("border", "3px solid black")
             // add margin
             .style("padding", "10px")
-        let text = text_div.text(name);
+            .text(name);
 
         // Position the text relative to the SVG element
-        let svgRect = canvas.node().getBoundingClientRect(); // Get the bounding box of the SVG element
+        // let svgRect = container.node().getBoundingClientRect(); // Get the bounding box of the SVG element
+        console.log(width_percent)
+        // let canvas_width = canvas.attr("width")// window_width * width_percent/100.0
+        console.log("canvas width at end "+canvas_width)
+        console.log("canvas right at end "+canvas.node().getBoundingClientRect().right)
         // use the -100 for a placeholder of the name for now.
         // get width of the text_div
         let text_div_width = text_div.node().getBoundingClientRect().width
-        let dx = svgRect.width - text_div_width; // Calculate the distance from the right edge of the SVG element
-        let dy = 10; // Calculate the distance from the top edge of the SVG element
-        text.style("top", dy + "px") // Set the position of the text element
+        let dx = canvas_right - text_div_width; // Calculate the distance from the right edge of the SVG element
+        let dy = canvas_top; // Calculate the distance from the top edge of the SVG element
+        text_div.style("top", dy + "px") // Set the position of the text element
             .style("left", dx + "px") // Set the position of the text element
+            // .style("right", (canvas_width)+"px")
 
 
         // // Append a new 'rect' element to the SVG element
@@ -106,6 +123,9 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         // .attr("stroke-width", 2)
     }
 
+    addFilterDefinitions(canvas);
+
+    let g = canvas.append("g")
     return g
 }
 
@@ -246,7 +266,8 @@ function set_layout(layout) {
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
-        let height = canvas_heights[i]
+        let height = canvas_heights[i] * 0.96
+        console.log("height ", height)
         row.forEach(slice => {
             canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
                 only_horizontal_zoom = slice["visualization_type"] == "STRING")
