@@ -60,7 +60,7 @@ class Graph {
     }
 
     recenter(new_width) {
-        console.log("graph recenter is not implemented yet")
+        // don't need to to anything here.
     }
 
     static visit_graph_as_dict_top_down(subgraph_as_dict, visitor) {
@@ -153,7 +153,7 @@ class Graph {
     }
 
     getWidth() {
-        console.log("graph width" + this.total_widths_dict[this.graph_as_dict.node_name] + 2 * this.margin)
+        // console.log("graph width" + this.total_widths_dict[this.graph_as_dict.node_name] + 2 * this.margin)
         return this.total_widths_dict[this.graph_as_dict.node_name] + 2 * this.margin
     }
 

@@ -29,7 +29,7 @@ class Node {
         //     .attr("stroke-width", 2)
         //     .attr("fill-opacity", 0.0)
 
-        console.log("mask_rect_" + this.position.id)
+        // console.log("mask_rect_" + this.position.id)
         this.mask_rect = this.group.append("defs").append("clipPath")
             .attr("id", "mask_rect_" + this.position.id)
             .append("rect")
@@ -80,10 +80,32 @@ class Node {
     }
 
     static get_hypothetical_node_width(node_label) {
-        if (isNaN(node_label.length*6.5 + 22)) {
-            console.log("node_label length is NaN: " + node_label)
-        }
-        return node_label.length*6.5 + 22
+        // if (isNaN(node_label.length*6.5 + 22)) {
+        //     console.log("node_label length is NaN: " + node_label)
+        // }
+        let text_width = this.getTextWidth(node_label)
+        return Math.max(30, text_width + 20)
+    }
+
+    static getTextWidth(text) {
+
+        let text_object = document.createElement("span");
+        document.body.appendChild(text_object);
+
+        // text.style.font = "times new roman";
+        // text.style.fontSize = 16 + "px";
+        text_object.style.height = 'auto';
+        text_object.style.width = 'auto';
+        text_object.style.position = 'absolute';
+        text_object.style.whiteSpace = 'no-wrap';
+        text_object.innerHTML = make_html_safe(text);
+
+
+        let width = Math.ceil(text_object.clientWidth);
+
+        document.body.removeChild(text_object);
+
+        return width
     }
 
     getHeight() {
@@ -143,16 +165,10 @@ class Node {
                 }
             }
         } else {
-            if (this.content.getHeight() > 30) {
-                console.log("setting graph node color to " + colors)
-            }
             this.createColorRect(colors, 0, 0, 1, 1)
         }
 
         if (this.shadow != null) {
-            if (this.content.getHeight() > 30) {
-                console.log("lowering shadow")
-            }
             this.shadow.lower()
         }
         // console.log("setColor " + this.position.id)
@@ -190,13 +206,15 @@ function create_and_register_node_object(node_position, node_group, rect, conten
                                          shadow=null) {
     let node_object = new Node(node_position, node_group, rect, content_object, border_color, shadow)
 
-    ALL_NODES[node_position.id] = node_object
+    ALL_NODES[node_position[0].id] = node_object
 
     return node_object;
 }
 
 function getNodePosition(x, y) {
-    return [{x: x, y: y, id: UNIQUE_NODE_COUNTER++}];
+    pos = [{x: x, y: y, id: UNIQUE_NODE_COUNTER}];
+    UNIQUE_NODE_COUNTER += 1
+    return pos
 }
 
 function makeNodeGroup(canvas, node_position, classname) {
@@ -338,6 +356,7 @@ function createNodeContent(content_data, content_type, append_to_this_object, cl
             .style("pointer-events", "none")
             .attr("class", classname)
             .text(content_data)
+        // console.log("content_data: " + content_data)
         return new NodeStringContent(text_object, rect_width, rect_height)
     } else if (content_type === "GRAPH" || content_type === "TREE") {
         return new Graph(0, 0, content_data, append_to_this_object, false,

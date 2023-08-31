@@ -156,7 +156,6 @@ class Table {
                 if (head >= 0) {
                     let min_bound = Math.min(head, tail)
                     let max_bound = Math.max(head, tail)
-                    console.log("min_bound: "+min_bound + ", max_bound: "+max_bound + ", head: "+head + ", tail: "+tail)
 
                     let found_position = false
                     let current_level = 0
@@ -193,7 +192,6 @@ class Table {
                         }
                         let y = -DEP_TREE_BASE_Y_OFFSET-current_level*DEP_LEVEL_DISTANCE
                         let color = makeRandomDependencyEdgeColor()
-                        console.log("best_label_slot" + best_label_slot)
                         label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithBorderColor(
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
@@ -213,7 +211,6 @@ class Table {
                 if (head === -1) {
                     let y = -DEP_TREE_BASE_Y_OFFSET-(max_level_here + 1)*DEP_LEVEL_DISTANCE
                     let color = makeRandomDependencyEdgeColor()
-                    console.log("tail" + tail)
                     label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithBorderColor(
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
@@ -580,7 +577,5 @@ function dependencyTreeNodeDragged(d) {
         }
     }
     // console.log(registeredEdges.length)
-    console.log(d.x)
-    console.log(d.y)
     ALL_NODES[d.id].group.attr("transform", "translate(" + d.x + "," + d.y + ")");
 }

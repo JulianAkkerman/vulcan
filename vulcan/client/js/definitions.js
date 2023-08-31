@@ -46,3 +46,11 @@ function marker(color, canvas) {
 
         return "url(#" + id + ")";
       }
+
+function make_html_safe(text) {
+    return text.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}

@@ -53,8 +53,7 @@ def main():
                                               "Predicted graph": predicted_amr,
                                               "AM tree": amconll_sent,
                                               "Sentence": tagged_sentence})
-        deptree = [(entry.head, i-1, entry.label) for i, entry in enumerate(amconll_sent.words) if entry.label not in ["IGNORE", "ROOT"]]
-        deptree += [(-1, i, "ROOT") for i, entry in enumerate(amconll_sent.words) if entry.label == "ROOT"]
+        deptree = make_dependency_tree(amconll_sent)
         pickle_builder.add_dependency_tree_by_name("Sentence", deptree)
 
     final_data = pickle_builder._make_data_for_pickle()
@@ -64,6 +63,18 @@ def main():
 
     with open("little_prince.pickle", "wb") as f:
         pickle.dump(final_data, f)
+
+
+def make_dependency_tree(amconll_sent):
+    ret = []
+    for i, entry in enumerate(amconll_sent.words):
+        if entry.label not in ["IGNORE", "ROOT"]:
+            if entry.head < 0 or i < 1:
+                print(i)
+                print(entry)
+            ret.append((entry.head - 1, i, entry.label))
+    ret += [(-1, i, "ROOT") for i, entry in enumerate(amconll_sent.words) if entry.label == "ROOT"]
+    return ret
 
 
 def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
