@@ -33,6 +33,9 @@ def main():
                                     "AM tree": "amtree", "Sentence": "object_table"})
     pickle_builder.setup_dependency_tree("Sentence")
 
+    pickle_builder_simple = PickleBuilder({"Gold graph": "graph", "Predicted graph": "graph",
+                                           "Sentence": "tokenized_string"})
+
     label_alternatives_data = []
 
     for el_dict, head_dict, st_dict, gold_amr, predicted_amr, amconll_sent in zip(edge_label_dicts, head_index_dicts,
@@ -40,11 +43,13 @@ def main():
                                                                                  predicted_amrs, amconll_sents):
         label_alternatives_data.append(make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent))
         tagged_sentence = []
+        sentence = []
         for entry in amconll_sent.words:
+            sentence.append(entry.token)
             tagged_token = []
             tagged_sentence.append(tagged_token)
             tagged_token.append(("token", entry.token))
-            tagged_token.append(("token", entry.head))
+            # tagged_token.append(("token", str(entry.head-1)))
             if entry.fragment == "_":
                 tagged_token.append(("token", entry.fragment))
             else:
@@ -54,6 +59,9 @@ def main():
                                               "Predicted graph": predicted_amr,
                                               "AM tree": amconll_sent,
                                               "Sentence": tagged_sentence})
+        pickle_builder_simple.add_instances_by_name({"Gold graph": gold_amr,
+                                                     "Predicted graph": predicted_amr,
+                                                     "Sentence": sentence})
         deptree = make_dependency_tree(amconll_sent)
         pickle_builder.add_dependency_tree_by_name("Sentence", deptree)
 
@@ -64,6 +72,8 @@ def main():
 
     with open("little_prince.pickle", "wb") as f:
         pickle.dump(final_data, f)
+
+    pickle_builder_simple.write("little_prince_simple.pickle")
 
 
 def make_dependency_tree(amconll_sent):
@@ -85,17 +95,17 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
             label_alternatives_here.append({"score": score,
                                             "label": edge_label,
                                             "format": "string"})
-    for i, head in enumerate(head_dict[1:len(amconll_sent.words) + 1]):
-        cell_name = str((1, i))
-        label_alternatives_here = []
-        ret[cell_name] = label_alternatives_here
-        for head_index, score in head.items():
-            label_alternatives_here.append({"score": score,
-                                            "label": str(int(head_index)-1),
-                                            "format": "string"})
+    # for i, head in enumerate(head_dict[1:len(amconll_sent.words) + 1]):
+    #     cell_name = str((1, i))
+    #     label_alternatives_here = []
+    #     ret[cell_name] = label_alternatives_here
+    #     for head_index, score in head.items():
+    #         label_alternatives_here.append({"score": score,
+    #                                         "label": str(int(head_index)-1),
+    #                                         "format": "string"})
 
     for i, st in enumerate(st_dict[1:len(amconll_sent.words) + 1]):
-        cell_name = str((2, i))
+        cell_name = str((1, i))  # TODO if the above gets commented back in, change to (2, i)
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():

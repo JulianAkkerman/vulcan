@@ -80,6 +80,10 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
 
     if (name !== "") {
+        // we need to store the canvas position here, because adding the text_div can change the canvas position
+        // once we move the text_div to the right position, the canvas will be back in place.
+        // a similar issue happens when adding a canvas creates a scrollbar. All previously created canvases will
+        // move, but their slice name labels will not move with them.
         let canvas_right = canvas.node().getBoundingClientRect().right
         let canvas_top = canvas.node().getBoundingClientRect().top
         let text_div = d3.select("div#chartId").append("div")
@@ -232,7 +236,32 @@ sio.on("set_linker", (data) => {
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
-                aligned_node.setColor(alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
+                // check if score is a number
+                if (isNaN(score)) {
+                    // then score must be a list or table of numbers
+                    if (isNaN(score[0])) {
+                        // then we have a table
+                        let table = []
+                        for (let i = 0; i < score.length; i++) {
+                            let table_row = []
+                            for (let j = 0; j < score[i].length; j++) {
+                                table_row.push(alignment_color_scale(Math.pow(score[i][j], 0.75)))
+                            }
+                            table.push(table_row)
+                        }
+                        aligned_node.setColor(table)
+                    } else {
+                        // then we have a list of numbers
+                        let list = []
+                        for (let i = 0; i < score.length; i++) {
+                            list.push(alignment_color_scale(Math.pow(score[i], 0.75)))
+                        }
+                        aligned_node.setColor(list)
+                    }
+                } else {
+                    // then score is just a single number
+                    aligned_node.setColor(alignment_color_scale(Math.pow(score, 0.75)))  // just kinda experimenting
+                }
             })
             .on("mouseout.align_"+linker_id, function() {
                 aligned_node.setColor(aligned_node.baseFillColors)
@@ -266,7 +295,7 @@ function set_layout(layout) {
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
-        let height = canvas_heights[i] * 0.96
+        let height = canvas_heights[i] * 0.9
         console.log("height ", height)
         row.forEach(slice => {
             canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
