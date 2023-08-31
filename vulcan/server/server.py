@@ -24,12 +24,7 @@ def transform_string_maps_to_table_maps(highlights: Dict[int, Union[str, List[st
     if label_alternatives_by_node_name:
         label_alternatives_by_node_name = {str((0, k)): v for k, v in label_alternatives_by_node_name.items()}
     if highlights:
-        print("transforming string highlights to table highlights")
-        print(highlights)
-        print(highlights.keys())
-        print(highlights.items())
         highlights = {str((0, k)): v for k, v in highlights.items()}
-        print(highlights)
     return highlights, label_alternatives_by_node_name
 
 
@@ -48,7 +43,7 @@ class Server:
                 self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
                 self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
                 self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
-                print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
+                # print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
                 self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
                 instance_requested(sid, 0)
             except Exception as e:
@@ -148,7 +143,6 @@ class Server:
         highlights,\
         label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
                                                                               label_alternatives_by_node_name)
-        print(highlights)
         self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights,
                                dependency_tree)
 
@@ -160,7 +154,6 @@ class Server:
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
-            print(highlights)
             dict_to_sent["highlights"] = highlights
         if dependency_tree is not None:
             dict_to_sent["dependency_tree"] = dependency_tree
@@ -175,7 +168,6 @@ class Server:
         if label_alternatives_by_node_name is not None:
             dict_to_sent["label_alternatives_by_node_name"] = label_alternatives_by_node_name
         if highlights is not None:
-            print(highlights)
             dict_to_sent["highlights"] = highlights
         if mouseover_texts is not None:
             dict_to_sent["mouseover_texts"] = mouseover_texts

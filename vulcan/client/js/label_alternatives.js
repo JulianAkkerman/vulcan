@@ -15,7 +15,10 @@ function show_label_alternatives(node_object, label_alternatives, canvas) {
     for (let i = 0; i < label_alternatives.length; i++) {
         let label_alternative = label_alternatives[i]
         let new_node = createNode(current_x, y, label_alternative['label'], label_alternative['format'], canvas,
-            false, false, null, NODE_ALTERNATIVE_CLASSNAME)
+            false, null, NODE_ALTERNATIVE_CLASSNAME)
+        if (new_node.getWidth() < 60) {
+            new_node.setWidth(60)
+        }
         all_new_nodes.push(new_node)
         current_x += Math.max(60, new_node.getWidth()) + 10
         max_height = Math.max(max_height, new_node.getHeight())
@@ -27,6 +30,8 @@ function show_label_alternatives(node_object, label_alternatives, canvas) {
         .attr("width", current_x - first_x + 10)
         .attr("height", max_height + 30)
         .attr("fill", "#99FFBB")
+        .attr("stroke", "#005522")
+        .attr("stroke-width", 3)
         .attr("class", NODE_ALTERNATIVE_CLASSNAME)
 
     all_new_nodes.forEach(function(new_node) {

@@ -69,9 +69,6 @@ def make_dependency_tree(amconll_sent):
     ret = []
     for i, entry in enumerate(amconll_sent.words):
         if entry.label not in ["IGNORE", "ROOT"]:
-            if entry.head < 0 or i < 1:
-                print(i)
-                print(entry)
             ret.append((entry.head - 1, i, entry.label))
     ret += [(-1, i, "ROOT") for i, entry in enumerate(amconll_sent.words) if entry.label == "ROOT"]
     return ret
@@ -93,7 +90,7 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
         ret[cell_name] = label_alternatives_here
         for head_index, score in head.items():
             label_alternatives_here.append({"score": score,
-                                            "label": head_index,
+                                            "label": str(int(head_index)-1),
                                             "format": "string"})
 
     for i, st in enumerate(st_dict[1:len(amconll_sent.words) + 1]):
@@ -101,14 +98,16 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():
+            supertag = supertag.split("--TYPE--")[0]
+            print(supertag)
             if supertag == "_" or supertag == "NONE":
-                label_alternatives_here.append({"score": score,
-                                                "label": supertag.replace("--LEX--", amconll_sent.words[i].lexlabel),
-                                                "format": "graph_string"})
-            else:
                 label_alternatives_here.append({"score": score,
                                                 "label": supertag,
                                                 "format": "token"})
+            else:
+                label_alternatives_here.append({"score": score,
+                                                "label": supertag.replace("--LEX--", amconll_sent.words[i].lexlabel),
+                                                "format": "graph_string"})
 
     return ret
 

@@ -24,6 +24,7 @@ document.body.clientHeight;
 var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
+var currently_showing_label_alternatives = false
 
 
 function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
@@ -241,7 +242,7 @@ function set_layout(layout) {
     // normalize the heights
     let total_height = canvas_heights.reduce((a, b) => a + b, 0)
     for (let i = 0; i < canvas_heights.length; i++) {
-        canvas_heights[i] = 50 * canvas_heights[i] / total_height
+        canvas_heights[i] = 45 * canvas_heights[i] / total_height
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
@@ -306,10 +307,11 @@ function set_corpus_position(new_position) {
 d3.select("body").on("keydown", function () {
     // keyCode of alt key is 18
     if (d3.event.keyCode == 17) {
-        if (current_mouseover_node != null) {
+        if (current_mouseover_node != null && !currently_showing_label_alternatives) {
             show_label_alternatives(current_mouseover_node,
                 current_mouseover_label_alternatives,
                 current_mouseover_canvas)
+            currently_showing_label_alternatives = true
         }
     }
 });
@@ -317,8 +319,9 @@ d3.select("body").on("keydown", function () {
 d3.select("body").on("keyup", function () {
     // keyCode of alt key is 18
     if (d3.event.keyCode == 17) {
-        if (current_mouseover_node != null) {
+        if (current_mouseover_node != null && currently_showing_label_alternatives) {
             hide_label_alternatives(current_mouseover_canvas)
+            currently_showing_label_alternatives = false
         }
     }
 });

@@ -40,7 +40,6 @@ class ObjectTableInstanceReader(InstanceReader):
 
 
 def _convert_object(format_name, obj):
-    print(obj)
     instance_reader = get_instance_reader_by_name(format_name)
     return instance_reader.get_visualization_type(), instance_reader.convert_single_instance(obj)
 
