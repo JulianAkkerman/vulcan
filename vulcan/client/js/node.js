@@ -3,7 +3,9 @@ const GRAPH_LABEL_MARGIN = 20
 
 const SHADOW_OVERSIZE = 2
 
-const ALL_NODES = []
+const ALL_NODES = {}
+
+let UNIQUE_NODE_COUNTER = 0
 
 class Node {
     constructor(node_position, group, rectangle, content, border_color, shadow) {
@@ -16,7 +18,18 @@ class Node {
         this.shadow = shadow
         this.baseFillColors = "white"
         this.currentFillColors = "white"
-        this.setColor(this.currentFillColors)
+
+        // for debugging: draw a boundary rectangle
+        // this.group.append("rect")
+        //     .attr("x", -2)
+        //     .attr("y", -2)
+        //     .attr("width", this.getWidth()+4)
+        //     .attr("height", this.getHeight()+4)
+        //     .attr("stroke", "red")
+        //     .attr("stroke-width", 2)
+        //     .attr("fill-opacity", 0.0)
+
+        console.log("mask_rect_" + this.position.id)
         this.mask_rect = this.group.append("defs").append("clipPath")
             .attr("id", "mask_rect_" + this.position.id)
             .append("rect")
@@ -26,6 +39,17 @@ class Node {
             .attr("y", 0)
             .attr("width", this.getWidth())
             .attr("height", this.getHeight())
+            // .attr("x", -200)
+            // .attr("y", -200)
+            // .attr("width", 400)
+            // .attr("height", 400)
+            .attr("class", this.rectangle.attr("class"))
+        this.setColor(this.currentFillColors)
+        // get absolute position on page
+        // console.log("constructor " + this.position.id)
+        // console.log(this.group.select(".color_rect").node().getBoundingClientRect().x)
+        // console.log(this.mask_rect.node().getBoundingClientRect().x)
+        // console.log(this.rectangle.node().getBoundingClientRect().x)
         this.registeredEdges = []
     }
 
@@ -34,6 +58,11 @@ class Node {
         this.position.x = x
         this.position.y = y
         this.group.attr("transform", "translate(" + this.position.x + "," + this.position.y + ")")
+        // this.mask_rect.attr("transform", "translate(" + this.position.x + "," + this.position.y + ")")
+        // console.log("translate " + this.position.id)
+        // console.log(this.group.select(".color_rect").node().getBoundingClientRect().x)
+        // console.log(this.mask_rect.node().getBoundingClientRect().x)
+        // console.log(this.rectangle.node().getBoundingClientRect().x)
     }
 
     getWidth() {
@@ -114,12 +143,22 @@ class Node {
                 }
             }
         } else {
+            if (this.content.getHeight() > 30) {
+                console.log("setting graph node color to " + colors)
+            }
             this.createColorRect(colors, 0, 0, 1, 1)
         }
 
         if (this.shadow != null) {
+            if (this.content.getHeight() > 30) {
+                console.log("lowering shadow")
+            }
             this.shadow.lower()
         }
+        // console.log("setColor " + this.position.id)
+        // console.log(this.group.select(".color_rect").node().getBoundingClientRect().x)
+        // console.log(this.mask_rect.node().getBoundingClientRect().x)
+        // console.log(this.rectangle.node().getBoundingClientRect().x)
     }
 
     setBaseColors(colors) {
@@ -151,18 +190,19 @@ function create_and_register_node_object(node_position, node_group, rect, conten
                                          shadow=null) {
     let node_object = new Node(node_position, node_group, rect, content_object, border_color, shadow)
 
-    ALL_NODES.push(node_object)
+    ALL_NODES[node_position.id] = node_object
 
     return node_object;
 }
 
 function getNodePosition(x, y) {
-    return [{x: x, y: y, id: ALL_NODES.length}];
+    return [{x: x, y: y, id: UNIQUE_NODE_COUNTER++}];
 }
 
 function makeNodeGroup(canvas, node_position, classname) {
     return canvas.data(node_position).append("g")
         .attr("transform", function (d) {
+            // console.log("makeNodeGroup translate(" + d.x + "," + d.y + ")")
             return "translate(" + d.x + "," + d.y + ")";
         })
         .attr("class", classname);
@@ -181,8 +221,7 @@ function makeNodeRectangle(is_bold, node_group, content_object, classname) {
         .attr("width", content_object.getWidth())
         .attr("height", content_object.getHeight())
         .attr("fill", fill)
-        // 50% opacity
-        .attr("fill-opacity", 0.0)
+        .attr("fill-opacity", 0.0)  // fill comes from Node#setColor()
         .attr("stroke-width", stroke_width)
         .attr("class", classname)
         // .lower();
@@ -217,6 +256,7 @@ function makeCellShadow(node_group, content_object, classname) {
         .attr("width", content_object.getWidth() + 2 * SHADOW_OVERSIZE)
         .attr("height", content_object.getHeight() + 2 * SHADOW_OVERSIZE)
         .attr("fill", "#cccccc")
+        // .attr("fill", "green")
         .attr("stroke-width", "0")
         .attr("class", classname)
         // blur
@@ -272,8 +312,6 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, classname
 
     let cell = create_and_register_node_object(node_position, node_group, rect, content_object, "black",
         shadow)
-
-    cell.setColor("white")
 
     return cell
 

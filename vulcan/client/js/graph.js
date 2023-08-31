@@ -35,7 +35,7 @@ class Graph {
         this.mouseover_texts = mouseover_texts
         this.create_all_nodes()
         this.compute_node_positions(top_left_x, top_left_y)
-        if (draw_boundary_box) {
+        if (false) { //draw_boundary_box) {
             this.draw_boundary_box(top_left_x, top_left_y)
         }
         this.draw_graph()
