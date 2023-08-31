@@ -1,11 +1,12 @@
 import pickle
 from typing import Iterable
 
+from vulcan.data_handling.linguistic_objects.trees.am_tree_as_dict import SOURCE_PATTERN
 from vulcan.pickle_builder.pickle_builder import PickleBuilder
 
 import penman
 
-from amconll import parse_amconll, AMSentence
+from amconll import parse_amconll, AMSentence, Entry
 
 
 def main():
@@ -47,7 +48,7 @@ def main():
             if entry.fragment == "_":
                 tagged_token.append(("token", entry.fragment))
             else:
-                tagged_token.append(("graph_string", entry.fragment.replace("--LEX--", entry.lexlabel)))
+                tagged_token.append(("graph_string", relabel_supertag(entry.fragment, entry)))
 
         pickle_builder.add_instances_by_name({"Gold graph": gold_amr,
                                               "Predicted graph": predicted_amr,
@@ -99,17 +100,26 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():
             supertag = supertag.split("--TYPE--")[0]
-            print(supertag)
             if supertag == "_" or supertag == "NONE":
                 label_alternatives_here.append({"score": score,
                                                 "label": supertag,
                                                 "format": "token"})
             else:
                 label_alternatives_here.append({"score": score,
-                                                "label": supertag.replace("--LEX--", amconll_sent.words[i].lexlabel),
+                                                "label": relabel_supertag(supertag, amconll_sent.words[i]),
                                                 "format": "graph_string"})
 
     return ret
+
+
+def relabel_supertag(supertag, amconll_entry: Entry):
+    if supertag == "_" or supertag == "NONE":
+        return supertag
+    else:
+        supertag = supertag.replace("--LEX--", amconll_entry.lexlabel).replace("$LEMMA$", amconll_entry.lemma)\
+                    .replace("$FORM$", amconll_entry.token)
+        supertag = supertag.replace("<root>", "")
+        return SOURCE_PATTERN.sub(r" / \g<source>", supertag)
 
 
 def get_edge_name(target_pos, amconll_sent: AMSentence):

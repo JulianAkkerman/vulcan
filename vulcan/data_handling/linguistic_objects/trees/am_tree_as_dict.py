@@ -2,7 +2,7 @@ import io
 import re
 import random
 
-from amconll import AMSentence, parse_amconll
+from amconll import AMSentence, parse_amconll, Entry
 
 from vulcan.data_handling.linguistic_objects.graphs.graph_as_dict import add_child, create_root, ROOT_EDGE_LABEL
 from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
@@ -41,7 +41,7 @@ def _from_amtree_entry(entry, entry_id, amtree, address, parent_in_result, all_a
     :return:
     """
     all_addresses.append(address)
-    node_label = get_graph_string_from_node_label(entry.fragment, entry.lexlabel)
+    node_label = get_graph_string_from_node_label(entry.fragment, entry)
     node_label = from_penman_graph(decode(node_label))
     if parent_in_result is None:
         result = create_root(str(entry_id), node_label, label_type="GRAPH")
@@ -62,8 +62,9 @@ def from_string(string):
     return from_amtree(next(iter(parse_amconll(io.StringIO(string+"\n\n")))))
 
 
-def get_graph_string_from_node_label(fragment, lexlabel):
-    node_label = fragment.replace("--LEX--", lexlabel)
+def get_graph_string_from_node_label(fragment, amconll_entry: Entry):
+    node_label = fragment.replace("--LEX--", amconll_entry.lexlabel).replace("$LEMMA$", amconll_entry.lemma)\
+                    .replace("$FORM$", amconll_entry.token)
     node_label = node_label.replace("<root>", "")
     return SOURCE_PATTERN.sub(r" / \g<source>", node_label)
 
@@ -92,7 +93,7 @@ def generate_random_label_alternatives(amtree: AMSentence):
     all_node_labels = []
     for entry in amtree.words:
         if entry.fragment != "_":
-            all_node_labels.append(get_graph_string_from_node_label(entry.fragment, entry.lexlabel))
+            all_node_labels.append(get_graph_string_from_node_label(entry.fragment, entry))
     label_alternatives = {}
     for zero_based_id, entry in enumerate(amtree):
         number_alternatives = min(len(all_node_labels), 3)
