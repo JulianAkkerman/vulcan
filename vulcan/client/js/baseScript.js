@@ -25,7 +25,7 @@ var current_mouseover_node = null
 var current_mouseover_canvas = null
 var current_mouseover_label_alternatives = null
 var currently_showing_label_alternatives = false
-
+const linker_dropdowns = {}
 
 function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
     // console.log("input width_percent ", width_percent)
@@ -221,6 +221,24 @@ var alignment_color_scale = d3.scaleLinear().range(['white','#0742ac']);  // jus
 sio.on("set_linker", (data) => {
     let canvas_name1 = data["name1"]
     let canvas_name2 = data["name2"]
+    // get arbitrary score from the linker
+    let nn1 = Object.keys(data["scores"])[0]
+    let nn2 = Object.keys(data["scores"][nn1])[0]
+    let score = data["scores"][nn1][nn2]
+    if (isNaN(score)) {
+        // then score must be a list or a table
+        let is_table = isNaN(score[0])
+        let headcount
+        let layercount
+        if (is_table) {
+            headcount = score[0].length
+            layercount = score.length
+        } else {
+            headcount = score.length
+            layercount = 0
+        }
+        create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercount)
+    }
     for (let node_name1 in data["scores"]) {
         for (let node_name2 in data["scores"][node_name1]) {
             let score = data["scores"][node_name1][node_name2]
@@ -234,6 +252,27 @@ sio.on("set_linker", (data) => {
         }
     }
 })
+
+function create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercount) {
+    let label = d3.select("div#headerId").append("text")
+        .text("Linker " + canvas_name1 +"/" + canvas_name2)
+        .attr("class", "removeOnReset")
+        .style("margin-left", "10px")
+    let dropdown = d3.select("div#headerId")
+        .append("select")
+        .attr("name", canvas_name1+canvas_name2+"Selector")
+        .attr("class", "removeOnReset")
+        .style("margin-left", "5px")
+
+    let option_strings = ["asdf", "qwert", "zxcv"]
+    let options = dropdown.selectAll("option")
+        .data(option_strings)
+        .enter()
+        .append("option")
+        .text(function (d) { return d; })
+        .attr("value", function (d) { return d; })
+    linker_dropdowns[[canvas_name1, canvas_name2]] = dropdown
+}
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
@@ -308,6 +347,7 @@ function set_layout(layout) {
 
 function reset() {
     d3.selectAll(".layoutDiv").remove()
+    d3.selectAll(".removeOnReset").remove()
 }
 
 sio.on("set_corpus_length", (data) => {
