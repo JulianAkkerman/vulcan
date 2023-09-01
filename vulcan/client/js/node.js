@@ -140,7 +140,7 @@ class Node {
 
     setColor(colors) {
         this.currentFillColors = colors
-        this.group.select(".color_rect").remove()
+        this.group.selectAll(".color_rect").remove()
         // check if colors is an Array
         if (Array.isArray(colors)) {
             if (colors.length === 0) {

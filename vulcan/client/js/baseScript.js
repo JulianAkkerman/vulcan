@@ -28,9 +28,9 @@ var currently_showing_label_alternatives = false
 
 
 function create_canvas(width_percent, height_percent, name="", only_horizontal_zoom=false) {
-    console.log("input width_percent ", width_percent)
+    // console.log("input width_percent ", width_percent)
     let canvas_width = width_percent*window_width/100
-    console.log("original canvas_width ", canvas_width)
+    // console.log("original canvas_width ", canvas_width)
     let canvas_height = window_height * height_percent/100
 
     let container = d3.select("div#chartId")
@@ -45,7 +45,7 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
       //       .style("padding", "0px")
             // .style("padding-right", "0px")
 
-    console.log("container width "+container.node().getBoundingClientRect().width)
+    // console.log("container width "+container.node().getBoundingClientRect().width)
 
     let canvas_gap = 16 // that's 3 + 3 for the borders. The canvas is 10px down due to the css file. 10px less width adds a horizontal margin
     let canvas = container.append("svg")
@@ -76,7 +76,7 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         d3.select(this).select("g").attr("transform", d3.event.transform);
       }))
 
-    console.log("canvas width after creation "+canvas.node().getBoundingClientRect().width)
+    // console.log("canvas width after creation "+canvas.node().getBoundingClientRect().width)
 
 
     if (name !== "") {
@@ -100,10 +100,10 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
         // Position the text relative to the SVG element
         // let svgRect = container.node().getBoundingClientRect(); // Get the bounding box of the SVG element
-        console.log(width_percent)
+        // console.log(width_percent)
         // let canvas_width = canvas.attr("width")// window_width * width_percent/100.0
-        console.log("canvas width at end "+canvas_width)
-        console.log("canvas right at end "+canvas.node().getBoundingClientRect().right)
+        // console.log("canvas width at end "+canvas_width)
+        // console.log("canvas right at end "+canvas.node().getBoundingClientRect().right)
         // use the -100 for a placeholder of the name for now.
         // get width of the text_div
         let text_div_width = text_div.node().getBoundingClientRect().width
@@ -226,10 +226,11 @@ sio.on("set_linker", (data) => {
             let score = data["scores"][node_name1][node_name2]
             let node1 = canvas_name_to_node_name_to_node_dict[canvas_name1][node_name1]
             let node2 = canvas_name_to_node_name_to_node_dict[canvas_name2][node_name2]
+            let whitespaceRegex = /\s/g
             register_mousover_alignment(node1, node2, score,
-                (canvas_name1+"_"+node_name1+"_"+canvas_name2+"_"+node_name2).replace(" ", "_"))
+                (canvas_name1+"_"+node_name1+"_"+canvas_name2+"_"+node_name2).replace(whitespaceRegex, "_"))
             register_mousover_alignment(node2, node1, score,
-                (canvas_name2+"_"+node_name2+"_"+canvas_name1+"_"+node_name1).replace(" ", "_"))
+                (canvas_name2+"_"+node_name2+"_"+canvas_name1+"_"+node_name1).replace(whitespaceRegex, "_"))
         }
     }
 })
