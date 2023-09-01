@@ -229,13 +229,11 @@ sio.on("set_linker", (data) => {
         // then score must be a list or a table
         let is_table = isNaN(score[0])
         let headcount
-        let layercount
+        let layercount = score.length
         if (is_table) {
             headcount = score[0].length
-            layercount = score.length
         } else {
-            headcount = score.length
-            layercount = 0
+            headcount = 0
         }
         create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercount)
     }
@@ -245,10 +243,16 @@ sio.on("set_linker", (data) => {
             let node1 = canvas_name_to_node_name_to_node_dict[canvas_name1][node_name1]
             let node2 = canvas_name_to_node_name_to_node_dict[canvas_name2][node_name2]
             let whitespaceRegex = /\s/g
+            // console.log(linker_dropdowns)
+            // console.log(linker_dropdowns[[canvas_name1, canvas_name2]])
+            let dropdown = linker_dropdowns[[canvas_name1, canvas_name2]]
+            // console.log(dropdown_value)
             register_mousover_alignment(node1, node2, score,
-                (canvas_name1+"_"+node_name1+"_"+canvas_name2+"_"+node_name2).replace(whitespaceRegex, "_"))
+                (canvas_name1+"_"+node_name1+"_"+canvas_name2+"_"+node_name2).replace(whitespaceRegex, "_"),
+                dropdown)
             register_mousover_alignment(node2, node1, score,
-                (canvas_name2+"_"+node_name2+"_"+canvas_name1+"_"+node_name1).replace(whitespaceRegex, "_"))
+                (canvas_name2+"_"+node_name2+"_"+canvas_name1+"_"+node_name1).replace(whitespaceRegex, "_"),
+                dropdown)
         }
     }
 })
@@ -264,39 +268,75 @@ function create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercoun
         .attr("class", "removeOnReset")
         .style("margin-left", "5px")
 
-    let option_strings = ["asdf", "qwert", "zxcv"]
-    let options = dropdown.selectAll("option")
-        .data(option_strings)
+    let option_values = []
+    option_values.push(["all"])
+    for (let i = 0; i < layercount; i++) {
+        option_values.push(["layer", i])
+        for (let j = 0; j < headcount; j++) {  // this actually makes the case distinction between table and list autmatically
+            option_values.push(["layer+head", i, j])
+        }
+    }
+
+    dropdown.selectAll("option")
+        .data(option_values)
         .enter()
         .append("option")
-        .text(function (d) { return d; })
+        .text(function (d) {
+            if (d[0] == "all") {
+                return "All layers (and heads)"
+            } else if (d[0] == "layer") {
+                return "Layer " + (d[1] + 1)
+            } else if (d[0] == "layer+head") {
+                return "Layer " + (d[1] + 1) + ", Head " + (d[2] + 1)
+            }
+        })
         .attr("value", function (d) { return d; })
+
+    dropdown.property("value", ["all"])
+
     linker_dropdowns[[canvas_name1, canvas_name2]] = dropdown
 }
 
-function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id) {
+function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id, dropdown) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
+                let dropdown_value = dropdown.property("value").split(",")
+                console.log(dropdown_value)
                 // check if score is a number
                 if (isNaN(score)) {
                     // then score must be a list or table of numbers
                     if (isNaN(score[0])) {
                         // then we have a table
-                        let table = []
-                        for (let i = 0; i < score.length; i++) {
-                            let table_row = []
-                            for (let j = 0; j < score[i].length; j++) {
-                                table_row.push(alignment_color_scale(Math.pow(score[i][j], 0.75)))
+                        if (dropdown_value[0] == "all") {
+                            let table = []
+                            for (let i = 0; i < score.length; i++) {
+                                let table_row = []
+                                for (let j = 0; j < score[i].length; j++) {
+                                    table_row.push(alignment_color_scale(Math.pow(score[i][j], 0.75)))
+                                }
+                                table.push(table_row)
                             }
-                            table.push(table_row)
+                            aligned_node.setColor(table)
+                        } else if (dropdown_value[0] == "layer") {
+                            let list = []
+                            for (let i = 0; i < score[parseInt(dropdown_value[1])].length; i++) {
+                                list.push(alignment_color_scale(Math.pow(score[parseInt(dropdown_value[1])][i], 0.75)))
+                            }
+                            aligned_node.setColor(list)
+                        } else if (dropdown_value[0] == "layer+head") {
+                            aligned_node.setColor(alignment_color_scale(Math.pow(score[parseInt(dropdown_value[1])][parseInt(dropdown_value[2])], 0.75)))
                         }
-                        aligned_node.setColor(table)
                     } else {
                         // then we have a list of numbers
-                        let list = []
-                        for (let i = 0; i < score.length; i++) {
-                            list.push(alignment_color_scale(Math.pow(score[i], 0.75)))
+                        if (dropdown_value[0] == "all") {
+                            let list = []
+                            for (let i = 0; i < score.length; i++) {
+                                // wrap in list to stack layers on top of each other, not left to right
+                                list.push([alignment_color_scale(Math.pow(score[i], 0.75))])
+                            }
+                            aligned_node.setColor(list)
+                        } else if (dropdown_value[0] == "layer") {
+                            aligned_node.setColor(alignment_color_scale(Math.pow(score[parseInt(dropdown_value[1])], 0.75)))
                         }
-                        aligned_node.setColor(list)
                     }
                 } else {
                     // then score is just a single number
