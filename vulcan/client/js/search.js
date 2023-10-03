@@ -75,8 +75,8 @@ let searchFilterRects
 function initializeSearchFilters() {
     searchFilters = []
     searchFilterRects = []
-    // addEmptySearchFilter()
-    addDebuggingSearchFilters()
+    addEmptySearchFilter()
+    // addDebuggingSearchFilters()
     console.log(searchFilters)
 }
 
