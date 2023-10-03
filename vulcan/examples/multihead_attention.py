@@ -21,14 +21,15 @@ def main():
                                  [0, 0, 0, 0, 0, 0],
                                  [0, 0, 0, 0, 0, 0],
                                  [0, 0, 0, 0, 0, 0],
-                                 [0, .05, .3, 0, .05, .6]]
+                                 [0, .2, .5, 0.1, .2, 0]]
 
     num_heads = 4
     num_layers = 6
 
-    linker_g2e_data = [get_half_random_attentions(base_attention_scores_g2e, num_heads, num_layers)]
+    linker_g2e_data = [get_half_random_attentions(base_attention_scores_g2e, num_heads, num_layers, False)]
 
-    linker_g2g_data = [get_half_random_attentions(base_attention_scores_g2g, num_heads, num_layers)]
+    linker_g2g_data = [get_half_random_attentions(base_attention_scores_g2g, num_heads, num_layers, True)]
+
 
     final_data = pickle_builder._make_data_for_pickle()
     final_data.append({"type": "linker",
@@ -45,7 +46,7 @@ def main():
         json.dump(final_data, f)
 
 
-def get_half_random_attentions(base_attention_scores_g2e, num_heads, num_layers):
+def get_half_random_attentions(base_attention_scores_g2e, num_heads, num_layers, last_entry_is_0):
     linker_g2e_data = {}
     for i, row in enumerate(base_attention_scores_g2e):
         linker_g2e_data[i] = {}
@@ -54,10 +55,13 @@ def get_half_random_attentions(base_attention_scores_g2e, num_heads, num_layers)
             for layer in range(num_layers):
                 table.append([])
                 for head in range(num_heads):
-                    if random.random() > 0.5:
-                        table[-1].append((3*score + random.random()) / 4)
+                    if j < len(row)-1 or not last_entry_is_0:
+                        if random.random() > 0.5:
+                            table[-1].append((3*score + random.random()) / 4)
+                        else:
+                            table[-1].append((score + random.random()) / 2)
                     else:
-                        table[-1].append((score + random.random()) / 2)
+                        table[-1].append(0)
             linker_g2e_data[i][j] = table
     return linker_g2e_data
 

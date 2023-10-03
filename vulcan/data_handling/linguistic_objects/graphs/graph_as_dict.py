@@ -10,6 +10,12 @@ be sent as-is to javascript on the client side via socket-IO.
 
 
 ROOT_EDGE_LABEL = "ROOT"
+NODE_NAME_KEY = "node_name"
+NODE_LABEL_KEY = "node_label"
+LABEL_TYPE_KEY = "label_type"
+INCOMING_EDGE_KEY = "incoming_edge"
+IS_REENTRANCY_KEY = "is_reentrancy"
+CHILD_NODES_KEY = "child_nodes"
 
 
 def create_root(node_name, node_label, label_type="STRING"):
@@ -48,6 +54,10 @@ def for_each_node_top_down(graph_as_dict, node_consumer):
     node_consumer(graph_as_dict)
     for child in graph_as_dict["child_nodes"]:
         for_each_node_top_down(child, node_consumer)
+
+
+def edge_label_has_inverse_direction(edge_label: str):
+    return edge_label.endswith("-of")
 
 
 

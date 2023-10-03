@@ -10,7 +10,18 @@ class NodeContentEquals(InnerGraphNodeLayer):
     """
 
     def apply(self, obj: Tuple[Dict, Dict], user_arguments: List[str]):
-        return obj is not None and obj[0]["node_label"].strip().lower() == user_arguments[0].strip().lower()
+        if obj is None:
+            return False
+        if obj[0] is None:
+            print("Warning: null node in search")
+            print(obj)
+        if obj[0]["node_label"] is None:
+            # then we have an unlabeled node, or a reentrancy. either way, we don't want to match it
+            return False
+        if user_arguments[0] is None:
+            print("Warning: user argument")
+            print(user_arguments)
+        return obj[0]["node_label"].strip().lower() == user_arguments[0].strip().lower()
 
     def get_description(self) -> str:
         return "This checks if a node is labeled with the given string (modulo casing and outer whitespace)."

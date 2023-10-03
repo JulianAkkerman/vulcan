@@ -42,7 +42,11 @@ def _from_amtree_entry(entry, entry_id, amtree, address, parent_in_result, all_a
     """
     all_addresses.append(address)
     node_label = get_graph_string_from_node_label(entry.fragment, entry)
-    node_label = from_penman_graph(decode(node_label))
+    try:
+        node_label = from_penman_graph(decode(node_label))
+    except Exception as e:
+        print("Error while decoding node label: " + node_label)
+        node_label = from_penman_graph(decode("(e / ERROR)"))
     if parent_in_result is None:
         result = create_root(str(entry_id), node_label, label_type="GRAPH")
     else:

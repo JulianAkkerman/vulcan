@@ -34,4 +34,7 @@ class OuterGraphNodeLayer(OuterSearchLayer):
 class InnerGraphNodeLayer(InnerSearchLayer, ABC):
 
     def apply(self, obj: Tuple[Dict, Dict], user_arguments: List[str]):
+        """
+        obj is a pair of (node, graph), both of the "graph_as_dict" dictionary format.
+        """
         raise NotImplementedError()

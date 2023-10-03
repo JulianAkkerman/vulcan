@@ -363,7 +363,7 @@ function set_layout(layout) {
             if (vis_type == "STRING") {
                 height_here = Math.max(height_here, 15)
             } else {
-                height_here = Math.max(height_here, 99)
+                height_here = Math.max(height_here, 100)
             }
         })
         canvas_heights.push(height_here)
@@ -371,7 +371,7 @@ function set_layout(layout) {
     // normalize the heights
     let total_height = canvas_heights.reduce((a, b) => a + b, 0)
     for (let i = 0; i < canvas_heights.length; i++) {
-        canvas_heights[i] = 45 * canvas_heights[i] / total_height
+        canvas_heights[i] = 45 * canvas_heights[i] / Math.max(total_height, 100)
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]

@@ -55,7 +55,7 @@ let searchWindowCanvas = null
 const FILTER_COLORS = ["#b3ffb3", "#ff9999", "#ffffb3", "#b3ffff", "#ffb366", "#e6ccff"]
 const BORDER_COLOR = "#444444"
 const SEARCH_WINDOW_WIDTH = 1000
-const SEARCH_WINDOW_HEIGHT = 600
+const SEARCH_WINDOW_HEIGHT = 300
 
 const FILTER_SELECTOR_SIZE = 40
 const FILTER_SELECTOR_BUFFER = 15
@@ -81,20 +81,11 @@ function initializeSearchFilters() {
 }
 
 function addDebuggingSearchFilters() {
-    let uniqueid1 = makeUniqueInnerLayerID("CellContentEquals")
-    let uniqueid2 = makeUniqueInnerLayerID("CellContentMatches")
     let uniqueid3 = makeUniqueInnerLayerID("NodeContentEquals")
-    let argsTable = {}
-    argsTable[uniqueid1] = ["dog"]
-    argsTable[uniqueid2] = ["dog"]
-    let argsTree = {}
-    argsTree[uniqueid3] = ["dog"]
-    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
-        [uniqueid1, uniqueid2], argsTable))
-    addSearchFilter(new FilterInfo("Sentence", "OuterTableCellsLayer",
-        [uniqueid1, uniqueid2], argsTable))  // duplicate, to test dual highlighting
-    addSearchFilter(new FilterInfo("Tree", "OuterGraphNodeLayer", [uniqueid3],
-        argsTree))
+    let argsGraph = {}
+    argsGraph[uniqueid3] = ["and"]
+    addSearchFilter(new FilterInfo("Gold graph", "OuterGraphNodeLayer", [uniqueid3],
+        argsGraph))
 }
 
 function addEmptySearchFilter() {
