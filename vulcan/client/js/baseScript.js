@@ -444,6 +444,12 @@ d3.select("body").on("keydown", function () {
                 current_mouseover_canvas)
             currently_showing_label_alternatives = true
         }
+    } else if (d3.event.keyCode == 13) {
+        console.log("enter pressed")
+        if (searchWindowVisible) {
+            performSearch()
+            onSearchIconClick()  // little hack to make the search window disappear
+        }
     }
 });
 

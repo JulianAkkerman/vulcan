@@ -71,7 +71,6 @@ const EMPTY_SELECTION_TEXT = "-- Select --"
 let searchFilters
 let searchFilterRects
 
-
 function initializeSearchFilters() {
     searchFilters = []
     searchFilterRects = []

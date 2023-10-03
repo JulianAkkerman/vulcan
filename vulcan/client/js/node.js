@@ -142,7 +142,6 @@ class Node {
         this.currentFillColors = colors
         this.group.selectAll(".color_rect").remove()
         // check if colors is an Array
-        console.log(colors)
         if (Array.isArray(colors)) {
             if (colors.length === 0) {
                 this.setColor("white")
