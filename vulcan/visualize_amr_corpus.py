@@ -11,6 +11,8 @@ from vulcan.data_handling.format_names import FORMAT_NAME_STRING, FORMAT_NAME_GR
 def main():
     parser = ArgumentParser()
     parser.add_argument("corpus_filename", help="Path to the AMR corpus file you want to visualize.")
+    parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050,
+                        help="Specify the port to use for this visualization.")
     parser.add_argument("-pf", "--propbank-frames", type=str,
                         action="store", dest="propbank_frames", default=None,
                         help="Path to a folder containing XML files with Propbank frames, "
@@ -52,9 +54,9 @@ def main():
 
     layout = BasicLayout(data_corpus.slices.values(), data_corpus.linkers, data_corpus.size)
 
-    print(layout.layout)
+    # print(layout.layout)
 
-    server = Server(layout)
+    server = Server(layout, port=args.port)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 
