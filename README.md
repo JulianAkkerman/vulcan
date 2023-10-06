@@ -3,9 +3,13 @@
 
 ## Setup
 
+Vulcan requires several packages that can all be installed with pip:
+
 ```
 pip install python-socketio eventlet penman amconll wikipedia nltk conllu
 ```
+
+You may want to do this within a virtual environment like a conda environment, as per your preference.
 
 ## Run
 
