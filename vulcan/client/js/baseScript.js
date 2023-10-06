@@ -87,6 +87,7 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
         let canvas_right = canvas.node().getBoundingClientRect().right
         let canvas_top = canvas.node().getBoundingClientRect().top
         let text_div = d3.select("div#chartId").append("div")
+            .attr("class", "removeOnReset")
             .style("position", "absolute") // Add position property to the text div
             // .style("top", "10px") // Set position relative to the container div
             // .style("right", "10px") // Set position relative to the container div
@@ -136,7 +137,6 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
 d3.select("#previousButton")
     .on("click", function() {
-      console.log("previous_button_clicked");
         if (set_corpus_position(current_corpus_position - 1)) {
             sio.emit("instance_requested", current_corpus_position);
         }
@@ -144,12 +144,11 @@ d3.select("#previousButton")
 
 d3.select("#nextButton")
     .on("click", function() {
-        console.log("next_button_clicked");
         if (set_corpus_position(current_corpus_position + 1)) {
             sio.emit("instance_requested", current_corpus_position);
         } else {
-            console.log("no more instances");
-            console.log(corpus_length)
+            // console.log("no more instances");
+            // console.log(corpus_length)
         }
     });
 
@@ -300,7 +299,6 @@ function create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercoun
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id, dropdown) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
                 let dropdown_value = dropdown.property("value").split(",")
-                console.log(dropdown_value)
                 // check if score is a number
                 if (isNaN(score)) {
                     // then score must be a list or table of numbers
@@ -376,7 +374,6 @@ function set_layout(layout) {
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
         let height = canvas_heights[i] * 0.9
-        console.log("height ", height)
         row.forEach(slice => {
             canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
                 only_horizontal_zoom = slice["visualization_type"] == "STRING")
@@ -445,10 +442,8 @@ d3.select("body").on("keydown", function () {
             currently_showing_label_alternatives = true
         }
     } else if (d3.event.keyCode == 13) {
-        console.log("enter pressed")
         if (searchWindowVisible) {
-            performSearch()
-            onSearchIconClick()  // little hack to make the search window disappear
+            performSearch(true)
         }
     }
 });

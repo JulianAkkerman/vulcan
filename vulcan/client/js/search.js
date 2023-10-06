@@ -76,7 +76,6 @@ function initializeSearchFilters() {
     searchFilterRects = []
     addEmptySearchFilter()
     // addDebuggingSearchFilters()
-    console.log(searchFilters)
 }
 
 function addDebuggingSearchFilters() {
@@ -446,6 +445,7 @@ function drawInnerLayerTexts(searchFilter) {
             // add editable field
             if (j < innerLayer["label"].length - 1) {
                 let editableField = d3.select("div#chartId").append("textarea")
+                    .attr("id", uniqueInnerLayerID + "_" + j)
                     .style("position", "absolute")
                     .style("left", x + "px")
                     .style("top", y + "px")
@@ -608,8 +608,7 @@ function drawSearchNowButton() {
         // round the corners
         .style("border-radius", "5px")
         .on("click", function () {
-            performSearch()
-            onSearchIconClick()  // little hack to make the search window disappear
+            performSearch(true)
         })
         .attr("class", "searchNowButton")
     // make the button stand out a bit more
@@ -622,12 +621,30 @@ function drawSearchNowButton() {
 
 }
 
-function performSearch() {
-    let searchFiltersToTransmit = []
-    for (let i = 0; i < searchFilters.length; i++) {
-        searchFiltersToTransmit.push(searchFilters[i].getTransmissibleDict(FILTER_COLORS[i % FILTER_COLORS.length]))
+function performSearch(doCloseWindow) {
+    if (isSearchLegal()) {
+        let searchFiltersToTransmit = []
+        for (let i = 0; i < searchFilters.length; i++) {
+            searchFiltersToTransmit.push(searchFilters[i].getTransmissibleDict(FILTER_COLORS[i % FILTER_COLORS.length]))
+        }
+        sio.emit("perform_search", searchFiltersToTransmit)
+        if (doCloseWindow) {
+            onSearchIconClick()  // little hack to make the search window disappear
+        }
+    } else {
+        // notfiy user that search is not legal
+        alert("Search is not legal. Please make sure that each search filter has at least one search pattern fully selected.")
     }
-    sio.emit("perform_search", searchFiltersToTransmit)
+}
+
+function isSearchLegal() {
+    for (let i = 0; i < searchFilters.length; i++) {
+        if (searchFilters[i].slice_name == null || searchFilters[i].outer_layer_id == null
+            || searchFilters[i].inner_layer_ids.length == 0) {
+            return false
+        }
+    }
+    return true
 }
 
 function drawXLine(x1, x2, y) {
