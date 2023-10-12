@@ -25,14 +25,17 @@ def main():
 
     penman_corpus = penman.load(args.corpus_filename)
 
-    print(penman_corpus[0].metadata.keys())
-    print(penman_corpus[0].metadata["snt"])
+    # print(penman_corpus[0].metadata.keys())
+    # print(penman_corpus[0].metadata["snt"])
 
     graphs = []
     sentences = []
     for graph in penman_corpus:
         graphs.append(graph)
-        sentences.append(graph.metadata["snt"])
+        if "snt" in graph.metadata:
+            sentences.append(graph.metadata["snt"])
+        else:
+            sentences.append("SENTENCE_NOT_FOUND_IN_CORPUS")
 
     input_dicts = [
         {
