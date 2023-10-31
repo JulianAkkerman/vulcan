@@ -364,16 +364,20 @@ function set_layout(layout) {
                 height_here = Math.max(height_here, 100)
             }
         })
+        height_here = height_here * (1 - 0.2 * (row.length - 1))  // make rows with many entries a bit smaller,
+            // for a more balanced feel.
         canvas_heights.push(height_here)
     })
     // normalize the heights
     let total_height = canvas_heights.reduce((a, b) => a + b, 0)
     for (let i = 0; i < canvas_heights.length; i++) {
-        canvas_heights[i] = 45 * canvas_heights[i] / Math.max(total_height, 100)
+        let normalization_divisor = Math.max(total_height, 100)  // to make a single string row not too big
+        canvas_heights[i] = 45 * canvas_heights[i] / normalization_divisor  // TODO the 45 should probably depend on
+            // TODO the screen height or something
     }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
-        let height = canvas_heights[i] * 0.9
+        let height = canvas_heights[i]
         row.forEach(slice => {
             canvas_dict[slice["name"]] = create_canvas(99/row.length, height, name=slice["name"],
                 only_horizontal_zoom = slice["visualization_type"] == "STRING")

@@ -1,5 +1,5 @@
 import pickle
-from typing import Iterable
+from typing import Iterable, List
 
 from vulcan.data_handling.linguistic_objects.trees.am_tree_as_dict import SOURCE_PATTERN
 from vulcan.pickle_builder.pickle_builder import PickleBuilder
@@ -49,7 +49,7 @@ def main():
             tagged_token = []
             tagged_sentence.append(tagged_token)
             tagged_token.append(("token", entry.token))
-            # tagged_token.append(("token", str(entry.head-1)))
+            tagged_token.append(("token", make_head_info_label(entry.head, amconll_sent)))
             if entry.fragment == "_":
                 tagged_token.append(("token", entry.fragment))
             else:
@@ -85,6 +85,15 @@ def make_dependency_tree(amconll_sent):
     return ret
 
 
+def make_head_info_label(head, amconll_sent: AMSentence):
+    if head == 0:
+        return str(head - 1)
+    elif head >= len(amconll_sent.words):
+        return f"Out of bounds ({head-1})"
+    else:
+        return f"{str(head - 1)} ({amconll_sent.words[head - 1].token})"
+
+
 def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
     ret = {}
     for i, el in enumerate(el_dict[1:len(amconll_sent.words) + 1]):
@@ -95,17 +104,17 @@ def make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent):
             label_alternatives_here.append({"score": score,
                                             "label": edge_label,
                                             "format": "string"})
-    # for i, head in enumerate(head_dict[1:len(amconll_sent.words) + 1]):
-    #     cell_name = str((1, i))
-    #     label_alternatives_here = []
-    #     ret[cell_name] = label_alternatives_here
-    #     for head_index, score in head.items():
-    #         label_alternatives_here.append({"score": score,
-    #                                         "label": str(int(head_index)-1),
-    #                                         "format": "string"})
+    for i, head in enumerate(head_dict[1:len(amconll_sent.words) + 1]):
+        cell_name = str((1, i))
+        label_alternatives_here = []
+        ret[cell_name] = label_alternatives_here
+        for head_index, score in head.items():
+            label_alternatives_here.append({"score": score,
+                                            "label": make_head_info_label(int(head_index), amconll_sent),
+                                            "format": "token"})
 
     for i, st in enumerate(st_dict[1:len(amconll_sent.words) + 1]):
-        cell_name = str((1, i))  # TODO if the above gets commented back in, change to (2, i)
+        cell_name = str((2, i))  # TODO if the above gets commented back out, change to (1, i)
         label_alternatives_here = []
         ret[cell_name] = label_alternatives_here
         for supertag, score in st.items():
@@ -133,7 +142,7 @@ def relabel_supertag(supertag, amconll_entry: Entry):
 
 
 def get_edge_name(target_pos, amconll_sent: AMSentence):
-    head_pos = amconll_sent.get_heads()[target_pos]
+    head_pos = amconll_sent.get_heads()[target_pos] - 1
     return f"depedge_{head_pos}_{target_pos}"
 
 

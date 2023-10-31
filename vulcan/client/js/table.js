@@ -123,6 +123,7 @@ class Table {
     }
 
     create_dependency_tree() {
+        console.log(this.label_alternatives)
         if (this.dependency_tree != null) {
             // sort edges in dependency tree by absolute distance between head and tail, shortest distance first
             this.dependency_tree.sort(function(a, b) {
@@ -192,10 +193,14 @@ class Table {
                         }
                         let y = -DEP_TREE_BASE_Y_OFFSET-current_level*DEP_LEVEL_DISTANCE
                         let color = makeRandomDependencyEdgeColor()
-                        label_at_position[current_level][best_label_slot] = [head, tail, createNodeWithBorderColor(
+                        let dependency_label_node = createNodeWithBorderColor(
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
-                            false, color, dependencyTreeNodeDragged)]
+                            false, color, dependencyTreeNodeDragged)
+                        console.log("depedge_"+head+"_"+tail)
+                        console.log(this.label_alternatives["depedge_"+head+"_"+tail])
+                        this.registerNodeAlternativeMouseover(dependency_label_node, this.label_alternatives["depedge_"+head+"_"+tail])
+                        label_at_position[current_level][best_label_slot] = [head, tail, dependency_label_node]
                         total_min_y = Math.min(total_min_y, y)
                     }
 
@@ -211,10 +216,14 @@ class Table {
                 if (head === -1) {
                     let y = -DEP_TREE_BASE_Y_OFFSET-(max_level_here + 1)*DEP_LEVEL_DISTANCE
                     let color = makeRandomDependencyEdgeColor()
-                    label_at_position[max_level_here + 1][tail] = [head, tail, createNodeWithBorderColor(
+                    let root_label_node =  createNodeWithBorderColor(
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
-                        false, color, dependencyTreeNodeDragged)]
+                        false, color, dependencyTreeNodeDragged)
+                    console.log("depedge_"+head+"_"+tail)
+                    console.log(this.label_alternatives["depedge_"+head+"_"+tail])
+                    this.registerNodeAlternativeMouseover(root_label_node, this.label_alternatives["depedge_"+head+"_"+tail])
+                    label_at_position[max_level_here + 1][tail] = [head, tail, root_label_node]
                     total_min_y = Math.min(total_min_y, y)
                 }
             }
@@ -524,6 +533,7 @@ class Table {
         let strings_object = this
 
         node_object.rectangle.on("mouseover.node_alternative", function() {
+            console.log("mouseover")
                 current_mouseover_node = node_object
                 current_mouseover_canvas = strings_object.canvas
                 current_mouseover_label_alternatives = node_label_alternatives
