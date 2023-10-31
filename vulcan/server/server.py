@@ -7,6 +7,7 @@ import vulcan.search
 from vulcan.search.search import SearchFilter, perform_search_on_layout, create_list_of_possible_search_filters
 from vulcan.data_handling.data_corpus import CorpusSlice
 from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
+from vulcan.data_handling.linguistic_objects.table import cell_coordinates_to_cell_name
 import eventlet
 
 from vulcan.data_handling.visualization_type import VisualizationType
@@ -22,9 +23,9 @@ logger = logging.getLogger(__name__)
 def transform_string_maps_to_table_maps(highlights: Dict[int, Union[str, List[str]]],
                                         label_alternatives_by_node_name: Dict[int, Dict[str, Any]]):
     if label_alternatives_by_node_name:
-        label_alternatives_by_node_name = {str((0, k)): v for k, v in label_alternatives_by_node_name.items()}
+        label_alternatives_by_node_name = {cell_coordinates_to_cell_name(0, k): v for k, v in label_alternatives_by_node_name.items()}
     if highlights:
-        highlights = {str((0, k)): v for k, v in highlights.items()}
+        highlights = {cell_coordinates_to_cell_name(0, k): v for k, v in highlights.items()}
     return highlights, label_alternatives_by_node_name
 
 

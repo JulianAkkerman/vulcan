@@ -83,7 +83,7 @@ def _update_highlights(old_highlights: Optional[List[Dict[Any, Union[str, List[s
     for search_highlight_dict in search_highlight_dicts:  # iterate over corpus
         dict_here = {}
         for key, value in search_highlight_dict.items():  # iterate over all highlights for this corpus entry
-            print(key, value, slice_name)
+            # print(key, value, slice_name)
             if key[0] == slice_name:  # only keep the ones that apply to this corpus slice
                 dict_here[key[1]] = value
         ret.append(dict_here)

@@ -116,7 +116,7 @@ class Table {
             node.setColor("white")
         }
         this.register_mouseover_highlighting(node)
-        if (this.label_alternatives != null) {
+        if (this.label_alternatives != null && node_name in this.label_alternatives) {
             this.registerNodeAlternativeMouseover(node, this.label_alternatives[node_name])
         }
         return node
@@ -197,9 +197,10 @@ class Table {
                             40 + best_label_slot*60,
                             y, label, "STRING", this.canvas,
                             false, color, dependencyTreeNodeDragged)
-                        console.log("depedge_"+head+"_"+tail)
-                        console.log(this.label_alternatives["depedge_"+head+"_"+tail])
-                        this.registerNodeAlternativeMouseover(dependency_label_node, this.label_alternatives["depedge_"+head+"_"+tail])
+                        let depedge_name = "depedge_"+head+"_"+tail
+                        if (this.label_alternatives != null && depedge_name in this.label_alternatives) {
+                            this.registerNodeAlternativeMouseover(dependency_label_node, this.label_alternatives[depedge_name])
+                        }
                         label_at_position[current_level][best_label_slot] = [head, tail, dependency_label_node]
                         total_min_y = Math.min(total_min_y, y)
                     }
@@ -220,9 +221,10 @@ class Table {
                         40 + (tail - 0.5) *60,
                         y, label, "STRING", this.canvas,
                         false, color, dependencyTreeNodeDragged)
-                    console.log("depedge_"+head+"_"+tail)
-                    console.log(this.label_alternatives["depedge_"+head+"_"+tail])
-                    this.registerNodeAlternativeMouseover(root_label_node, this.label_alternatives["depedge_"+head+"_"+tail])
+                    let depedge_name = "depedge_"+head+"_"+tail
+                    if (this.label_alternatives != null && depedge_name in this.label_alternatives) {
+                        this.registerNodeAlternativeMouseover(root_label_node, this.label_alternatives[depedge_name])
+                    }
                     label_at_position[max_level_here + 1][tail] = [head, tail, root_label_node]
                     total_min_y = Math.min(total_min_y, y)
                 }

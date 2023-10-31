@@ -205,6 +205,7 @@ sio.on("set_table", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
+        console.log(highlights)
     }
     let dependency_tree = null
     if ("dependency_tree" in data) {
@@ -298,10 +299,16 @@ function create_linker_dropdown(canvas_name1, canvas_name2, headcount, layercoun
 
 function register_mousover_alignment(mouseover_node, aligned_node, score, linker_id, dropdown) {
     mouseover_node.rectangle.on("mouseover.align_"+linker_id, function() {
-                let dropdown_value = dropdown.property("value").split(",")
                 // check if score is a number
                 if (isNaN(score)) {
                     // then score must be a list or table of numbers
+                    let dropdown_value
+                    if (dropdown != null) {
+                        dropdown_value = dropdown.property("value").split(",")
+                    } else {
+                        console.log("Unexpectedly, no dropdown menu value was given for complex alignment. Using default value 'all'.")
+                        dropdown_value = ["all"]
+                    }
                     if (isNaN(score[0])) {
                         // then we have a table
                         if (dropdown_value[0] == "all") {
