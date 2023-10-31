@@ -33,18 +33,16 @@ def get_dependency_edges_from_conll_sentence(sentence):
     dependency_tree = []
     for token in sentence:
         # format is "source", "target", "label"
-        # print(token.items())
         if token["head"] is not None and isinstance(token["id"], int):
             dependency_tree.append((token["head"] - 1, token["id"] - 1, token["deprel"]))
     return dependency_tree
-
-
 
 
 def conllu_path_to_vulcan_pickle(input_conllu_path, output_pickle_path):
     with open(input_conllu_path, "r", encoding="utf-8") as f:
         sentences = parse(f.read())
     conllu_sentences_to_vulcan_pickle(sentences, output_pickle_path)
+
 
 if __name__ == "__main__":
     # get command line arguments
