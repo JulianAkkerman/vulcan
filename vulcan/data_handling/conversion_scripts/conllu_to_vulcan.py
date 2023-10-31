@@ -13,20 +13,32 @@ def conllu_sentences_to_vulcan_pickle(sentences, output_pickle_path):
     pickle_builder.setup_dependency_tree("Sentence")
 
     for sentence in sentences:
-        table = []
-        for token in sentence:
-            if isinstance(token["id"], int):
-                table.append([token["form"], token["lemma"], token["upos"], token["xpos"]])
+        table = get_table_from_conll_sentence(sentence)
         pickle_builder.add_instance_by_name("Sentence", table)
-        dependency_tree = []
-        for token in sentence:
-            # format is "source", "target", "label"
-            # print(token.items())
-            if token["head"] is not None and isinstance(token["id"], int):
-                dependency_tree.append((token["head"] - 1, token["id"] - 1, token["deprel"]))
+        dependency_tree = get_dependency_edges_from_conll_sentence(sentence)
         pickle_builder.add_dependency_tree_by_name("Sentence", dependency_tree)
 
     pickle_builder.write(output_pickle_path)
+
+
+def get_table_from_conll_sentence(sentence):
+    table = []
+    for token in sentence:
+        if isinstance(token["id"], int):
+            table.append([token["form"], token["lemma"], token["upos"], token["xpos"]])
+    return table
+
+
+def get_dependency_edges_from_conll_sentence(sentence):
+    dependency_tree = []
+    for token in sentence:
+        # format is "source", "target", "label"
+        # print(token.items())
+        if token["head"] is not None and isinstance(token["id"], int):
+            dependency_tree.append((token["head"] - 1, token["id"] - 1, token["deprel"]))
+    return dependency_tree
+
+
 
 
 def conllu_path_to_vulcan_pickle(input_conllu_path, output_pickle_path):
