@@ -169,6 +169,7 @@ sio.on("set_graph", (data) => {
 })
 
 sio.on("set_table", (data) => {
+    console.log(data)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
     let label_alternatives = null
@@ -328,6 +329,7 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
 
 sio.on("set_layout", (layout) => {
     saved_layout = layout
+    d3.select("#parseButton").attr("disabled", null)
     set_layout(layout)
     sio.emit("instance_requested", 0);
 })
@@ -415,6 +417,13 @@ function set_corpus_position(new_position) {
         return false
     }
 }
+
+// on Parse button press
+d3.select("#parseButton")
+    .on("click", function() {
+      d3.select("#parseButton").attr("disabled", true)
+      sio.emit("parse", d3.select("#inputTextField").property("value"))
+    });
 
 d3.select("body").on("keydown", function () {
     // keyCode of alt key is 18

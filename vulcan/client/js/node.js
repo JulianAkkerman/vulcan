@@ -321,6 +321,8 @@ function createCell(x, y, content_data, content_type, canvas, is_bold, classname
 
 
     let node_group = makeNodeGroup(canvas, node_position, classname)
+    console.log("content_data", content_data)
+    console.log("content_type", content_type)
 
     let content_object = createNodeContent(content_data, content_type, node_group, classname)
 

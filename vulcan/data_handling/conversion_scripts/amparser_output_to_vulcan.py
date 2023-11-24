@@ -42,18 +42,10 @@ def main():
                                                                                  supertag_dicts, gold_amrs,
                                                                                  predicted_amrs, amconll_sents):
         label_alternatives_data.append(make_label_alternatives_dict(el_dict, head_dict, st_dict, amconll_sent))
-        tagged_sentence = []
         sentence = []
         for entry in amconll_sent.words:
             sentence.append(entry.token)
-            tagged_token = []
-            tagged_sentence.append(tagged_token)
-            tagged_token.append(("token", entry.token))
-            tagged_token.append(("token", make_head_info_label(entry.head, amconll_sent)))
-            if entry.fragment == "_":
-                tagged_token.append(("token", entry.fragment))
-            else:
-                tagged_token.append(("graph_string", relabel_supertag(entry.fragment, entry)))
+        tagged_sentence = get_am_tagged_sentence(amconll_sent)
 
         pickle_builder.add_instances_by_name({"Gold graph": gold_amr,
                                               "Predicted graph": predicted_amr,
@@ -62,7 +54,7 @@ def main():
         pickle_builder_simple.add_instances_by_name({"Gold graph": gold_amr,
                                                      "Predicted graph": predicted_amr,
                                                      "Sentence": sentence})
-        deptree = make_dependency_tree(amconll_sent)
+        deptree = make_am_dependency_tree(amconll_sent)
         pickle_builder.add_dependency_tree_by_name("Sentence", deptree)
 
     final_data = pickle_builder._make_data_for_pickle()
@@ -76,7 +68,21 @@ def main():
     pickle_builder_simple.write("little_prince_simple.pickle")
 
 
-def make_dependency_tree(amconll_sent):
+def get_am_tagged_sentence(amconll_sent):
+    tagged_sentence = []
+    for entry in amconll_sent.words:
+        tagged_token = []
+        tagged_sentence.append(tagged_token)
+        tagged_token.append(("token", entry.token))
+        tagged_token.append(("token", make_head_info_label(entry.head, amconll_sent)))
+        if entry.fragment == "_":
+            tagged_token.append(("token", entry.fragment))
+        else:
+            tagged_token.append(("graph_string", relabel_supertag(entry.fragment, entry)))
+    return tagged_sentence
+
+
+def make_am_dependency_tree(amconll_sent):
     ret = []
     for i, entry in enumerate(amconll_sent.words):
         if entry.label not in ["IGNORE", "ROOT"]:

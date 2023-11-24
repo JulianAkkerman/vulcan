@@ -31,29 +31,27 @@ def transform_string_maps_to_table_maps(highlights: Dict[int, Union[str, List[st
 
 class Server:
 
-    def __init__(self, layout: BasicLayout, port=5050, show_node_names=False):
+    def __init__(self, create_layout_function, port=5050, show_node_names=False):
 
         self.port = port
         self.current_layouts_by_sid = {}
-        self.basic_layout = layout
 
         def on_connect(sid, environ):
             try:
                 print(sid, 'connected')
-                self.current_layouts_by_sid[sid] = self.basic_layout
-                self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
-                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
+                # self.current_layouts_by_sid[sid] = self.basic_layout
+                # self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
+                # self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
                 self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
-                # print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
-                self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
-                instance_requested(sid, 0)
+                # # print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
+                # self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
+                # instance_requested(sid, 0)
             except Exception as e:
                 logger.exception(e)
                 self.sio.emit("server_error")
 
         def on_disconnect(sid):
             print(sid, 'disconnected')
-            self.current_layouts_by_sid.pop(sid)  # avoiding a memory leak
 
         self.sio = socketio.Server(async_mode='eventlet')
         self.sio.on("connect", on_connect)
@@ -115,25 +113,9 @@ class Server:
                 self.sio.emit("server_error")
 
         @self.sio.event
-        def perform_search(sid, data):
-            try:
-                self.current_layouts_by_sid[sid] = perform_search_on_layout(self.basic_layout,
-                                                                            get_search_filters_from_data(data))
-                self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size)
-                self.sio.emit('search_completed', None)
-            except Exception as e:
-                logger.exception(e)
-                self.sio.emit("server_error")
-
-        @self.sio.event
-        def clear_search(sid):
-            try:
-                self.current_layouts_by_sid[sid] = self.basic_layout
-                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
-                self.sio.emit('search_completed', None)
-            except Exception as e:
-                logger.exception(e)
-                self.sio.emit("server_error")
+        def parse(sid, data):
+            self.current_layouts_by_sid[sid] = create_layout_function(data)
+            self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]))
 
     def start(self):
         wsgi.server(eventlet.listen(('localhost', self.port)), self.app)

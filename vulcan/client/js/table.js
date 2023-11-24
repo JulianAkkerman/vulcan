@@ -104,6 +104,8 @@ class Table {
         // let node = createNode(pos_x, pos_y, token, "STRING", this.canvas, false, null, TOKEN_CLASSNAME)
         // check if token is a string
         let node;
+        console.log("token", token)
+        console.log("typeof token", typeof token)
         if (typeof token === 'string' || token instanceof String) {
             node = createCell(pos_x, pos_y, token, "STRING", this.canvas, false, TOKEN_CLASSNAME)
         } else {
