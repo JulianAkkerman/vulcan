@@ -135,36 +135,9 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 }
 
 
-d3.select("#previousButton")
-    .on("click", function() {
-        if (set_corpus_position(current_corpus_position - 1)) {
-            sio.emit("instance_requested", current_corpus_position);
-        }
-    });
-
-d3.select("#nextButton")
-    .on("click", function() {
-        if (set_corpus_position(current_corpus_position + 1)) {
-            sio.emit("instance_requested", current_corpus_position);
-        } else {
-            // console.log("no more instances");
-            // console.log(corpus_length)
-        }
-    });
-
-d3.select("#searchButton")
-    .on("click", function() {
-      onSearchIconClick()
-    });
-
-d3.select("#clearSearchButton")
-    .on("click", function() {
-      clearSearch()
-    });
 
 sio.on('connect', () => {
     console.log('connected');
-    initializeSearchFilters()
 });
 
 sio.on('disconnect', () => {
@@ -355,8 +328,8 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
 
 sio.on("set_layout", (layout) => {
     saved_layout = layout
-    corpus_length = layout[0][0].length
     set_layout(layout)
+    sio.emit("instance_requested", 0);
 })
 
 function set_layout(layout) {
@@ -373,15 +346,15 @@ function set_layout(layout) {
         })
         height_here = height_here * (1 - 0.2 * (row.length - 1))  // make rows with many entries a bit smaller,
             // for a more balanced feel.
-        canvas_heights.push(height_here)
+        canvas_heights.push(height_here / 2.5) // division replaces previous normalization by total height
     })
-    // normalize the heights
-    let total_height = canvas_heights.reduce((a, b) => a + b, 0)
-    for (let i = 0; i < canvas_heights.length; i++) {
-        let normalization_divisor = Math.max(total_height, 100)  // to make a single string row not too big
-        canvas_heights[i] = 45 * canvas_heights[i] / normalization_divisor  // TODO the 45 should probably depend on
-            // TODO the screen height or something
-    }
+    // no longer normalize the heights
+    // let total_height = canvas_heights.reduce((a, b) => a + b, 0)
+    // for (let i = 0; i < canvas_heights.length; i++) {
+    //     let normalization_divisor = Math.max(total_height, 100)  // to make a single string row not too big
+    //     canvas_heights[i] = 45 * canvas_heights[i] / normalization_divisor  // TODO the 45 should probably depend on
+    //         // TODO the screen height or something
+    // }
     for (let i = 0; i < layout.length; i++) {
         let row = layout[i]
         let height = canvas_heights[i]

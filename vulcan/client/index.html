@@ -2,7 +2,7 @@
 <html>
   <head>
 
-    <title>Graph visualization</title>
+    <title>AM Parser Demo</title>
 
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
@@ -12,20 +12,29 @@
 
   <body>
 
-    <h2>VULCAN visualization</h2>
+    <h2>AM Parser Demo</h2>
     <div id="headerId">
-    <button id="previousButton">&lt;Previous</button>
-    <button id="nextButton">Next&gt;</button>
     <!--input text field with width 50 and right alignment-->
     <!--restricting to numbers as per
     https://stackoverflow.com/questions/13952686/how-to-make-html-input-tag-only-accept-numerical-values
      (somewhere a bit down)-->
-    <input style="text-align: right" type="text" size="5" id="corpusPositionInput" value="0"
-    onkeypress="
-    return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+    <input style="text-align: left" type="text" size="150" id="inputTextField" value="">
     <div style="display: inline;" id="corpusPositionText"></div>
-    <button id="searchButton" style="margin-left: 30px">Search</button>
-    <button id="clearSearchButton" style="margin-left: 5px">Clear Search</button>
+    <button id="parseButton" style="margin-left: 30px">Parse!</button>
+    <!-- select multiple from AMR, DM, PAS, PSD and EDS (checkboxes) -->
+    <div style="display: inline; margin-left: 30px">
+    <input type="checkbox" id="amrCheckbox" name="amr" value="amr" checked>
+    <label for="amr">AMR</label>
+    <input type="checkbox" id="dmCheckbox" name="dm" value="dm">
+    <label for="dm">DM</label>
+    <input type="checkbox" id="pasCheckbox" name="pas" value="pas">
+    <label for="pas">PAS</label>
+    <input type="checkbox" id="psdCheckbox" name="psd" value="psd">
+    <label for="psd">PSD</label>
+    <input type="checkbox" id="edsCheckbox" name="eds" value="eds">
+    <label for="eds">EDS</label>
+
+    </div>
     </div>
 
     <div id="chartId"></div>
