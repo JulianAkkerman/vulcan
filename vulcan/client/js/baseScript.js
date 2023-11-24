@@ -138,8 +138,9 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
 sio.on('connect', () => {
     console.log('connected');
-    sio.emit("parse", {"sentence": "This is a test sentence.",
-            "formats": ["AMR-2017"]})
+    // can automatically submit a parsing request for debugging.
+    // sio.emit("parse", {"sentence": "This is a test sentence.",
+    //         "formats": ["AMR-2017"]})
 });
 
 sio.on('disconnect', () => {

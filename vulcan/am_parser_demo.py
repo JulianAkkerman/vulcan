@@ -18,9 +18,9 @@ input_dict = json.loads(
 
 # print(layout.layout)
 
-def loop_wrapper(request_data):
+def loop_wrapper(request_data, amaddress, amport):
     loop = get_asyncio_loop()
-    layout = loop.run_until_complete(request_data_to_layout(request_data, loop))
+    layout = loop.run_until_complete(request_data_to_layout(request_data, loop, amaddress, amport))
     return layout
 
 
@@ -36,11 +36,11 @@ def get_asyncio_loop():
             raise
 
 
-async def request_data_to_layout(request_data, loop):
+async def request_data_to_layout(request_data, loop, amaddress, amport):
     # TODO run parser on request data to give an input_dict
     print(request_data)
     message = json.dumps(request_data)
-    reader, writer = await asyncio.open_connection('127.0.0.1', 5050,
+    reader, writer = await asyncio.open_connection(amaddress, amport,
                                                    loop=loop)
     print('Send: %r' % message)
     writer.write(message.encode())
@@ -54,11 +54,16 @@ async def request_data_to_layout(request_data, loop):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050,
+    parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5051,
                         help="Specify the port to use for this visualization.")
     parser.add_argument("-a", "--address", type=str, action="store", dest="address", default='localhost',
                         help="Specify the address to use for this visualization. Default is localhost. To host"
                              "on a server, use 0.0.0.0")
+    parser.add_argument("-ap", "--amport", type=int, action="store", dest="amport", default=5050,
+                        help="Specify the port to use for this visualization.")
+    parser.add_argument("-aa", "--amaddress", type=str, action="store", dest="amaddress", default='localhost',
+                        help="Specify the address to use for this visualization. Default is localhost. To receive"
+                             "from a server, may need to change it.")
     # parser.add_argument("-pf", "--propbank-frames", type=str,
     #                     action="store", dest="propbank_frames", default=None,
     #                     help="Path to a folder containing XML files with Propbank frames, "
@@ -70,7 +75,8 @@ def main():
     args = parser.parse_args()
 
     # layout is python object containing the trees, graphs etc we want to visualize
-    server = Server(lambda input_data: loop_wrapper(input_data), address=args.address, port=args.port)
+    server = Server(lambda input_data: loop_wrapper(input_data, args.amaddress, args.amport),
+                    address=args.address, port=args.port)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 
