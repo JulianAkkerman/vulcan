@@ -31,9 +31,10 @@ def transform_string_maps_to_table_maps(highlights: Dict[int, Union[str, List[st
 
 class Server:
 
-    def __init__(self, create_layout_function, port=5050, show_node_names=False):
+    def __init__(self, create_layout_function, port=5050, address='localhost', show_node_names=False):
 
         self.port = port
+        self.address = address
         self.current_layouts_by_sid = {}
 
         def on_connect(sid, environ):
@@ -118,7 +119,7 @@ class Server:
             self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]))
 
     def start(self):
-        wsgi.server(eventlet.listen(('localhost', self.port)), self.app)
+        wsgi.server(eventlet.listen((self.address, self.port)), self.app)
 
     def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
                     highlights: Dict[int, Union[str, List[str]]] = None,

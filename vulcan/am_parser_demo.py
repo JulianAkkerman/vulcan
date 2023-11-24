@@ -56,6 +56,9 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050,
                         help="Specify the port to use for this visualization.")
+    parser.add_argument("-a", "--address", type=int, action="store", dest="address", default='localhost',
+                        help="Specify the address to use for this visualization. Default is localhost. To host"
+                             "on a server, use 0.0.0.0")
     # parser.add_argument("-pf", "--propbank-frames", type=str,
     #                     action="store", dest="propbank_frames", default=None,
     #                     help="Path to a folder containing XML files with Propbank frames, "
@@ -67,7 +70,7 @@ def main():
     args = parser.parse_args()
 
     # layout is python object containing the trees, graphs etc we want to visualize
-    server = Server(lambda input_data: loop_wrapper(input_data), port=args.port)
+    server = Server(lambda input_data: loop_wrapper(input_data), address=args.address, port=args.port)
     server.start()  # at this point, the server is running on this thread, and nothing below will be executed
 
 
