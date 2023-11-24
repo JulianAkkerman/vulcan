@@ -5,6 +5,7 @@ from amconll import parse_amconll
 
 from vulcan.data_handling.conversion_scripts.amparser_output_to_vulcan import get_am_tagged_sentence, \
     make_am_dependency_tree
+from vulcan.data_handling.conversion_scripts.sdp_to_vulcan_dependency_graph import sdp_to_vulcan_dependency_graph
 from vulcan.data_handling.format_names import FORMAT_NAME_AMTREE_STRING, FORMAT_NAME_GRAPH_STRING, \
     FORMAT_NAME_OBJECT_TABLE
 from vulcan.search.inner_search_layer import InnerSearchLayer
@@ -55,6 +56,12 @@ class BasicLayout:
                 slices.append(CorpusSlice("EDS graph", eds_instances, VisualizationType.GRAPH, None,
                                           None, None, None))
                 dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "EDS")
+                slices.append(dependency_tree_slice)
+            elif formalism in ["DM", "PAS", "PSD"]:
+                sentence, dep_tree = sdp_to_vulcan_dependency_graph(data["sdp"])
+                slices.append(CorpusSlice(formalism + " graph", [sentence], VisualizationType.TABLE, None,
+                                            None, None, [dep_tree]))
+                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, formalism)
                 slices.append(dependency_tree_slice)
             else:
                 print("Unknown formalism: " + formalism)

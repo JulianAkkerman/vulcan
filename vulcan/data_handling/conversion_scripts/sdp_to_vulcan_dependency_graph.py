@@ -1,30 +1,26 @@
+import json
+
+example = """{"tokens" : ["This", "is", "a", "test", "."], "edges": [[3, "BV", 4], [2, "ARG1", 1], [2, "ARG2", 4]]}"""
 
 
-example = """#SDP 2015
-#NO-ID
-1	the	the	DT	-	+	q:i-h-h	_	_	_
-2	boy	boy	NN	-	-	n:x	BV	ARG1	ARG1
-3	wants	want	VBZ	+	+	v:e-i-h	_	_	_
-4	to	to	TO	-	-	_	_	_	_
-5	sleep	sleep	VB	-	+	v:e-i	_	ARG2	_
-6	.	.	.	-	-	_	_	_	_
+def sdp_to_vulcan_dependency_graph(sdp_json):
 
-"""
+    print(sdp_json["tokens"])
+    print(sdp_json["edges"])
 
+    dep_tree = []
+    for source, label, target in sdp_json["edges"]:
+        # note that source and target are 1-based, but VULCAN expects 0-based
+        dep_tree.append((source - 1, target - 1, label))
 
-def sdp_to_vulcan_dependency_graph(sdp_string):
-    
-    for line in sdp_string.split("\n"):
-        if line.startswith("#"):
-            continue
-        if line.strip() == "":
-            continue
-        parts = line.split("\t")
-        print(parts)
+    print("sentence", [[t] for t in sdp_json["tokens"]])
+    print("dep_tree", dep_tree)
+
+    return sdp_json["tokens"], dep_tree
 
 
 def main():
-    sdp_to_vulcan_dependency_graph(example)
+    sdp_to_vulcan_dependency_graph(json.loads(example))
 
 
 if __name__ == '__main__':
