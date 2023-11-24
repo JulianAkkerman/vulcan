@@ -56,7 +56,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050,
                         help="Specify the port to use for this visualization.")
-    parser.add_argument("-a", "--address", type=int, action="store", dest="address", default='localhost',
+    parser.add_argument("-a", "--address", type=str, action="store", dest="address", default='localhost',
                         help="Specify the address to use for this visualization. Default is localhost. To host"
                              "on a server, use 0.0.0.0")
     # parser.add_argument("-pf", "--propbank-frames", type=str,
