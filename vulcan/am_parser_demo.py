@@ -15,8 +15,9 @@ input_dict = json.loads(
 # print(layout.layout)
 def request_data_to_layout(request_data):
     # TODO run parser on request data to give an input_dict
-
+    print(request_data)
     return BasicLayout.from_am_parser_dict(input_dict)
+
 
 def main():
     parser = ArgumentParser()

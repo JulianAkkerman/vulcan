@@ -14,7 +14,8 @@ from vulcan.search.table_cells.outer_table_cells_layer import OuterTableCellsLay
 from vulcan.data_handling.data_corpus import CorpusSlice, get_instance_reader_by_name
 from vulcan.data_handling.visualization_type import VisualizationType
 
-
+instance_reader_penman = get_instance_reader_by_name(FORMAT_NAME_GRAPH_STRING)
+instance_reader_table = get_instance_reader_by_name(FORMAT_NAME_OBJECT_TABLE)
 
 class BasicLayout:
 
@@ -40,21 +41,34 @@ class BasicLayout:
     @staticmethod
     def from_am_parser_dict(input_dict):
         slices = []
-        instance_reader_penman = get_instance_reader_by_name(FORMAT_NAME_GRAPH_STRING)
-        instance_reader_table = get_instance_reader_by_name(FORMAT_NAME_OBJECT_TABLE)
         for formalism in input_dict["parses"]:
             data = input_dict["parses"][formalism]
             if formalism == "AMR-2017":
-                amdep = next(iter(parse_amconll(io.StringIO(data["amdep"]+"\n\n"))))
-                amconll_instances = instance_reader_table.convert_instances([get_am_tagged_sentence(amdep)])
-                deptree = make_am_dependency_tree(amdep)
-                slices.append(CorpusSlice("AMR AM tree", amconll_instances, VisualizationType.TABLE, None,
-                                          None, None, [deptree]))
-                # amr_instances = instance_reader_penman.convert_instances([data["penman"]])
+                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "AMR")
+                slices.append(dependency_tree_slice)
+                amr_instances = instance_reader_penman.convert_instances([data["penman"]])
+                slices.append(CorpusSlice("AMR graph", amr_instances, VisualizationType.GRAPH, None,
+                                          None, None, None))
+            elif formalism == "EDS":
+                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "EDS")
+                slices.append(dependency_tree_slice)
+                eds_instances = instance_reader_penman.convert_instances([data["penman"]])
+                slices.append(CorpusSlice("EDS graph", eds_instances, VisualizationType.GRAPH, None,
+                                          None, None, None))
+            else:
+                print("Unknown formalism: " + formalism)
         linkers = []
         corpus_size = 1
         return BasicLayout(slices, linkers, corpus_size)
 
+    @staticmethod
+    def get_slice_for_amdeptree(data, formalism_name):
+        amdep = next(iter(parse_amconll(io.StringIO(data["amdep"] + "\n\n"))))
+        amconll_instances = instance_reader_table.convert_instances([get_am_tagged_sentence(amdep)])
+        deptree = make_am_dependency_tree(amdep)
+        dependency_tree_slice = CorpusSlice(formalism_name + " AM tree", amconll_instances, VisualizationType.TABLE, None,
+                                            None, None, [deptree])
+        return dependency_tree_slice
 
     def get_visualization_type_for_slice_name(self, slice_name: str) -> Optional[VisualizationType]:
         for row in self.layout:

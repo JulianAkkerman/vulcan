@@ -169,7 +169,6 @@ sio.on("set_graph", (data) => {
 })
 
 sio.on("set_table", (data) => {
-    console.log(data)
     let canvas = canvas_dict[data["canvas_name"]]
     remove_strings_from_canvas(canvas)
     let label_alternatives = null
@@ -179,7 +178,6 @@ sio.on("set_table", (data) => {
     let highlights = null
     if ("highlights" in data) {
         highlights = data["highlights"]
-        console.log(highlights)
     }
     let dependency_tree = null
     if ("dependency_tree" in data) {
@@ -421,9 +419,27 @@ function set_corpus_position(new_position) {
 // on Parse button press
 d3.select("#parseButton")
     .on("click", function() {
-      d3.select("#parseButton").attr("disabled", true)
-      sio.emit("parse", d3.select("#inputTextField").property("value"))
+        d3.select("#parseButton").attr("disabled", true)
+        let formats = []
+        if (d3.select("#amrCheckbox").property("checked")) {
+            formats.push("AMR-2017")
+        }
+        if (d3.select("#dmCheckbox").property("checked")) {
+            formats.push("DM")
+        }
+        if (d3.select("#pasCheckbox").property("checked")) {
+            formats.push("PAS")
+        }
+        if (d3.select("#psdCheckbox").property("checked")) {
+            formats.push("PSD")
+        }
+        if (d3.select("#edsCheckbox").property("checked")) {
+            formats.push("EDS")
+        }
+        sio.emit("parse", {"sentence": d3.select("#inputTextField").property("value"),
+            "formats": formats})
     });
+
 
 d3.select("body").on("keydown", function () {
     // keyCode of alt key is 18
