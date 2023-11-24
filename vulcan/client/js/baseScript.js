@@ -346,7 +346,7 @@ function set_layout(layout) {
         })
         height_here = height_here * (1 - 0.2 * (row.length - 1))  // make rows with many entries a bit smaller,
             // for a more balanced feel.
-        canvas_heights.push(height_here / 2.5) // division replaces previous normalization by total height
+        canvas_heights.push(height_here / 3.5) // division replaces previous normalization by total height
     })
     // no longer normalize the heights
     // let total_height = canvas_heights.reduce((a, b) => a + b, 0)
@@ -419,6 +419,7 @@ function set_corpus_position(new_position) {
 // on Parse button press
 d3.select("#parseButton")
     .on("click", function() {
+        reset()
         d3.select("#parseButton").attr("disabled", true)
         let formats = []
         if (d3.select("#amrCheckbox").property("checked")) {

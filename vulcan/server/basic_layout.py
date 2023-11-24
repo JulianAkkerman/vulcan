@@ -44,17 +44,17 @@ class BasicLayout:
         for formalism in input_dict["parses"]:
             data = input_dict["parses"][formalism]
             if formalism == "AMR-2017":
-                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "AMR")
-                slices.append(dependency_tree_slice)
                 amr_instances = instance_reader_penman.convert_instances([data["penman"]])
                 slices.append(CorpusSlice("AMR graph", amr_instances, VisualizationType.GRAPH, None,
                                           None, None, None))
-            elif formalism == "EDS":
-                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "EDS")
+                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "AMR")
                 slices.append(dependency_tree_slice)
+            elif formalism == "EDS":
                 eds_instances = instance_reader_penman.convert_instances([data["penman"]])
                 slices.append(CorpusSlice("EDS graph", eds_instances, VisualizationType.GRAPH, None,
                                           None, None, None))
+                dependency_tree_slice = BasicLayout.get_slice_for_amdeptree(data, "EDS")
+                slices.append(dependency_tree_slice)
             else:
                 print("Unknown formalism: " + formalism)
         linkers = []
@@ -79,7 +79,8 @@ class BasicLayout:
 
 
 def get_slice_screen_width(corpus_slice: CorpusSlice) -> float:
-    if corpus_slice.visualization_type in [VisualizationType.STRING, VisualizationType.TABLE]:
-        return 1.0
-    elif corpus_slice.visualization_type in [VisualizationType.TREE, VisualizationType.GRAPH]:
-        return 0.3
+    # if corpus_slice.visualization_type in [VisualizationType.STRING, VisualizationType.TABLE]:
+    #     return 1.0
+    # elif corpus_slice.visualization_type in [VisualizationType.TREE, VisualizationType.GRAPH]:
+    #     return 0.3
+    return 1.0  # for now everything in its own row

@@ -18,21 +18,29 @@
     <!--restricting to numbers as per
     https://stackoverflow.com/questions/13952686/how-to-make-html-input-tag-only-accept-numerical-values
      (somewhere a bit down)-->
-    <input style="text-align: left" type="text" size="150" id="inputTextField" value="">
-    <button id="parseButton" style="margin-left: 10px">Parse!</button>
+    <input style="text-align: left; width: 100%" type="text"  id="inputTextField" value="">
     <!-- select multiple from AMR, DM, PAS, PSD and EDS (checkboxes) -->
-    <div style="display: inline; margin-left: 30px">
-    <input type="checkbox" id="amrCheckbox" name="amr" value="amr" checked>
-    <label for="amr">AMR</label>
-    <input type="checkbox" id="dmCheckbox" name="dm" value="dm">
-    <label for="dm">DM</label>
-    <input type="checkbox" id="pasCheckbox" name="pas" value="pas">
-    <label for="pas">PAS</label>
-    <input type="checkbox" id="psdCheckbox" name="psd" value="psd">
-    <label for="psd">PSD</label>
-    <input type="checkbox" id="edsCheckbox" name="eds" value="eds">
-    <label for="eds">EDS</label>
-
+    <div style="display: block;margin-top: 10px">
+       <div style="display: inline;>
+      <input type="checkbox" id="amrCheckbox" name="amr" value="amr" checked>
+      <label for="amr">AMR</label>
+      <input type="checkbox" id="dmCheckbox" name="dm" value="dm">
+      <label for="dm">DM</label>
+      <input type="checkbox" id="pasCheckbox" name="pas" value="pas">
+      <label for="pas">PAS</label>
+      <input type="checkbox" id="psdCheckbox" name="psd" value="psd">
+      <label for="psd">PSD</label>
+      <input type="checkbox" id="edsCheckbox" name="eds" value="eds">
+      <label for="eds">EDS</label>
+    <button id="parseButton" style="margin-left: 20px; font-size: medium">Parse!</button>
+    </div>
+      <!--  below are checkboxes to hide AM trees or graphs. No functionality yet, just the html elements  -->
+<!--      <div style="display: inline; float:right;">-->
+<!--        <input type="checkbox" id="amtreeCheckbox" name="amtreeCheckbox" value="amtreeCheckbox">-->
+<!--        <label for="psd">Hide AM trees</label>-->
+<!--        <input type="checkbox" id="graphCheckbox" name="graphCheckbox" value="graphCheckbox">-->
+<!--        <label for="eds">Hide graphs</label>-->
+<!--      </div>-->
     </div>
     </div>
 

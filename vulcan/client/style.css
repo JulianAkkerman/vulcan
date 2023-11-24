@@ -12,3 +12,7 @@
   top: 10px;
   left: 0;
 }
+
+body {
+     overflow: scroll;  /* Always show scrollbars, so that screen width does not change as we add content (messes with layout) */
+   }
