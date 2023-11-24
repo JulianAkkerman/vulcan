@@ -138,6 +138,8 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
 
 sio.on('connect', () => {
     console.log('connected');
+    sio.emit("parse", {"sentence": "This is a test sentence.",
+            "formats": ["AMR-2017"]})
 });
 
 sio.on('disconnect', () => {
@@ -328,6 +330,7 @@ function register_mousover_alignment(mouseover_node, aligned_node, score, linker
 sio.on("set_layout", (layout) => {
     saved_layout = layout
     d3.select("#parseButton").attr("disabled", null)
+    d3.select("#parseButton").text("Parse!")
     set_layout(layout)
     sio.emit("instance_requested", 0);
 })
@@ -421,6 +424,7 @@ d3.select("#parseButton")
     .on("click", function() {
         reset()
         d3.select("#parseButton").attr("disabled", true)
+        d3.select("#parseButton").text("Parsing...")
         let formats = []
         if (d3.select("#amrCheckbox").property("checked")) {
             formats.push("AMR-2017")

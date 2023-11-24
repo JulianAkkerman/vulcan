@@ -43,6 +43,7 @@ class BasicLayout:
         slices = []
         for formalism in input_dict["parses"]:
             data = input_dict["parses"][formalism]
+            print("processing: " + formalism)
             if formalism == "AMR-2017":
                 amr_instances = instance_reader_penman.convert_instances([data["penman"]])
                 slices.append(CorpusSlice("AMR graph", amr_instances, VisualizationType.GRAPH, None,

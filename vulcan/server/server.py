@@ -165,6 +165,7 @@ class Server:
 
 
 def make_layout_sendable(layout: BasicLayout):
+    print("make_layout_sendable", layout)
     ret = []
     for row in layout.layout:
         ret.append([make_slice_sendable(s) for s in row])
