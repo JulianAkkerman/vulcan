@@ -116,7 +116,7 @@ class Server:
         @self.sio.event
         def parse(sid, data):
             self.current_layouts_by_sid[sid] = create_layout_function(data)
-            self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]), sid=sid)
+            self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]), to=sid)
 
     def start(self):
         wsgi.server(eventlet.listen((self.address, self.port)), self.app)
