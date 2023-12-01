@@ -71,7 +71,7 @@ class BasicLayout:
 
     @staticmethod
     def get_slice_for_amdeptree(data, formalism_name):
-        amdep = next(iter(parse_amconll(io.StringIO(data["amdep"] + "\n\n"))))
+        amdep = next(iter(parse_amconll(io.StringIO(data["amdep"].replace("~", "") + "\n\n"))))
         amconll_instances = instance_reader_table.convert_instances([get_am_tagged_sentence(amdep)])
         deptree = make_am_dependency_tree(amdep)
         dependency_tree_slice = CorpusSlice(formalism_name + " AM tree", amconll_instances, VisualizationType.TABLE, None,

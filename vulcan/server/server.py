@@ -43,13 +43,13 @@ class Server:
                 # self.current_layouts_by_sid[sid] = self.basic_layout
                 # self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
                 # self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
-                self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
+                self.sio.emit('set_show_node_names', {"show_node_names": show_node_names}, to=sid)
                 # # print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
                 # self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
                 # instance_requested(sid, 0)
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
         def on_disconnect(sid):
             print(sid, 'disconnected')
@@ -93,30 +93,30 @@ class Server:
                             elif corpus_slice.visualization_type == VisualizationType.TABLE:
                                 self.send_string_table(corpus_slice.name,
                                                        corpus_slice.instances[instance_id],
+                                                       sid,
                                                        label_alternatives_by_node_name,
                                                        highlights,
                                                        dependency_tree)
                             elif corpus_slice.visualization_type == VisualizationType.TREE:
                                 # trees are just graphs without reentrancies
-                                self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id], sid,
                                                 label_alternatives_by_node_name,
                                                 highlights)
                             elif corpus_slice.visualization_type == VisualizationType.GRAPH:
                                 self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                                sid,
                                                 label_alternatives_by_node_name,
                                                 highlights, mouseover_texts)
-                    for linker in self.current_layouts_by_sid[sid].linkers:
-                        self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
                 else:
                     print("No instances in corpus")
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
         @self.sio.event
         def parse(sid, data):
             self.current_layouts_by_sid[sid] = create_layout_function(data)
-            self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]))
+            self.sio.emit('set_layout', make_layout_sendable(self.current_layouts_by_sid[sid]), sid=sid)
 
     def start(self):
         wsgi.server(eventlet.listen((self.address, self.port)), self.app)
@@ -130,7 +130,7 @@ class Server:
         self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights,
                                dependency_tree)
 
-    def send_string_table(self, slice_name: str, table: List[List[str]],
+    def send_string_table(self, slice_name: str, table: List[List[str]], sid: str,
                           label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
                           highlights: Dict[Tuple[int, int], Union[str, List[str]]] = None,
                           dependency_tree: List[Tuple[int, int, str]] = None):
@@ -141,9 +141,9 @@ class Server:
             dict_to_sent["highlights"] = highlights
         if dependency_tree is not None:
             dict_to_sent["dependency_tree"] = dependency_tree
-        self.sio.emit('set_table', dict_to_sent)
+        self.sio.emit('set_table', dict_to_sent, to=sid)
 
-    def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
+    def send_graph(self, slice_name: str, graph: Dict, sid: str, label_alternatives_by_node_name: Dict = None,
                    highlights: Dict[str, Union[str, List[str]]] = None, mouseover_texts: Dict[str, str] = None):
         """
         graph must be of the graph_as_dict type.
@@ -155,14 +155,8 @@ class Server:
             dict_to_sent["highlights"] = highlights
         if mouseover_texts is not None:
             dict_to_sent["mouseover_texts"] = mouseover_texts
-        self.sio.emit('set_graph', dict_to_sent)
+        self.sio.emit('set_graph', dict_to_sent, to=sid)
 
-    def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):
-        if self.basic_layout.get_visualization_type_for_slice_name(name1) == VisualizationType.STRING:
-            scores = {str((0, k)).replace("'", ""): v for k, v in scores.items()}
-        if self.basic_layout.get_visualization_type_for_slice_name(name2) == VisualizationType.STRING:
-            scores = {k: {str((0, k2)).replace("'", ""): v for k2, v in d.items()} for k, d in scores.items()}
-        self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores})
 
 
 def make_layout_sendable(layout: BasicLayout):

@@ -74,7 +74,8 @@ def get_am_tagged_sentence(amconll_sent):
         tagged_token = []
         tagged_sentence.append(tagged_token)
         tagged_token.append(("token", entry.token))
-        tagged_token.append(("token", make_head_info_label(entry.head, amconll_sent)))
+        # TODO if we add alternative predictions back in, this should be added back in
+        # tagged_token.append(("token", make_head_info_label(entry.head, amconll_sent)))
         if entry.fragment == "_":
             tagged_token.append(("token", entry.fragment))
         else:

@@ -13,12 +13,19 @@
   <body>
 
     <h2>AM Parser Demo</h2>
+    <div style="margin-bottom: 20px">
+      This is a demo of the <a href="https://github.com/coli-saar/am-parser">AM parser</a>. The AM parser is a
+      compositional parser for a range of graphbanks: it parses a sentence into a so-called AM tree, which in turn
+      evaluates to a graph. Enter a sentence and select one or more graph formalisms to see it in action!
+      <br>
+      You can pan the trees and graphs normally, and zoom with the mousewheel with CTRL pressed.
+    </div>
     <div id="headerId">
     <!--input text field with width 50 and right alignment-->
     <!--restricting to numbers as per
     https://stackoverflow.com/questions/13952686/how-to-make-html-input-tag-only-accept-numerical-values
      (somewhere a bit down)-->
-    <input style="text-align: left; width: 100%" type="text"  id="inputTextField" value="">
+    <input style="text-align: left; width: 100%" type="text"  id="inputTextField" value="" placeholder="Enter sentence here">
     <!-- select multiple from AMR, DM, PAS, PSD and EDS (checkboxes) -->
     <div style="display: block;margin-top: 10px">
        <div style="display: inline;">

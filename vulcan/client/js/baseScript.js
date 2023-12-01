@@ -60,21 +60,29 @@ function create_canvas(width_percent, height_percent, name="", only_horizontal_z
       //   .style("box-shadow", "0px 0px 0px 10px black inset")
             .style("padding-left", "0px")
             .style("padding-right", "0px")
-      .call(d3.zoom().on("zoom", function ()
-      {
-        // Transform the 'g' element when zooming
-        // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
-        // console.log(d3.event.transform)
-        // let actual_transform = {
-        //     x: d3.event.transform.x,
-        //     y: d3.event.transform.y,
-        //     k: d3.event.transform.k
-        // }
-        if (only_horizontal_zoom) {
-            d3.event.transform.y = 0
-        }
-        d3.select(this).select("g").attr("transform", d3.event.transform);
-      }))
+      .call(d3.zoom().filter(() => {
+          if (d3.event.type === 'wheel') {
+            // don't allow zooming without pressing [ctrl] key
+            return d3.event.ctrlKey;
+          }
+
+          return true;
+        }).on("zoom", function ()
+          {
+            // Transform the 'g' element when zooming
+            // as per "update vor v4" in https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js
+            // console.log(d3.event.transform)
+            // let actual_transform = {
+            //     x: d3.event.transform.x,
+            //     y: d3.event.transform.y,
+            //     k: d3.event.transform.k
+            // }
+            if (only_horizontal_zoom) {
+                d3.event.transform.y = 0
+            }
+            console.log(d3.event.transform)
+            d3.select(this).select("g").attr("transform", d3.event.transform);
+          }))
 
     // console.log("canvas width after creation "+canvas.node().getBoundingClientRect().width)
 
