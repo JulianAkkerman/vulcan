@@ -58,12 +58,14 @@ def main():
                         help="Specify the port to use for this visualization.")
     parser.add_argument("-a", "--address", type=str, action="store", dest="address", default='localhost',
                         help="Specify the address to use for this visualization. Default is localhost. To host"
-                             "on a server, use 0.0.0.0")
+                             "on the server, use 0.0.0.0")
     parser.add_argument("-ap", "--amport", type=int, action="store", dest="amport", default=5050,
-                        help="Specify the port to use for this visualization.")
+                        help="Specify the port that the parser server uses (This interface sends parsing requests"
+                             "to the parser server and gets results back).")
     parser.add_argument("-aa", "--amaddress", type=str, action="store", dest="amaddress", default='localhost',
-                        help="Specify the address to use for this visualization. Default is localhost. To receive"
-                             "from a server, may need to change it.")
+                        help="Specify the address that the parser server uses. Default is localhost. To receive"
+                             "from a server, may need to change it, though at the time of writing, the server"
+                             "setup uses localhost.")
     # parser.add_argument("-pf", "--propbank-frames", type=str,
     #                     action="store", dest="propbank_frames", default=None,
     #                     help="Path to a folder containing XML files with Propbank frames, "
