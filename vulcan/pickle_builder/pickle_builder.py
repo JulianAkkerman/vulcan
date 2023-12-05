@@ -191,7 +191,16 @@ class PickleBuilder:
         lists iterate over the attention heads.
 
         """
-        
+        if run_checks:
+            assert linker_name in self.data
+        instances1 = self.data[self.data[linker_name]['name1']]['instances']
+        instances2 = self.data[self.data[linker_name]['name2']]['instances']
+        if run_checks:
+            assert len(instances1) == len(instances2)
+        while len(self.data[linker_name]["scores"]) < len(instances1):
+            self.data[linker_name]["scores"].append({})
+        element_2_dict = self.data[linker_name]["scores"][-1].setdefault(element_name_1, {})
+        element_2_dict[element_name_2] = score
 
     def _make_data_for_pickle(self, run_checks: bool = True):
         if run_checks:
