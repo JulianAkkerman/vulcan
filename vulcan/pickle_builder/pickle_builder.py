@@ -132,6 +132,9 @@ class PickleBuilder:
 
 
 def main():
+    """
+    This is a test for the PickleBuilder class and has no further purpose.
+    """
     pb = PickleBuilder({'Sentence': 'string', 'Graph': 'graph_string'})
     pb.add_instances_by_name({'Sentence': 'This is a test sentence.',
                               'Graph': '(s / sentence :domain (t / this) :mod (t2 / test))'})
