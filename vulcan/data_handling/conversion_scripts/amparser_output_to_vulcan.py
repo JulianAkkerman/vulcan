@@ -31,7 +31,6 @@ def main():
 
     pickle_builder = PickleBuilder({"Gold graph": "graph", "Predicted graph": "graph",
                                     "AM tree": "amtree", "Sentence": "object_table"})
-    pickle_builder.setup_dependency_tree("Sentence")
 
     pickle_builder_simple = PickleBuilder({"Gold graph": "graph", "Predicted graph": "graph",
                                            "Sentence": "tokenized_string"})
