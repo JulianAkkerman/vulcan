@@ -42,15 +42,15 @@ class Server:
             try:
                 print(sid, 'connected')
                 self.current_layouts_by_sid[sid] = self.basic_layout
-                self.sio.emit('set_layout', make_layout_sendable(self.basic_layout))
-                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
-                self.sio.emit('set_show_node_names', {"show_node_names": show_node_names})
+                self.sio.emit('set_layout', make_layout_sendable(self.basic_layout), to=sid)
+                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size, to=sid)
+                self.sio.emit('set_show_node_names', {"show_node_names": show_node_names}, to=sid)
                 # print("sending search filters", create_list_of_possible_search_filters(self.basic_layout))
-                self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout))
+                self.sio.emit('set_search_filters', create_list_of_possible_search_filters(self.basic_layout), to=sid)
                 instance_requested(sid, 0)
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
         def on_disconnect(sid):
             print(sid, 'disconnected')
