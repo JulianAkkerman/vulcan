@@ -89,66 +89,72 @@ class Server:
                             if corpus_slice.visualization_type == VisualizationType.STRING:
                                 self.send_string(corpus_slice.name,
                                                  corpus_slice.instances[instance_id],
+                                                 sid,
                                                  label_alternatives_by_node_name,
                                                  highlights,
                                                  dependency_tree)
                             elif corpus_slice.visualization_type == VisualizationType.TABLE:
                                 self.send_string_table(corpus_slice.name,
                                                        corpus_slice.instances[instance_id],
+                                                       sid,
                                                        label_alternatives_by_node_name,
                                                        highlights,
                                                        dependency_tree)
                             elif corpus_slice.visualization_type == VisualizationType.TREE:
                                 # trees are just graphs without reentrancies
                                 self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                                sid,
                                                 label_alternatives_by_node_name,
                                                 highlights)
                             elif corpus_slice.visualization_type == VisualizationType.GRAPH:
                                 self.send_graph(corpus_slice.name, corpus_slice.instances[instance_id],
+                                                sid,
                                                 label_alternatives_by_node_name,
                                                 highlights, mouseover_texts)
                     for linker in self.current_layouts_by_sid[sid].linkers:
-                        self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id])
+                        self.send_linker(linker["name1"], linker["name2"], linker["scores"][instance_id], sid)
                 else:
                     print("No instances in corpus")
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
         @self.sio.event
         def perform_search(sid, data):
             try:
                 self.current_layouts_by_sid[sid] = perform_search_on_layout(self.basic_layout,
                                                                             get_search_filters_from_data(data))
-                self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size)
-                self.sio.emit('search_completed', None)
+                self.sio.emit('set_corpus_length', self.current_layouts_by_sid[sid].corpus_size, to=sid)
+                self.sio.emit('search_completed', None, to=sid)
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
         @self.sio.event
         def clear_search(sid):
             try:
                 self.current_layouts_by_sid[sid] = self.basic_layout
-                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size)
-                self.sio.emit('search_completed', None)
+                self.sio.emit('set_corpus_length', self.basic_layout.corpus_size, to=sid)
+                self.sio.emit('search_completed', None, to=sid)
             except Exception as e:
                 logger.exception(e)
-                self.sio.emit("server_error")
+                self.sio.emit("server_error", to=sid)
 
     def start(self):
         wsgi.server(eventlet.listen((self.address, self.port)), self.app)
 
-    def send_string(self, slice_name: str, tokens: List[str], label_alternatives_by_node_name: Dict = None,
+    def send_string(self, slice_name: str, tokens: List[str], sid,
+                    label_alternatives_by_node_name: Dict = None,
                     highlights: Dict[int, Union[str, List[str]]] = None,
                     dependency_tree: List[Tuple[int, int, str]] = None):
         highlights,\
         label_alternatives_by_node_name = transform_string_maps_to_table_maps(highlights,
                                                                               label_alternatives_by_node_name)
-        self.send_string_table(slice_name, [[t] for t in tokens], label_alternatives_by_node_name, highlights,
+        self.send_string_table(slice_name, [[t] for t in tokens], sid,
+                               label_alternatives_by_node_name, highlights,
                                dependency_tree)
 
-    def send_string_table(self, slice_name: str, table: List[List[str]],
+    def send_string_table(self, slice_name: str, table: List[List[str]], sid,
                           label_alternatives_by_node_name: Dict[Tuple[int, int], Any] = None,
                           highlights: Dict[Tuple[int, int], Union[str, List[str]]] = None,
                           dependency_tree: List[Tuple[int, int, str]] = None):
@@ -159,9 +165,9 @@ class Server:
             dict_to_sent["highlights"] = highlights
         if dependency_tree is not None:
             dict_to_sent["dependency_tree"] = dependency_tree
-        self.sio.emit('set_table', dict_to_sent)
+        self.sio.emit('set_table', dict_to_sent, to=sid)
 
-    def send_graph(self, slice_name: str, graph: Dict, label_alternatives_by_node_name: Dict = None,
+    def send_graph(self, slice_name: str, graph: Dict, sid, label_alternatives_by_node_name: Dict = None,
                    highlights: Dict[str, Union[str, List[str]]] = None, mouseover_texts: Dict[str, str] = None):
         """
         graph must be of the graph_as_dict type.
@@ -173,14 +179,14 @@ class Server:
             dict_to_sent["highlights"] = highlights
         if mouseover_texts is not None:
             dict_to_sent["mouseover_texts"] = mouseover_texts
-        self.sio.emit('set_graph', dict_to_sent)
+        self.sio.emit('set_graph', dict_to_sent, to=sid)
 
-    def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]]):
+    def send_linker(self, name1: str, name2: str, scores: Dict[str, Dict[str, float]], sid):
         if self.basic_layout.get_visualization_type_for_slice_name(name1) == VisualizationType.STRING:
             scores = {str((0, k)).replace("'", ""): v for k, v in scores.items()}
         if self.basic_layout.get_visualization_type_for_slice_name(name2) == VisualizationType.STRING:
             scores = {k: {str((0, k2)).replace("'", ""): v for k2, v in d.items()} for k, d in scores.items()}
-        self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores})
+        self.sio.emit('set_linker', {"name1": name1, "name2": name2, "scores": scores}, to=sid)
 
 
 def make_layout_sendable(layout: BasicLayout):
