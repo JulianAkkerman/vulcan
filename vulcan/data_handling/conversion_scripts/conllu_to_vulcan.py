@@ -10,7 +10,6 @@ Converts a CoNLL-U file to a Vulcan (pickle) file.
 
 def conllu_sentences_to_vulcan_pickle(sentences, output_pickle_path):
     pickle_builder = PickleBuilder({"Sentence": FORMAT_NAME_STRING_TABLE})
-    pickle_builder.setup_dependency_tree("Sentence")
 
     for sentence in sentences:
         table = get_table_from_conll_sentence(sentence)
