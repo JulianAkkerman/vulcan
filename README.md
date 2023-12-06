@@ -1,5 +1,11 @@
-# vulcan
- Visualizations for Understanding Language Corpora and model predictioNs
+# VULCAN
+VULCAN (Visualizations for Understanding Language Corpora and model predictioNs) is a tool that makes it easy for you to look at your data! VULCAN visualizes linguistic objects like strings, trees and graphs as well as neural model properties like attention and alternate predictions with their likelihoods. 
+
+## Online Demo
+
+Have a look at the online demo here: https://vulcan-99e0.onrender.com/
+
+This demo shows predictions of the [AM parser](https://github.com/coli-saar/am-parser) on the [Little Prince AMR dataset](https://amr.isi.edu/download.html). This visualization corresponds to the case study in Section 5 of the paper (to appear at BlackboxNLP 2023).
 
 ## Setup
 
@@ -11,7 +17,9 @@ python3 -m pip install python-socketio eventlet penman amconll wikipedia nltk co
 
 You may want to do this within a virtual environment like a conda environment, as per your preference.
 
-## Running Vulcan
+## Running VULCAN
+
+VULCAN has a server-client setup: the server reads in a visualization input file once, and then hosts the visualization. The client is simply a website, showing the visualization in your browser. You can run this all locally on your computer, or on a server to share with the world.
 
 ### Creating an input file
 
