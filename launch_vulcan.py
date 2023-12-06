@@ -44,13 +44,9 @@ def main():
     else:
         propbank_path = None
 
-
-    # input_dicts = make_highlights_example()
-
-    launch_server_from_file(args.pickle_filename, port=args.port, is_json_file=args.is_json_file,
+    launch_server_from_file(args.pickle_filename, port=args.port, address=args.address, is_json_file=args.is_json_file,
                             show_node_names=args.show_node_names, propbank_path=propbank_path,
                             show_wikipedia_articles=args.show_wikipedia_articles)
-
 
 
 if __name__ == '__main__':
