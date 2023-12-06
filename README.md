@@ -1,6 +1,8 @@
 # VULCAN
 VULCAN (Visualizations for Understanding Language Corpora and model predictioNs) is a tool that makes it easy for you to look at your data! VULCAN visualizes linguistic objects like strings, trees and graphs as well as neural model properties like attention and alternate predictions with their likelihoods. 
 
+A paper introducing VULCAN has been accepted at BlackboxNLP 2023!
+
 ## Online Demo
 
 Have a look at the online demo here: https://vulcan-99e0.onrender.com/
