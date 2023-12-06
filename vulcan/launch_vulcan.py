@@ -26,6 +26,10 @@ def main():
                                             "Can take quite a while to load in the beginning!")
     parser.add_argument("-p", "--port", type=int, action="store", dest="port", default=5050,
                         help="Specify the port to use for this visualization.")
+    parser.add_argument("-a", "--address", action="store", dest="address", default="localhost",
+                        help="""Specify the address to use for this visualization. Use localhost (default) if you want to
+                                access the visualization only from your own computer. For hosting vulcan on a server,
+                        specifics may differ, but 0.0.0.0 may be a good place to start.""")
     parser.add_argument("--json", action="store_true", dest="is_json_file", default=False,
                         help="Use this flag if your input file is a JSON file rather than a pickle.")
     parser.add_argument("--show-node-names", action="store_true", dest="show_node_names", default=False,
