@@ -19,7 +19,7 @@ python3 -m pip install python-socketio eventlet penman amconll wikipedia nltk co
 
 You may want to do this within a virtual environment like a conda environment, as per your preference.
 
-## Running VULCAN
+## Using VULCAN
 
 VULCAN has a server-client setup: the server reads in a visualization input file once, and then hosts the visualization. The client is simply a website, showing the visualization in your browser. You can run this all locally on your computer, or on a server to share with the world.
 
