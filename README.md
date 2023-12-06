@@ -25,7 +25,7 @@ VULCAN has a server-client setup: the server reads in a visualization input file
 
 ### Creating an input file
 
-The first step in visualizing data with VULCAN is to create an input `pickle` or `json` file containing that data, in VULCAN's dictionary format. The most convenient way of building such a file is with the `vulcan.pickle_builder.PickleBuilder` class; see the documentation there. Full documentation of other options, and examples, will be added to this repo soon.
+The first step in visualizing data with VULCAN is to create an input `pickle` or `json` file containing that data, in VULCAN's dictionary format. The most convenient way of building such a file is with the `vulcan.pickle_builder.PickleBuilder` class; see the documentation there. You can find an example in the wiki [here](https://github.com/jgroschwitz/vulcan/wiki/Tutorial:-Creating-a-simple-visualization-input-file).
 
 ### Setting up the server
 
