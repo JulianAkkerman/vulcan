@@ -66,7 +66,7 @@ def make_graph_amtree_example():
     graphs = []
     amtrees = []
     sentences = []
-    with open("../../../data/Edinburgh/amr3.0leamr_and_seq2seq/unanonymized/subset/full.amconll") as f:
+    with open("../../data/Edinburgh/amr3.0leamr_and_seq2seq/unanonymized/subset/full.amconll") as f:
         am_sentences = parse_amconll(f)
 
         for am_sentence in am_sentences:
