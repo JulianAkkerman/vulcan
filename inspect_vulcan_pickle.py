@@ -6,8 +6,11 @@ def main():
     pickle_path = sys.argv[1]
     with open(pickle_path, "rb") as f:
         data = pickle.load(f)
+    print(f"Pickle file {pickle_path} has the following dictionaries:")
     for dictionary in data:
         print_dict(dictionary)
+
+    print("\nEnd of file.")
 
 
 def print_dict(dictionary):
