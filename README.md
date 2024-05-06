@@ -7,7 +7,10 @@ A [paper](https://aclanthology.org/2023.blackboxnlp-1.15.pdf) introducing VULCAN
 
 Have a look at the online demo here: https://vulcan-99e0.onrender.com/. (Note that the server goes idle when it is not in use, so it can take several seconds to load at first.)
 
-This demo shows predictions of the [AM parser](https://github.com/coli-saar/am-parser) on the [Little Prince AMR dataset](https://amr.isi.edu/download.html). This visualization corresponds to the case study in Section 5 of the paper (to appear at BlackboxNLP 2023).
+This demo shows predictions of the [AM parser](https://github.com/coli-saar/am-parser) on the [Little Prince AMR dataset](https://amr.isi.edu/download.html). This visualization corresponds to the case study in Section 5 of the [paper](https://aclanthology.org/2023.blackboxnlp-1.15.pdf).
+
+The input to this task is a sentence, shown in the bottom (within that bottom "Sentence" visualization, the bottom-most row is the input sentence). The final output of the task is a graph (center top; what would be the correct output is shown top right as "Gold graph"). The visualized parser here uses an intermediate structure called the AM tree (top right). This AM tree is also shown directly on top of the input sentence in the bottom visualization. Hold `CTRL` and hover over the predicted elements in the bottom visualization to show alternative predictions by the model and their likelihood. Drag the background to move each visualized element; use mousewheel to zoom.
+
 
 ## Setup
 
