@@ -5,7 +5,7 @@ A [paper](https://aclanthology.org/2023.blackboxnlp-1.15.pdf) introducing VULCAN
 
 ## Online Demo
 
-Have a look at the online demo here: https://vulcan-99e0.onrender.com/. (Note that the server goes idle when it is not in use, so it can take several seconds to load at first.)
+Have a look at the online demo here: https://vulcan-99e0.onrender.com/.
 
 This demo shows predictions of the [AM parser](https://github.com/coli-saar/am-parser) on the [Little Prince AMR dataset](https://amr.isi.edu/download.html). This visualization corresponds to the case study in Section 5 of the [paper](https://aclanthology.org/2023.blackboxnlp-1.15.pdf).
 
