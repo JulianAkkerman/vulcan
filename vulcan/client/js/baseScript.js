@@ -408,6 +408,11 @@ sio.on("search_completed", (data) => {
     sio.emit("instance_requested", current_corpus_position);
 })
 
+sio.on("refresh_to_position_zero", (data) => {
+    set_corpus_position(0)
+    sio.emit("instance_requested", current_corpus_position);
+})
+
 sio.on("set_search_filters", (data) => {
     SEARCH_PATTERNS = data
 })

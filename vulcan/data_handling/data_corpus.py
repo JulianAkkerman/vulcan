@@ -87,7 +87,7 @@ def load_linker_entry(data_corpus, entry):
 
 def load_data_entry(data_corpus, entry, propbank_frames_dict, show_wikipedia):
     name = process_name(entry)
-    input_format, instance_reader, instances = process_instancess(data_corpus, entry, name)
+    input_format, instance_reader, instances = process_instances(data_corpus, entry, name)
     label_alternatives = process_label_alternatives(data_corpus, entry, name)
     dependency_trees = process_dependency_trees(data_corpus, entry, name)
     highlights = process_highlights(data_corpus, entry, name)
@@ -113,7 +113,7 @@ def process_name(entry):
     return name
 
 
-def process_instancess(data_corpus, entry, name):
+def process_instances(data_corpus, entry, name):
     instances = entry['instances']
     if not instances:
         raise ValueError('Error when creating DataCorpus from dict list: "instances" entry is required for'

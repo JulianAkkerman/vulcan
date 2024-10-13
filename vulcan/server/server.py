@@ -4,6 +4,7 @@ import socketio
 from eventlet import wsgi
 
 import vulcan.search
+from vulcan.file_loader import create_layout_from_filepath
 from vulcan.search.search import SearchFilter, perform_search_on_layout, create_list_of_possible_search_filters
 from vulcan.data_handling.data_corpus import CorpusSlice
 from vulcan.data_handling.linguistic_objects.graphs.penman_converter import from_penman_graph
@@ -212,3 +213,14 @@ def get_search_filters_from_data(data):
                                            search_filter_data["inner_layer_inputs"],
                                            search_filter_data["color"]))
     return search_filters
+
+
+def load_new_pickle_for_server_and_refresh_clients(server: Server, new_pickle_path: str):
+    new_layout = create_layout_from_filepath(new_pickle_path)
+    server.basic_layout = new_layout
+    for sid in server.current_layouts_by_sid:
+        print("refreshing ", sid)
+        server.current_layouts_by_sid[sid] = new_layout
+        server.sio.emit('set_layout', make_layout_sendable(new_layout), to=sid)
+        server.sio.emit('set_corpus_length', new_layout.corpus_size, to=sid)
+        server.sio.emit('refresh_to_position_zero', new_layout.corpus_size, to=sid)
