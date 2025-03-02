@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: amconll
+Version: 1.0.2
+Summary: AMCONLL file and class utilities for using, reading and writing AM-dependency annotated sentences
+Author: coli-saar
+
